@@ -692,6 +692,42 @@ function EliteUI:CreateWindow(options)
         ScreenGui:Destroy()
     end
     
+    -- Set Size function (dynamically resize the window)
+    function Window:SetSize(width, height)
+        windowWidth = width or windowWidth
+        windowHeight = height or windowHeight
+        
+        local targetSize = UDim2.new(0, windowWidth, 0, windowHeight)
+        local targetPos = UDim2.new(0.5, -windowWidth/2, 0.5, -windowHeight/2)
+        
+        MainFrame:SetAttribute("TargetSize", targetSize)
+        MainFrame:SetAttribute("TargetPosition", targetPos)
+        
+        if Config.Animation.Enabled then
+            animate(MainFrame, {
+                Size = targetSize,
+                Position = targetPos
+            }, Config.Animation.Duration, Config.Animation.EasingStyle, Config.Animation.EasingDirection)
+        else
+            MainFrame.Size = targetSize
+            MainFrame.Position = targetPos
+        end
+    end
+    
+    -- Set Scale function (adjust size by scale factor)
+    function Window:SetScale(scaleFactor)
+        local baseWidth = DeviceType == "Mobile" and 360 or 420
+        local baseHeight = DeviceType == "Mobile" and 320 or 380
+        local newWidth = math.floor(baseWidth * scaleFactor)
+        local newHeight = math.floor(baseHeight * scaleFactor)
+        Window:SetSize(newWidth, newHeight)
+    end
+    
+    -- Get current size
+    function Window:GetSize()
+        return windowWidth, windowHeight
+    end
+    
     -- Notification function
     function Window:Notify(options)
         local notifWidth = DeviceType == "Mobile" and 260 or 300
