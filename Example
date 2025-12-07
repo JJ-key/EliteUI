@@ -1,13 +1,53 @@
--- EliteUI Complete Example Script
--- This script demonstrates all available components
--- Replace the URL below with your own hosted Loader URL
+-- EliteUI v3.0.0 Complete Example Script
+-- This script demonstrates all available features including:
+-- - Responsive UI sizing (auto-adjusts for PC vs Mobile)
+-- - PC keybind support (RightShift to toggle by default)
+-- - Smooth animations
+-- - Theme customization
+-- - Settings save/load system
+-- - Custom logo support
 
+-- Replace the URL below with your own hosted Loader URL
 local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/refs/heads/main/Loader"))()
 
--- Create Window
+-- Create Window with all options
 local Window = EliteUI:CreateWindow({
     Name = "EliteUI Demo Hub",
     LoadingTitle = "Loading...",
+    Subtitle = "v3.0",
+    
+    -- Optional: Custom logo (use Roblox asset ID)
+    -- Logo = "rbxassetid://123456789",
+    
+    -- Custom toggle keybind (default is RightShift)
+    ToggleKey = Enum.KeyCode.RightShift,
+    
+    -- Custom save folder and file
+    SaveFolder = "EliteUIDemo",
+    SaveFile = "config.json",
+    
+    -- Custom UI scale per device (optional)
+    UIScale = {
+        PC = 1.0,
+        Mobile = 0.85,
+        Tablet = 0.9
+    },
+    
+    -- Animation settings (optional)
+    Animation = {
+        Enabled = true,
+        Duration = 0.3
+    },
+    
+    -- Custom theme colors (optional)
+    Theme = {
+        Primary = Color3.fromRGB(59, 130, 246),
+        Background = Color3.fromRGB(26, 29, 36),
+        Secondary = Color3.fromRGB(42, 45, 53),
+        Text = Color3.fromRGB(255, 255, 255),
+        TextSecondary = Color3.fromRGB(156, 163, 175),
+        Accent = Color3.fromRGB(99, 102, 241)
+    }
 })
 
 -- Create Tabs
@@ -21,8 +61,8 @@ local SettingsTab = Window:CreateTab("Settings", "settings")
 MainTab:CreateSection("Welcome")
 
 MainTab:CreateParagraph({
-    Title = "EliteUI Library",
-    Content = "A modern, mobile-optimized UI library for Roblox with dark blue theme."
+    Title = "EliteUI v3.0.0",
+    Content = "A modern, responsive UI library with PC & Mobile support, animations, and save system."
 })
 
 MainTab:CreateButton({
@@ -49,6 +89,16 @@ MainTab:CreateTextBox({
     end
 })
 
+-- Toggle with auto-save using Flag
+MainTab:CreateToggle({
+    Name = "Auto Save Example",
+    CurrentValue = false,
+    Flag = "AutoSaveToggle",
+    Callback = function(Value)
+        print("Auto Save:", Value)
+    end
+})
+
 -- ==========================================
 -- Combat Tab - Advanced Components
 -- ==========================================
@@ -57,6 +107,7 @@ CombatTab:CreateSection("Combat Features")
 CombatTab:CreateToggle({
     Name = "Kill Aura",
     CurrentValue = false,
+    Flag = "KillAura",
     Callback = function(Value)
         print("Kill Aura:", Value)
     end
@@ -67,6 +118,7 @@ CombatTab:CreateSlider({
     Min = 5,
     Max = 50,
     CurrentValue = 15,
+    Flag = "AttackRange",
     Callback = function(Value)
         print("Range:", Value)
     end
@@ -76,6 +128,7 @@ CombatTab:CreateDropdown({
     Name = "Target Mode",
     Options = {"Nearest", "Lowest HP", "Random", "Manual"},
     CurrentValue = "Nearest",
+    Flag = "TargetMode",
     Callback = function(Option)
         print("Selected:", Option)
     end
@@ -84,6 +137,7 @@ CombatTab:CreateDropdown({
 CombatTab:CreateKeybind({
     Name = "Toggle Aura",
     CurrentKeybind = Enum.KeyCode.E,
+    Flag = "AuraKeybind",
     Callback = function(NewKey)
         print("New keybind:", NewKey.Name)
     end,
@@ -97,6 +151,7 @@ CombatTab:CreateSection("Additional Options")
 CombatTab:CreateToggle({
     Name = "Auto Farm",
     CurrentValue = false,
+    Flag = "AutoFarm",
     Callback = function(Value)
         print("Auto Farm:", Value)
     end
@@ -107,6 +162,7 @@ CombatTab:CreateSlider({
     Min = 16,
     Max = 200,
     CurrentValue = 16,
+    Flag = "WalkSpeed",
     Callback = function(Value)
         print("Walk Speed:", Value)
     end
@@ -115,23 +171,45 @@ CombatTab:CreateSlider({
 -- ==========================================
 -- Settings Tab - Customization Components
 -- ==========================================
-SettingsTab:CreateSection("Customization")
+SettingsTab:CreateSection("Theme Customization")
 
 SettingsTab:CreateColorPicker({
     Name = "UI Accent Color",
     CurrentColor = Color3.fromRGB(59, 130, 246),
+    Flag = "AccentColor",
     Callback = function(Color)
         print("Color changed:", Color)
+        -- Apply the color to the UI theme
+        Window:SetTheme({
+            Primary = Color
+        })
     end
 })
 
 SettingsTab:CreateDropdown({
-    Name = "Theme",
-    Options = {"Dark Blue", "Dark Purple", "Dark Green"},
+    Name = "Theme Preset",
+    Options = {"Dark Blue", "Dark Purple", "Dark Green", "Dark Red"},
     CurrentValue = "Dark Blue",
+    Flag = "ThemePreset",
     Callback = function(Theme)
         print("Theme:", Theme)
+        local themes = {
+            ["Dark Blue"] = Color3.fromRGB(59, 130, 246),
+            ["Dark Purple"] = Color3.fromRGB(168, 85, 247),
+            ["Dark Green"] = Color3.fromRGB(34, 197, 94),
+            ["Dark Red"] = Color3.fromRGB(239, 68, 68)
+        }
+        Window:SetTheme({
+            Primary = themes[Theme]
+        })
     end
+})
+
+SettingsTab:CreateSection("Controls")
+
+SettingsTab:CreateParagraph({
+    Title = "Toggle UI",
+    Content = "PC: Press RightShift | Mobile: Triple-tap with 3 fingers"
 })
 
 SettingsTab:CreateSection("Notifications")
@@ -139,6 +217,7 @@ SettingsTab:CreateSection("Notifications")
 SettingsTab:CreateToggle({
     Name = "Show Notifications",
     CurrentValue = true,
+    Flag = "ShowNotifications",
     Callback = function(Value)
         print("Notifications:", Value)
     end
@@ -155,11 +234,25 @@ SettingsTab:CreateButton({
     end
 })
 
+SettingsTab:CreateSection("Data Management")
+
+SettingsTab:CreateButton({
+    Name = "Clear All Saved Settings",
+    Callback = function()
+        Window:ClearSettings()
+        Window:Notify({
+            Title = "Settings Cleared",
+            Content = "All saved settings have been deleted.",
+            Duration = 3
+        })
+    end
+})
+
 SettingsTab:CreateSection("Info")
 
-SettingsTab:CreateLabel("EliteUI v2.0.0")
+SettingsTab:CreateLabel("EliteUI v3.0.0")
 
 SettingsTab:CreateParagraph({
     Title = "About",
-    Content = "Built for Roblox Mobile. Triple-tap with 3 fingers to toggle UI."
+    Content = "Built for Roblox with PC & Mobile support. Settings are saved automatically."
 })
