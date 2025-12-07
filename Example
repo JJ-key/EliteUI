@@ -20,11 +20,11 @@ local Window = EliteUI:CreateWindow({
     -- Key System (optional - can be disabled or removed entirely)
     KeySystem = {
         Enabled = true,
-        URL = "https://pastebin.com/raw/YOURKEY",
+        URL = "https://raw.githubusercontent.com/JJ-key/Free-lock-script/refs/heads/main/Key",
         Title = "Key Required",
         Subtitle = "Enter your key to continue",
         NoteName = "key is 123",
-        NoteURL = "https://yoursite.com/getkey",
+        NoteURL = "https://discord.gg/abc1",
         SaveKey = true,
         FileName = "key.txt"
     },
