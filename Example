@@ -1,15 +1,23 @@
+-- EliteUI Complete Example Script
+-- This script demonstrates all available components
+-- Replace the URL below with your own hosted Loader URL
+
 local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/refs/heads/main/Loader"))()
 
+-- Create Window
 local Window = EliteUI:CreateWindow({
     Name = "EliteUI Demo Hub",
     LoadingTitle = "Loading...",
 })
 
+-- Create Tabs
 local MainTab = Window:CreateTab("Main", "home")
 local CombatTab = Window:CreateTab("Combat", "sword")
 local SettingsTab = Window:CreateTab("Settings", "settings")
 
--- Main Tab
+-- ==========================================
+-- Main Tab - Basic Components
+-- ==========================================
 MainTab:CreateSection("Welcome")
 
 MainTab:CreateParagraph({
@@ -29,17 +37,21 @@ MainTab:CreateButton({
     end
 })
 
-MainTab:CreateLabel("This is a simple label")
+local StatusLabel = MainTab:CreateLabel("Status: Ready")
 
 MainTab:CreateTextBox({
     Name = "Username",
     Placeholder = "Enter username...",
+    CurrentValue = "",
     Callback = function(Text, EnterPressed)
         print("Input:", Text)
+        StatusLabel:SetText("Username: " .. Text)
     end
 })
 
--- Combat Tab
+-- ==========================================
+-- Combat Tab - Advanced Components
+-- ==========================================
 CombatTab:CreateSection("Combat Features")
 
 CombatTab:CreateToggle({
@@ -72,15 +84,37 @@ CombatTab:CreateDropdown({
 CombatTab:CreateKeybind({
     Name = "Toggle Aura",
     CurrentKeybind = Enum.KeyCode.E,
-    Callback = function(Key)
-        print("New keybind:", Key.Name)
+    Callback = function(NewKey)
+        print("New keybind:", NewKey.Name)
     end,
     HoldCallback = function()
         print("Keybind pressed!")
     end
 })
 
--- Settings Tab
+CombatTab:CreateSection("Additional Options")
+
+CombatTab:CreateToggle({
+    Name = "Auto Farm",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Auto Farm:", Value)
+    end
+})
+
+CombatTab:CreateSlider({
+    Name = "Walk Speed",
+    Min = 16,
+    Max = 200,
+    CurrentValue = 16,
+    Callback = function(Value)
+        print("Walk Speed:", Value)
+    end
+})
+
+-- ==========================================
+-- Settings Tab - Customization Components
+-- ==========================================
 SettingsTab:CreateSection("Customization")
 
 SettingsTab:CreateColorPicker({
@@ -100,6 +134,8 @@ SettingsTab:CreateDropdown({
     end
 })
 
+SettingsTab:CreateSection("Notifications")
+
 SettingsTab:CreateToggle({
     Name = "Show Notifications",
     CurrentValue = true,
@@ -109,7 +145,7 @@ SettingsTab:CreateToggle({
 })
 
 SettingsTab:CreateButton({
-    Name = "Show Notification",
+    Name = "Show Test Notification",
     Callback = function()
         Window:Notify({
             Title = "Hello!",
@@ -117,4 +153,13 @@ SettingsTab:CreateButton({
             Duration = 4
         })
     end
+})
+
+SettingsTab:CreateSection("Info")
+
+SettingsTab:CreateLabel("EliteUI v2.0.0")
+
+SettingsTab:CreateParagraph({
+    Title = "About",
+    Content = "Built for Roblox Mobile. Triple-tap with 3 fingers to toggle UI."
 })
