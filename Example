@@ -28,9 +28,9 @@ local Window = EliteUI:CreateWindow({
     
     -- Custom UI scale per device (optional)
     UIScale = {
-        PC = 1.0,
-        Mobile = 0.85,
-        Tablet = 0.9
+        PC = 1.4,
+        Mobile = 0.95,
+        Tablet = 1.3
     },
     
     -- Animation settings (optional)
