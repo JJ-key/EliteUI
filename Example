@@ -1,7 +1,7 @@
-local EliteUI = loadstring(game:HttpsGet("https://raw.githubusercontent.com/JJ-key/EliteUI/refs/heads/main/Loader")()
+local EliteUI = loadstring(game:HttpGet("YOUR_URL/Loader"))()
 
 local Window = EliteUI:CreateWindow({
-    Name = "My Script Hub",
+    Name = "EliteUI Demo Hub",
     LoadingTitle = "Loading...",
 })
 
@@ -9,15 +9,37 @@ local MainTab = Window:CreateTab("Main", "home")
 local CombatTab = Window:CreateTab("Combat", "sword")
 local SettingsTab = Window:CreateTab("Settings", "settings")
 
+-- Main Tab
 MainTab:CreateSection("Welcome")
+
+MainTab:CreateParagraph({
+    Title = "EliteUI Library",
+    Content = "A modern, mobile-optimized UI library for Roblox with dark blue theme."
+})
 
 MainTab:CreateButton({
     Name = "Click Me",
     Callback = function()
         print("Button clicked!")
+        Window:Notify({
+            Title = "Success!",
+            Content = "You clicked the button.",
+            Duration = 3
+        })
     end
 })
 
+MainTab:CreateLabel("This is a simple label")
+
+MainTab:CreateTextBox({
+    Name = "Username",
+    Placeholder = "Enter username...",
+    Callback = function(Text, EnterPressed)
+        print("Input:", Text)
+    end
+})
+
+-- Combat Tab
 CombatTab:CreateSection("Combat Features")
 
 CombatTab:CreateToggle({
@@ -35,5 +57,64 @@ CombatTab:CreateSlider({
     CurrentValue = 15,
     Callback = function(Value)
         print("Range:", Value)
+    end
+})
+
+CombatTab:CreateDropdown({
+    Name = "Target Mode",
+    Options = {"Nearest", "Lowest HP", "Random", "Manual"},
+    CurrentValue = "Nearest",
+    Callback = function(Option)
+        print("Selected:", Option)
+    end
+})
+
+CombatTab:CreateKeybind({
+    Name = "Toggle Aura",
+    CurrentKeybind = Enum.KeyCode.E,
+    Callback = function(Key)
+        print("New keybind:", Key.Name)
+    end,
+    HoldCallback = function()
+        print("Keybind pressed!")
+    end
+})
+
+-- Settings Tab
+SettingsTab:CreateSection("Customization")
+
+SettingsTab:CreateColorPicker({
+    Name = "UI Accent Color",
+    CurrentColor = Color3.fromRGB(59, 130, 246),
+    Callback = function(Color)
+        print("Color changed:", Color)
+    end
+})
+
+SettingsTab:CreateDropdown({
+    Name = "Theme",
+    Options = {"Dark Blue", "Dark Purple", "Dark Green"},
+    CurrentValue = "Dark Blue",
+    Callback = function(Theme)
+        print("Theme:", Theme)
+    end
+})
+
+SettingsTab:CreateToggle({
+    Name = "Show Notifications",
+    CurrentValue = true,
+    Callback = function(Value)
+        print("Notifications:", Value)
+    end
+})
+
+SettingsTab:CreateButton({
+    Name = "Show Notification",
+    Callback = function()
+        Window:Notify({
+            Title = "Hello!",
+            Content = "This is a notification from EliteUI.",
+            Duration = 4
+        })
     end
 })

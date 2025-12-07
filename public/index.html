@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EliteUI - Roblox Mobile UI Library</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">E</div>
+          <div class="logo-text">
+            <h1>EliteUI</h1>
+            <span class="version">v2.0.0</span>
+          </div>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="#about" class="nav-item active" data-section="about">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-text">About</span>
+        </a>
+        <a href="#installation" class="nav-item" data-section="installation">
+          <span class="nav-icon">📥</span>
+          <span class="nav-text">Installation</span>
+        </a>
+        <a href="#components" class="nav-item" data-section="components">
+          <span class="nav-icon">🧩</span>
+          <span class="nav-text">Components</span>
+        </a>
+        <a href="#example" class="nav-item" data-section="example">
+          <span class="nav-icon">📝</span>
+          <span class="nav-text">Example</span>
+        </a>
+        <a href="#links" class="nav-item" data-section="links">
+          <span class="nav-icon">🔗</span>
+          <span class="nav-text">Quick Links</span>
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <p>Built for Roblox Mobile</p>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <section id="about" class="content-section active">
+        <div class="section-header">
+          <h2>About EliteUI</h2>
+          <p class="tagline">A modern, mobile-optimized UI library for Roblox</p>
+        </div>
+        
+        <p class="intro-text">EliteUI is a sleek, modern UI library designed specifically for Roblox mobile scripts. It features a beautiful dark blue theme, intuitive mobile gestures, and easy-to-use components.</p>
+        
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">📱</div>
+            <h3>Mobile Optimized</h3>
+            <p>Built from the ground up for mobile devices with touch-friendly controls</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🎨</div>
+            <h3>Beautiful Design</h3>
+            <p>Modern dark blue theme with smooth animations and clean typography</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">👆</div>
+            <h3>Gesture Support</h3>
+            <p>Triple-tap with 3 fingers to toggle the UI visibility</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔧</div>
+            <h3>Easy to Use</h3>
+            <p>Simple API with intuitive methods for creating UI elements</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="installation" class="content-section">
+        <div class="section-header">
+          <h2>Installation</h2>
+        </div>
+        
+        <p>Load EliteUI in your Roblox script using the following code:</p>
+        
+        <div class="code-block">
+          <div class="code-header">
+            <span>Lua</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code id="loader-code">local EliteUI = loadstring(game:HttpGet("YOUR_URL/Loader"))()</code></pre>
+        </div>
+        
+        <div class="info-box">
+          <strong>Loader URL:</strong>
+          <span id="loader-url">Loading...</span>
+          <button class="copy-btn small" onclick="copyLoaderUrl()">Copy URL</button>
+        </div>
+      </section>
+
+      <section id="components" class="content-section">
+        <div class="section-header">
+          <h2>Available Components</h2>
+        </div>
+        
+        <div class="component-list">
+          <div class="component">
+            <h3>Window</h3>
+            <p>The main container for your UI</p>
+            <div class="code-block">
+              <pre><code>local Window = EliteUI:CreateWindow({
+    Name = "My Script Hub",
+    LoadingTitle = "Loading...",
+})</code></pre>
+            </div>
+          </div>
+
+          <div class="component">
+            <h3>Tab</h3>
+            <p>Create navigation tabs to organize your UI</p>
+            <div class="code-block">
+              <pre><code>local MainTab = Window:CreateTab("Main", "home")
+local SettingsTab = Window:CreateTab("Settings", "settings")</code></pre>
+            </div>
+          </div>
+
+          <div class="component">
+            <h3>Section</h3>
+            <p>Group related elements together</p>
+            <div class="code-block">
+              <pre><code>MainTab:CreateSection("Welcome")</code></pre>
+            </div>
+          </div>
+
+          <div class="component">
+            <h3>Button</h3>
+            <p>Clickable button with callback</p>
+            <div class="code-block">
+              <pre><code>MainTab:CreateButton({
+    Name = "Click Me",
+    Callback = function()
+        print("Button clicked!")
+    end
+})</code></pre>
+            </div>
+          </div>
+
+          <div class="component">
+            <h3>Toggle</h3>
+            <p>On/Off switch with state callback</p>
+            <div class="code-block">
+              <pre><code>MainTab:CreateToggle({
+    Name = "Enable Feature",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Toggle:", Value)
+    end
+})</code></pre>
+            </div>
+          </div>
+
+          <div class="component">
+            <h3>Slider</h3>
+            <p>Value slider with min/max range</p>
+            <div class="code-block">
+              <pre><code>MainTab:CreateSlider({
+    Name = "Speed",
+    Min = 0,
+    Max = 100,
+    CurrentValue = 50,
+    Callback = function(Value)
+        print("Speed:", Value)
+    end
+})</code></pre>
+            </div>
+          </div>
+
+          <div class="component">
+            <h3>Dropdown</h3>
+            <p>Selection menu with multiple options</p>
+            <div class="code-block">
+              <pre><code>MainTab:CreateDropdown({
+    Name = "Select Mode",
+    Options = {"Option 1", "Option 2", "Option 3"},
+    CurrentValue = "Option 1",
+    Callback = function(Option)
+        print("Selected:", Option)
+    end
+})</code></pre>
+            </div>
+          </div>
+
+          <div class="component">
+            <h3>TextBox</h3>
+            <p>Text input field with placeholder</p>
+            <div class="code-block">
+              <pre><code>MainTab:CreateTextBox({
+    Name = "Username",
+    Placeholder = "Enter text...",
+    CurrentValue = "",
+    Callback = function(Text, EnterPressed)
+        print("Input:", Text)
+    end
+})</code></pre>
+            </div>
+          </div>
+
+          <div class="component">
+            <h3>Label</h3>
+            <p>Dynamic text label that can be updated</p>
+            <div class="code-block">
+              <pre><code>local MyLabel = MainTab:CreateLabel("Hello World!")
+MyLabel:SetText("Updated text!")</code></pre>
+            </div>
+          </div>
+
+          <div class="component">
+            <h3>Paragraph</h3>
+            <p>Title with description text block</p>
+            <div class="code-block">
+              <pre><code>MainTab:CreateParagraph({
+    Title = "Information",
+    Content = "This is a longer description text."
+})</code></pre>
+            </div>
+          </div>
+
+          <div class="component">
+            <h3>Keybind</h3>
+            <p>Customizable keyboard shortcut picker</p>
+            <div class="code-block">
+              <pre><code>MainTab:CreateKeybind({
+    Name = "Toggle Feature",
+    CurrentKeybind = Enum.KeyCode.E,
+    Callback = function(NewKey)
+        print("New keybind:", NewKey.Name)
+    end,
+    HoldCallback = function()
+        print("Key pressed!")
+    end
+})</code></pre>
+            </div>
+          </div>
+
+          <div class="component">
+            <h3>Color Picker</h3>
+            <p>Choose from preset colors (click to cycle)</p>
+            <div class="code-block">
+              <pre><code>local MyColor = MainTab:CreateColorPicker({
+    Name = "Accent Color",
+    CurrentColor = Color3.fromRGB(59, 130, 246),
+    Callback = function(Color)
+        print("Color:", Color)
+    end
+})
+MyColor:SetColor(Color3.fromRGB(255, 0, 0))</code></pre>
+            </div>
+          </div>
+
+          <div class="component">
+            <h3>Notification</h3>
+            <p>Show toast notifications to the user</p>
+            <div class="code-block">
+              <pre><code>Window:Notify({
+    Title = "Success!",
+    Content = "Operation completed successfully.",
+    Duration = 3
+})</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="example" class="content-section">
+        <div class="section-header">
+          <h2>Complete Example</h2>
+        </div>
+        
+        <div class="code-block large">
+          <div class="code-header">
+            <span>Example Script</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code>local EliteUI = loadstring(game:HttpGet("YOUR_URL/Loader"))()
+
+local Window = EliteUI:CreateWindow({
+    Name = "EliteUI Demo Hub",
+    LoadingTitle = "Loading...",
+})
+
+local MainTab = Window:CreateTab("Main", "home")
+local CombatTab = Window:CreateTab("Combat", "sword")
+local SettingsTab = Window:CreateTab("Settings", "settings")
+
+-- Main Tab
+MainTab:CreateSection("Welcome")
+
+MainTab:CreateParagraph({
+    Title = "EliteUI Library",
+    Content = "A modern, mobile-optimized UI library for Roblox."
+})
+
+MainTab:CreateButton({
+    Name = "Show Notification",
+    Callback = function()
+        Window:Notify({
+            Title = "Success!",
+            Content = "Button clicked successfully.",
+            Duration = 3
+        })
+    end
+})
+
+MainTab:CreateLabel("This is a dynamic label")
+
+MainTab:CreateTextBox({
+    Name = "Username",
+    Placeholder = "Enter username...",
+    Callback = function(Text)
+        print("Input:", Text)
+    end
+})
+
+-- Combat Tab
+CombatTab:CreateSection("Combat Features")
+
+CombatTab:CreateToggle({
+    Name = "Kill Aura",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Kill Aura:", Value)
+    end
+})
+
+CombatTab:CreateSlider({
+    Name = "Attack Range",
+    Min = 5,
+    Max = 50,
+    CurrentValue = 15,
+    Callback = function(Value)
+        print("Range:", Value)
+    end
+})
+
+CombatTab:CreateDropdown({
+    Name = "Target Mode",
+    Options = {"Nearest", "Lowest HP", "Random"},
+    CurrentValue = "Nearest",
+    Callback = function(Option)
+        print("Selected:", Option)
+    end
+})
+
+CombatTab:CreateKeybind({
+    Name = "Toggle Aura",
+    CurrentKeybind = Enum.KeyCode.E,
+    HoldCallback = function()
+        print("Keybind pressed!")
+    end
+})
+
+-- Settings Tab
+SettingsTab:CreateSection("Customization")
+
+SettingsTab:CreateColorPicker({
+    Name = "Accent Color",
+    CurrentColor = Color3.fromRGB(59, 130, 246),
+    Callback = function(Color)
+        print("Color:", Color)
+    end
+})</code></pre>
+        </div>
+      </section>
+
+      <section id="links" class="content-section">
+        <div class="section-header">
+          <h2>Quick Links</h2>
+        </div>
+        
+        <div class="links-grid">
+          <a href="/Loader" class="link-card" target="_blank">
+            <span class="link-icon">📄</span>
+            <div>
+              <h3>Loader</h3>
+              <p>Main library source code</p>
+            </div>
+          </a>
+          <a href="/Example" class="link-card" target="_blank">
+            <span class="link-icon">📝</span>
+            <div>
+              <h3>Example</h3>
+              <p>Sample usage script</p>
+            </div>
+          </a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    fetch('/api/loader-url')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('loader-url').textContent = data.url;
+        document.querySelectorAll('code').forEach(code => {
+          code.textContent = code.textContent.replace(/YOUR_URL/g, data.url.replace('/Loader', ''));
+        });
+      });
+
+    function copyCode(btn) {
+      const code = btn.parentElement.nextElementSibling.textContent;
+      navigator.clipboard.writeText(code);
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    }
+
+    function copyLoaderUrl() {
+      const url = document.getElementById('loader-url').textContent;
+      navigator.clipboard.writeText(url);
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        
+        document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+        const sectionId = this.getAttribute('data-section');
+        document.getElementById(sectionId).classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>
