@@ -1,5 +1,6 @@
--- EliteUI v3.0.0 Complete Example Script
+-- EliteUI v3.1.0 Complete Example Script
 -- This script demonstrates all available features including:
+-- - Key System (optional, fetch keys from raw URL, saveable)
 -- - Responsive UI sizing (auto-adjusts for PC vs Mobile)
 -- - PC keybind support (RightShift to toggle by default)
 -- - Smooth animations
@@ -14,7 +15,19 @@ local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-ke
 local Window = EliteUI:CreateWindow({
     Name = "EliteUI Demo Hub",
     LoadingTitle = "Loading...",
-    Subtitle = "v3.0",
+    Subtitle = "v3.1",
+    
+    -- Key System (optional - can be disabled or removed entirely)
+    KeySystem = {
+        Enabled = true,
+        URL = "https://pastebin.com/raw/YOURKEY",
+        Title = "Key Required",
+        Subtitle = "Enter your key to continue",
+        NoteName = "Get Key",
+        NoteURL = "https://yoursite.com/getkey",
+        SaveKey = true,
+        FileName = "key.txt"
+    },
     
     -- Optional: Custom logo (use Roblox asset ID)
     -- Logo = "rbxassetid://123456789",
@@ -285,7 +298,7 @@ SettingsTab:CreateButton({
 
 SettingsTab:CreateSection("Info")
 
-SettingsTab:CreateLabel("EliteUI v3.0.0")
+SettingsTab:CreateLabel("EliteUI v3.1.0")
 
 SettingsTab:CreateParagraph({
     Title = "About",
