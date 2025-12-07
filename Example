@@ -1,0 +1,39 @@
+local EliteUI = loadstring(game:HttpGet('https://yoursite.com/eliteui.lua'))()
+
+local Window = EliteUI:CreateWindow({
+    Name = "My Script Hub",
+    LoadingTitle = "Loading...",
+})
+
+local MainTab = Window:CreateTab("Main", "home")
+local CombatTab = Window:CreateTab("Combat", "sword")
+local SettingsTab = Window:CreateTab("Settings", "settings")
+
+MainTab:CreateSection("Welcome")
+
+MainTab:CreateButton({
+    Name = "Click Me",
+    Callback = function()
+        print("Button clicked!")
+    end
+})
+
+CombatTab:CreateSection("Combat Features")
+
+CombatTab:CreateToggle({
+    Name = "Kill Aura",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Kill Aura:", Value)
+    end
+})
+
+CombatTab:CreateSlider({
+    Name = "Attack Range",
+    Min = 5,
+    Max = 50,
+    CurrentValue = 15,
+    Callback = function(Value)
+        print("Range:", Value)
+    end
+})
