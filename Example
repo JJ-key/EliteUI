@@ -13,7 +13,7 @@ local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-ke
 
 -- Create Window with all options
 local Window = EliteUI:CreateWindow({
-    Name = "EliteUI Demo Hub",
+    Name = "EliteUI litte example",
     LoadingTitle = "Loading...",
     Subtitle = "v3.1",
     
