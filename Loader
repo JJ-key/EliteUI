@@ -510,10 +510,77 @@ function EliteUI:CreateWindow(options)
     -- Setup PC keybind
     setupPCKeybind(ScreenGui, Config, MainFrame, Config.Animation)
     
-    -- Tab Container
+    -- User Info Panel (bottom left)
+    local userInfoHeight = DeviceType == "Mobile" and 50 or 56
     local tabWidth = DeviceType == "Mobile" and 100 or 120
+    
+    local UserInfoPanel = Instance.new("Frame")
+    UserInfoPanel.Name = "UserInfo"
+    UserInfoPanel.Size = UDim2.new(0, tabWidth, 0, userInfoHeight)
+    UserInfoPanel.Position = UDim2.new(0, 5, 1, -(userInfoHeight + 5))
+    UserInfoPanel.BackgroundColor3 = Color3.fromRGB(22, 24, 29)
+    UserInfoPanel.BorderSizePixel = 0
+    UserInfoPanel.Parent = MainFrame
+    
+    local UserInfoCorner = Instance.new("UICorner")
+    UserInfoCorner.CornerRadius = UDim.new(0, 8)
+    UserInfoCorner.Parent = UserInfoPanel
+    
+    local Player = Players.LocalPlayer
+    local avatarSize = DeviceType == "Mobile" and 32 or 38
+    
+    local AvatarFrame = Instance.new("ImageLabel")
+    AvatarFrame.Name = "Avatar"
+    AvatarFrame.Size = UDim2.new(0, avatarSize, 0, avatarSize)
+    AvatarFrame.Position = UDim2.new(0, 8, 0.5, -avatarSize/2)
+    AvatarFrame.BackgroundColor3 = Config.Theme.Secondary
+    AvatarFrame.BorderSizePixel = 0
+    AvatarFrame.Image = ""
+    AvatarFrame.Parent = UserInfoPanel
+    
+    local AvatarCorner = Instance.new("UICorner")
+    AvatarCorner.CornerRadius = UDim.new(0, 6)
+    AvatarCorner.Parent = AvatarFrame
+    
+    pcall(function()
+        local userId = Player.UserId
+        local thumbType = Enum.ThumbnailType.HeadShot
+        local thumbSize = Enum.ThumbnailSize.Size100x100
+        local content, isReady = Players:GetUserThumbnailAsync(userId, thumbType, thumbSize)
+        AvatarFrame.Image = content
+    end)
+    
+    local UsernameLabel = Instance.new("TextLabel")
+    UsernameLabel.Name = "Username"
+    UsernameLabel.Size = UDim2.new(1, -(avatarSize + 16), 0, 16)
+    UsernameLabel.Position = UDim2.new(0, avatarSize + 12, 0, 10)
+    UsernameLabel.BackgroundTransparency = 1
+    UsernameLabel.Text = Player.Name
+    UsernameLabel.TextColor3 = Config.Theme.Text
+    UsernameLabel.TextSize = DeviceType == "Mobile" and 11 or 12
+    UsernameLabel.Font = Enum.Font.GothamBold
+    UsernameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    UsernameLabel.TextTruncate = Enum.TextTruncate.AtEnd
+    UsernameLabel.Parent = UserInfoPanel
+    
+    local DisplayNameLabel = Instance.new("TextLabel")
+    DisplayNameLabel.Name = "DisplayName"
+    DisplayNameLabel.Size = UDim2.new(1, -(avatarSize + 16), 0, 14)
+    DisplayNameLabel.Position = UDim2.new(0, avatarSize + 12, 0, 26)
+    DisplayNameLabel.BackgroundTransparency = 1
+    DisplayNameLabel.Text = "@" .. Player.DisplayName
+    DisplayNameLabel.TextColor3 = Config.Theme.TextSecondary
+    DisplayNameLabel.TextSize = DeviceType == "Mobile" and 9 or 10
+    DisplayNameLabel.Font = Enum.Font.Gotham
+    DisplayNameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    DisplayNameLabel.TextTruncate = Enum.TextTruncate.AtEnd
+    DisplayNameLabel.Parent = UserInfoPanel
+    
+    Window.UserInfoPanel = UserInfoPanel
+    
+    -- Tab Container
     local TabContainer = Instance.new("ScrollingFrame")
-    TabContainer.Size = UDim2.new(0, tabWidth, 1, -(headerHeight + 10))
+    TabContainer.Size = UDim2.new(0, tabWidth, 1, -(headerHeight + userInfoHeight + 15))
     TabContainer.Position = UDim2.new(0, 5, 0, headerHeight + 5)
     TabContainer.BackgroundColor3 = Color3.fromRGB(22, 24, 29)
     TabContainer.BorderSizePixel = 0
