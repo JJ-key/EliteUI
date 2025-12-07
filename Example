@@ -28,9 +28,9 @@ local Window = EliteUI:CreateWindow({
     
     -- Custom UI scale per device (optional)
     UIScale = {
-        PC = 1.4,
-        Mobile = 0.95,
-        Tablet = 1.3
+        PC = 1.0,
+        Mobile = 0.85,
+        Tablet = 0.9
     },
     
     -- Animation settings (optional)
@@ -202,6 +202,41 @@ SettingsTab:CreateDropdown({
         Window:SetTheme({
             Primary = themes[Theme]
         })
+    end
+})
+
+SettingsTab:CreateSection("UI Configuration")
+
+SettingsTab:CreateSlider({
+    Name = "UI Scale",
+    Min = 50,
+    Max = 150,
+    CurrentValue = 100,
+    Flag = "UIScale",
+    Callback = function(Value)
+        local scaleFactor = Value / 100
+        Window:SetScale(scaleFactor)
+        print("UI Scale:", scaleFactor)
+    end
+})
+
+SettingsTab:CreateDropdown({
+    Name = "UI Size Preset",
+    Options = {"Small", "Normal", "Large", "Extra Large"},
+    CurrentValue = "Normal",
+    Flag = "UISizePreset",
+    Callback = function(Preset)
+        local sizes = {
+            ["Small"] = {350, 300},
+            ["Normal"] = {420, 380},
+            ["Large"] = {500, 450},
+            ["Extra Large"] = {600, 520}
+        }
+        local size = sizes[Preset]
+        if size then
+            Window:SetSize(size[1], size[2])
+        end
+        print("Size Preset:", Preset)
     end
 })
 
