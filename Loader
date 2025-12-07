@@ -1,8 +1,9 @@
 --[[
     EliteUI Library for Roblox
-    Version 3.0.0
+    Version 3.1.0
     
     Features:
+    - Key System (optional, fetch keys from raw URL, saveable)
     - Responsive sizing (auto-adjusts for PC vs Mobile)
     - PC keybind support (press key to toggle UI)
     - Triple-tap with 3 fingers to toggle UI (mobile)
@@ -262,6 +263,86 @@ local function getUIScale(config)
     end
 end
 
+-- Key System Manager
+local KeySystemManager = {}
+KeySystemManager.__index = KeySystemManager
+
+function KeySystemManager.new(folderName, fileName)
+    local self = setmetatable({}, KeySystemManager)
+    self.FolderName = folderName or "EliteUI"
+    self.FileName = fileName or "key.txt"
+    return self
+end
+
+function KeySystemManager:GetFilePath()
+    return self.FolderName .. "/" .. self.FileName
+end
+
+function KeySystemManager:EnsureFolder()
+    if not isfolder(self.FolderName) then
+        makefolder(self.FolderName)
+    end
+end
+
+function KeySystemManager:SaveKey(key)
+    local success = pcall(function()
+        self:EnsureFolder()
+        writefile(self:GetFilePath(), key)
+    end)
+    return success
+end
+
+function KeySystemManager:LoadKey()
+    local success, result = pcall(function()
+        if isfile(self:GetFilePath()) then
+            return readfile(self:GetFilePath())
+        end
+        return nil
+    end)
+    if success then
+        return result
+    end
+    return nil
+end
+
+function KeySystemManager:DeleteKey()
+    pcall(function()
+        if isfile(self:GetFilePath()) then
+            delfile(self:GetFilePath())
+        end
+    end)
+end
+
+function KeySystemManager:FetchValidKeys(url)
+    local success, result = pcall(function()
+        local response = game:HttpGet(url)
+        if response then
+            local keys = {}
+            for line in response:gmatch("[^\r\n]+") do
+                local trimmed = line:match("^%s*(.-)%s*$")
+                if trimmed and trimmed ~= "" then
+                    table.insert(keys, trimmed)
+                end
+            end
+            return keys
+        end
+        return {}
+    end)
+    if success then
+        return result
+    end
+    return {}
+end
+
+function KeySystemManager:ValidateKey(inputKey, validKeys)
+    for _, key in ipairs(validKeys) do
+        if inputKey == key then
+            return true
+        end
+    end
+    return false
+end
+
 -- Create Window
 function EliteUI:CreateWindow(options)
     local Window = {}
@@ -302,6 +383,193 @@ function EliteUI:CreateWindow(options)
     end
     
     Window.Config = Config
+    
+    -- Key System Check
+    if options.KeySystem and options.KeySystem.Enabled then
+        local keyConfig = options.KeySystem
+        local keyFolder = options.SaveFolder or Config.SaveSettings.FolderName
+        local keyFileName = keyConfig.FileName or "key.txt"
+        local keyManager = KeySystemManager.new(keyFolder, keyFileName)
+        
+        local validKeys = keyManager:FetchValidKeys(keyConfig.URL or "")
+        local savedKey = keyConfig.SaveKey and keyManager:LoadKey() or nil
+        local keyValid = savedKey and keyManager:ValidateKey(savedKey, validKeys) or false
+        
+        if not keyValid then
+            local KeyGui = Instance.new("ScreenGui")
+            KeyGui.Name = "EliteUI_KeySystem"
+            KeyGui.ResetOnSpawn = false
+            KeyGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+            KeyGui.Parent = game:GetService("CoreGui")
+            
+            local keyWidth = DeviceType == "Mobile" and 300 or 360
+            local keyHeight = DeviceType == "Mobile" and 200 or 220
+            
+            local KeyFrame = Instance.new("Frame")
+            KeyFrame.Size = UDim2.new(0, keyWidth, 0, keyHeight)
+            KeyFrame.Position = UDim2.new(0.5, -keyWidth/2, 0.5, -keyHeight/2)
+            KeyFrame.BackgroundColor3 = Config.Theme.Background
+            KeyFrame.BorderSizePixel = 0
+            KeyFrame.Parent = KeyGui
+            
+            local KeyCorner = Instance.new("UICorner")
+            KeyCorner.CornerRadius = UDim.new(0, 10)
+            KeyCorner.Parent = KeyFrame
+            
+            local KeyStroke = Instance.new("UIStroke")
+            KeyStroke.Color = Config.Theme.Primary
+            KeyStroke.Transparency = 0.5
+            KeyStroke.Thickness = 1.5
+            KeyStroke.Parent = KeyFrame
+            
+            local KeyHeader = Instance.new("Frame")
+            KeyHeader.Size = UDim2.new(1, 0, 0, 40)
+            KeyHeader.BackgroundColor3 = Config.Theme.Primary
+            KeyHeader.BorderSizePixel = 0
+            KeyHeader.Parent = KeyFrame
+            
+            local KeyHeaderCorner = Instance.new("UICorner")
+            KeyHeaderCorner.CornerRadius = UDim.new(0, 10)
+            KeyHeaderCorner.Parent = KeyHeader
+            
+            local KeyHeaderFix = Instance.new("Frame")
+            KeyHeaderFix.Size = UDim2.new(1, 0, 0, 12)
+            KeyHeaderFix.Position = UDim2.new(0, 0, 1, -12)
+            KeyHeaderFix.BackgroundColor3 = Config.Theme.Primary
+            KeyHeaderFix.BorderSizePixel = 0
+            KeyHeaderFix.Parent = KeyHeader
+            
+            local KeyTitle = Instance.new("TextLabel")
+            KeyTitle.Size = UDim2.new(1, -20, 1, 0)
+            KeyTitle.Position = UDim2.new(0, 10, 0, 0)
+            KeyTitle.BackgroundTransparency = 1
+            KeyTitle.Text = keyConfig.Title or "Key Required"
+            KeyTitle.TextColor3 = Config.Theme.Text
+            KeyTitle.TextSize = 16
+            KeyTitle.Font = Enum.Font.GothamBold
+            KeyTitle.TextXAlignment = Enum.TextXAlignment.Left
+            KeyTitle.Parent = KeyHeader
+            
+            local KeySubtitle = Instance.new("TextLabel")
+            KeySubtitle.Size = UDim2.new(1, -20, 0, 20)
+            KeySubtitle.Position = UDim2.new(0, 10, 0, 50)
+            KeySubtitle.BackgroundTransparency = 1
+            KeySubtitle.Text = keyConfig.Subtitle or "Enter your key to continue"
+            KeySubtitle.TextColor3 = Config.Theme.TextSecondary
+            KeySubtitle.TextSize = 12
+            KeySubtitle.Font = Enum.Font.GothamMedium
+            KeySubtitle.TextXAlignment = Enum.TextXAlignment.Left
+            KeySubtitle.Parent = KeyFrame
+            
+            local KeyInput = Instance.new("TextBox")
+            KeyInput.Size = UDim2.new(1, -20, 0, 36)
+            KeyInput.Position = UDim2.new(0, 10, 0, 78)
+            KeyInput.BackgroundColor3 = Config.Theme.Secondary
+            KeyInput.BorderSizePixel = 0
+            KeyInput.Text = ""
+            KeyInput.PlaceholderText = "Enter key here..."
+            KeyInput.PlaceholderColor3 = Config.Theme.TextSecondary
+            KeyInput.TextColor3 = Config.Theme.Text
+            KeyInput.TextSize = 14
+            KeyInput.Font = Enum.Font.GothamMedium
+            KeyInput.ClearTextOnFocus = false
+            KeyInput.Parent = KeyFrame
+            
+            local KeyInputCorner = Instance.new("UICorner")
+            KeyInputCorner.CornerRadius = UDim.new(0, 6)
+            KeyInputCorner.Parent = KeyInput
+            
+            local KeyInputPadding = Instance.new("UIPadding")
+            KeyInputPadding.PaddingLeft = UDim.new(0, 10)
+            KeyInputPadding.PaddingRight = UDim.new(0, 10)
+            KeyInputPadding.Parent = KeyInput
+            
+            local KeyStatus = Instance.new("TextLabel")
+            KeyStatus.Size = UDim2.new(1, -20, 0, 16)
+            KeyStatus.Position = UDim2.new(0, 10, 0, 118)
+            KeyStatus.BackgroundTransparency = 1
+            KeyStatus.Text = ""
+            KeyStatus.TextColor3 = Color3.fromRGB(239, 68, 68)
+            KeyStatus.TextSize = 11
+            KeyStatus.Font = Enum.Font.GothamMedium
+            KeyStatus.TextXAlignment = Enum.TextXAlignment.Left
+            KeyStatus.Parent = KeyFrame
+            
+            local SubmitBtn = Instance.new("TextButton")
+            SubmitBtn.Size = UDim2.new(0.48, 0, 0, 34)
+            SubmitBtn.Position = UDim2.new(0.02, 5, 0, keyHeight - 48)
+            SubmitBtn.BackgroundColor3 = Config.Theme.Primary
+            SubmitBtn.BorderSizePixel = 0
+            SubmitBtn.Text = "Submit Key"
+            SubmitBtn.TextColor3 = Config.Theme.Text
+            SubmitBtn.TextSize = 13
+            SubmitBtn.Font = Enum.Font.GothamMedium
+            SubmitBtn.Parent = KeyFrame
+            
+            local SubmitCorner = Instance.new("UICorner")
+            SubmitCorner.CornerRadius = UDim.new(0, 6)
+            SubmitCorner.Parent = SubmitBtn
+            
+            local GetKeyBtn = Instance.new("TextButton")
+            GetKeyBtn.Size = UDim2.new(0.48, 0, 0, 34)
+            GetKeyBtn.Position = UDim2.new(0.50, 5, 0, keyHeight - 48)
+            GetKeyBtn.BackgroundColor3 = Config.Theme.Secondary
+            GetKeyBtn.BorderSizePixel = 0
+            GetKeyBtn.Text = keyConfig.NoteName or "Get Key"
+            GetKeyBtn.TextColor3 = Config.Theme.Text
+            GetKeyBtn.TextSize = 13
+            GetKeyBtn.Font = Enum.Font.GothamMedium
+            GetKeyBtn.Parent = KeyFrame
+            
+            local GetKeyCorner = Instance.new("UICorner")
+            GetKeyCorner.CornerRadius = UDim.new(0, 6)
+            GetKeyCorner.Parent = GetKeyBtn
+            
+            local keyValidated = false
+            
+            GetKeyBtn.MouseButton1Click:Connect(function()
+                if keyConfig.NoteURL then
+                    setclipboard(keyConfig.NoteURL)
+                    KeyStatus.TextColor3 = Config.Theme.Primary
+                    KeyStatus.Text = "Link copied to clipboard!"
+                    task.delay(2, function()
+                        KeyStatus.Text = ""
+                    end)
+                end
+            end)
+            
+            SubmitBtn.MouseButton1Click:Connect(function()
+                local inputKey = KeyInput.Text:match("^%s*(.-)%s*$")
+                if inputKey == "" then
+                    KeyStatus.TextColor3 = Color3.fromRGB(239, 68, 68)
+                    KeyStatus.Text = "Please enter a key"
+                    return
+                end
+                
+                if keyManager:ValidateKey(inputKey, validKeys) then
+                    KeyStatus.TextColor3 = Color3.fromRGB(34, 197, 94)
+                    KeyStatus.Text = "Key validated successfully!"
+                    
+                    if keyConfig.SaveKey then
+                        keyManager:SaveKey(inputKey)
+                    end
+                    
+                    keyValidated = true
+                    task.wait(0.5)
+                    KeyGui:Destroy()
+                else
+                    KeyStatus.TextColor3 = Color3.fromRGB(239, 68, 68)
+                    KeyStatus.Text = "Invalid key. Please try again."
+                end
+            end)
+            
+            repeat task.wait() until keyValidated or not KeyGui.Parent
+            
+            if not keyValidated then
+                return nil
+            end
+        end
+    end
     
     -- Initialize settings manager
     local settingsManager = SettingsManager.new(Config.SaveSettings.FolderName, Config.SaveSettings.FileName)
