@@ -1,0 +1,370 @@
+--[[
+    EliteUI Library for Roblox Mobile
+    Version 1.0.0
+    
+    Features:
+    - Triple-tap with 3 fingers to toggle UI
+    - Dark blue theme
+    - Mobile-optimized components
+]]
+
+local EliteUI = {}
+EliteUI.__index = EliteUI
+
+-- Configuration
+local Config = {
+    Theme = {
+        Primary = Color3.fromRGB(59, 130, 246),
+        Background = Color3.fromRGB(26, 29, 36),
+        Secondary = Color3.fromRGB(42, 45, 53),
+        Text = Color3.fromRGB(255, 255, 255),
+        TextSecondary = Color3.fromRGB(156, 163, 175)
+    },
+    ToggleKey = Enum.KeyCode.P,
+    MobileGesture = {
+        Enabled = true,
+        Fingers = 3,
+        TapCount = 2,
+        TimeWindow = 0.5
+    }
+}
+
+-- Mobile Gesture Detection
+local function setupMobileGesture(gui)
+    local UserInputService = game:GetService("UserInputService")
+    local touches = {}
+    local lastTapTime = 0
+    local tapCount = 0
+    
+    UserInputService.TouchStarted:Connect(function(touch)
+        table.insert(touches, touch)
+        
+        if #touches >= Config.MobileGesture.Fingers then
+            local currentTime = tick()
+            
+            if currentTime - lastTapTime < Config.MobileGesture.TimeWindow then
+                tapCount = tapCount + 1
+            else
+                tapCount = 1
+            end
+            
+            lastTapTime = currentTime
+            
+            if tapCount >= Config.MobileGesture.TapCount then
+                gui.Enabled = not gui.Enabled
+                tapCount = 0
+            end
+        end
+    end)
+    
+    UserInputService.TouchEnded:Connect(function(touch)
+        for i, t in ipairs(touches) do
+            if t == touch then
+                table.remove(touches, i)
+                break
+            end
+        end
+    end)
+end
+
+-- Create Window
+function EliteUI:CreateWindow(options)
+    local Window = {}
+    Window.Name = options.Name or "EliteUI"
+    Window.Tabs = {}
+    
+    -- Create ScreenGui
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "EliteUI"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    ScreenGui.Parent = game:GetService("CoreGui")
+    
+    -- Main Frame
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Size = UDim2.new(0, 400, 0, 350)
+    MainFrame.Position = UDim2.new(0.5, -200, 0.5, -175)
+    MainFrame.BackgroundColor3 = Config.Theme.Background
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Parent = ScreenGui
+    
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 8)
+    Corner.Parent = MainFrame
+    
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Color = Config.Theme.Primary
+    Stroke.Transparency = 0.7
+    Stroke.Parent = MainFrame
+    
+    -- Header
+    local Header = Instance.new("Frame")
+    Header.Size = UDim2.new(1, 0, 0, 40)
+    Header.BackgroundColor3 = Config.Theme.Primary
+    Header.BorderSizePixel = 0
+    Header.Parent = MainFrame
+    
+    local HeaderCorner = Instance.new("UICorner")
+    HeaderCorner.CornerRadius = UDim.new(0, 8)
+    HeaderCorner.Parent = Header
+    
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, -80, 1, 0)
+    Title.Position = UDim2.new(0, 15, 0, 0)
+    Title.BackgroundTransparency = 1
+    Title.Text = Window.Name
+    Title.TextColor3 = Config.Theme.Text
+    Title.TextSize = 14
+    Title.Font = Enum.Font.GothamSemibold
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = Header
+    
+    -- Setup mobile gesture
+    setupMobileGesture(ScreenGui)
+    
+    -- Tab Container
+    local TabContainer = Instance.new("Frame")
+    TabContainer.Size = UDim2.new(0, 120, 1, -50)
+    TabContainer.Position = UDim2.new(0, 5, 0, 45)
+    TabContainer.BackgroundColor3 = Color3.fromRGB(22, 24, 29)
+    TabContainer.BorderSizePixel = 0
+    TabContainer.Parent = MainFrame
+    
+    local TabCorner = Instance.new("UICorner")
+    TabCorner.CornerRadius = UDim.new(0, 6)
+    TabCorner.Parent = TabContainer
+    
+    local TabList = Instance.new("UIListLayout")
+    TabList.Padding = UDim.new(0, 4)
+    TabList.Parent = TabContainer
+    
+    -- Content Container
+    local ContentContainer = Instance.new("ScrollingFrame")
+    ContentContainer.Size = UDim2.new(1, -135, 1, -55)
+    ContentContainer.Position = UDim2.new(0, 130, 0, 50)
+    ContentContainer.BackgroundTransparency = 1
+    ContentContainer.ScrollBarThickness = 3
+    ContentContainer.Parent = MainFrame
+    
+    local ContentList = Instance.new("UIListLayout")
+    ContentList.Padding = UDim.new(0, 8)
+    ContentList.Parent = ContentContainer
+    
+    -- Create Tab function
+    function Window:CreateTab(name, icon)
+        local Tab = {}
+        Tab.Name = name
+        Tab.Elements = {}
+        
+        local TabButton = Instance.new("TextButton")
+        TabButton.Size = UDim2.new(1, -10, 0, 32)
+        TabButton.BackgroundColor3 = Config.Theme.Secondary
+        TabButton.BorderSizePixel = 0
+        TabButton.Text = name
+        TabButton.TextColor3 = Config.Theme.TextSecondary
+        TabButton.TextSize = 12
+        TabButton.Font = Enum.Font.GothamMedium
+        TabButton.Parent = TabContainer
+        
+        local BtnCorner = Instance.new("UICorner")
+        BtnCorner.CornerRadius = UDim.new(0, 6)
+        BtnCorner.Parent = TabButton
+        
+        -- Tab content frame
+        local TabContent = Instance.new("Frame")
+        TabContent.Size = UDim2.new(1, 0, 1, 0)
+        TabContent.BackgroundTransparency = 1
+        TabContent.Visible = #Window.Tabs == 0
+        TabContent.Parent = ContentContainer
+        
+        TabButton.MouseButton1Click:Connect(function()
+            for _, t in ipairs(Window.Tabs) do
+                t.Content.Visible = false
+                t.Button.BackgroundColor3 = Config.Theme.Secondary
+                t.Button.TextColor3 = Config.Theme.TextSecondary
+            end
+            TabContent.Visible = true
+            TabButton.BackgroundColor3 = Config.Theme.Primary
+            TabButton.TextColor3 = Config.Theme.Text
+        end)
+        
+        if #Window.Tabs == 0 then
+            TabButton.BackgroundColor3 = Config.Theme.Primary
+            TabButton.TextColor3 = Config.Theme.Text
+        end
+        
+        Tab.Button = TabButton
+        Tab.Content = TabContent
+        table.insert(Window.Tabs, Tab)
+        
+        -- Create Section
+        function Tab:CreateSection(name)
+            local Section = Instance.new("Frame")
+            Section.Size = UDim2.new(1, -10, 0, 25)
+            Section.BackgroundTransparency = 1
+            Section.Parent = TabContent
+            
+            local SectionLabel = Instance.new("TextLabel")
+            SectionLabel.Size = UDim2.new(1, 0, 1, 0)
+            SectionLabel.BackgroundTransparency = 1
+            SectionLabel.Text = name
+            SectionLabel.TextColor3 = Config.Theme.TextSecondary
+            SectionLabel.TextSize = 11
+            SectionLabel.Font = Enum.Font.GothamMedium
+            SectionLabel.Parent = Section
+            
+            return Section
+        end
+        
+        -- Create Button
+        function Tab:CreateButton(options)
+            local Button = Instance.new("TextButton")
+            Button.Size = UDim2.new(1, -10, 0, 36)
+            Button.BackgroundColor3 = Config.Theme.Primary
+            Button.BorderSizePixel = 0
+            Button.Text = options.Name
+            Button.TextColor3 = Config.Theme.Text
+            Button.TextSize = 12
+            Button.Font = Enum.Font.GothamMedium
+            Button.Parent = TabContent
+            
+            local Corner = Instance.new("UICorner")
+            Corner.CornerRadius = UDim.new(0, 6)
+            Corner.Parent = Button
+            
+            Button.MouseButton1Click:Connect(function()
+                if options.Callback then
+                    options.Callback()
+                end
+            end)
+            
+            return Button
+        end
+        
+        -- Create Toggle
+        function Tab:CreateToggle(options)
+            local ToggleFrame = Instance.new("Frame")
+            ToggleFrame.Size = UDim2.new(1, -10, 0, 36)
+            ToggleFrame.BackgroundColor3 = Config.Theme.Secondary
+            ToggleFrame.BorderSizePixel = 0
+            ToggleFrame.Parent = TabContent
+            
+            local Corner = Instance.new("UICorner")
+            Corner.CornerRadius = UDim.new(0, 6)
+            Corner.Parent = ToggleFrame
+            
+            local Label = Instance.new("TextLabel")
+            Label.Size = UDim2.new(1, -50, 1, 0)
+            Label.Position = UDim2.new(0, 12, 0, 0)
+            Label.BackgroundTransparency = 1
+            Label.Text = options.Name
+            Label.TextColor3 = Config.Theme.Text
+            Label.TextSize = 12
+            Label.Font = Enum.Font.GothamMedium
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+            Label.Parent = ToggleFrame
+            
+            local Toggle = Instance.new("Frame")
+            Toggle.Size = UDim2.new(0, 40, 0, 20)
+            Toggle.Position = UDim2.new(1, -50, 0.5, -10)
+            Toggle.BackgroundColor3 = options.CurrentValue and Config.Theme.Primary or Color3.fromRGB(75, 85, 99)
+            Toggle.BorderSizePixel = 0
+            Toggle.Parent = ToggleFrame
+            
+            local ToggleCorner = Instance.new("UICorner")
+            ToggleCorner.CornerRadius = UDim.new(1, 0)
+            ToggleCorner.Parent = Toggle
+            
+            local Indicator = Instance.new("Frame")
+            Indicator.Size = UDim2.new(0, 16, 0, 16)
+            Indicator.Position = options.CurrentValue and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+            Indicator.BackgroundColor3 = Color3.new(1, 1, 1)
+            Indicator.BorderSizePixel = 0
+            Indicator.Parent = Toggle
+            
+            local IndicatorCorner = Instance.new("UICorner")
+            IndicatorCorner.CornerRadius = UDim.new(1, 0)
+            IndicatorCorner.Parent = Indicator
+            
+            local isEnabled = options.CurrentValue or false
+            
+            ToggleFrame.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    isEnabled = not isEnabled
+                    Toggle.BackgroundColor3 = isEnabled and Config.Theme.Primary or Color3.fromRGB(75, 85, 99)
+                    Indicator.Position = isEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+                    if options.Callback then
+                        options.Callback(isEnabled)
+                    end
+                end
+            end)
+            
+            return ToggleFrame
+        end
+        
+        -- Create Slider
+        function Tab:CreateSlider(options)
+            local SliderFrame = Instance.new("Frame")
+            SliderFrame.Size = UDim2.new(1, -10, 0, 50)
+            SliderFrame.BackgroundColor3 = Config.Theme.Secondary
+            SliderFrame.BorderSizePixel = 0
+            SliderFrame.Parent = TabContent
+            
+            local Corner = Instance.new("UICorner")
+            Corner.CornerRadius = UDim.new(0, 6)
+            Corner.Parent = SliderFrame
+            
+            local Label = Instance.new("TextLabel")
+            Label.Size = UDim2.new(0.7, 0, 0, 20)
+            Label.Position = UDim2.new(0, 12, 0, 6)
+            Label.BackgroundTransparency = 1
+            Label.Text = options.Name
+            Label.TextColor3 = Config.Theme.Text
+            Label.TextSize = 12
+            Label.Font = Enum.Font.GothamMedium
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+            Label.Parent = SliderFrame
+            
+            local Value = Instance.new("TextLabel")
+            Value.Size = UDim2.new(0.3, -12, 0, 20)
+            Value.Position = UDim2.new(0.7, 0, 0, 6)
+            Value.BackgroundTransparency = 1
+            Value.Text = tostring(options.CurrentValue or options.Min)
+            Value.TextColor3 = Config.Theme.Primary
+            Value.TextSize = 12
+            Value.Font = Enum.Font.GothamMedium
+            Value.TextXAlignment = Enum.TextXAlignment.Right
+            Value.Parent = SliderFrame
+            
+            local SliderBg = Instance.new("Frame")
+            SliderBg.Size = UDim2.new(1, -24, 0, 6)
+            SliderBg.Position = UDim2.new(0, 12, 0, 34)
+            SliderBg.BackgroundColor3 = Color3.fromRGB(75, 85, 99)
+            SliderBg.BorderSizePixel = 0
+            SliderBg.Parent = SliderFrame
+            
+            local BgCorner = Instance.new("UICorner")
+            BgCorner.CornerRadius = UDim.new(1, 0)
+            BgCorner.Parent = SliderBg
+            
+            local SliderFill = Instance.new("Frame")
+            local initialPercent = ((options.CurrentValue or options.Min) - options.Min) / (options.Max - options.Min)
+            SliderFill.Size = UDim2.new(initialPercent, 0, 1, 0)
+            SliderFill.BackgroundColor3 = Config.Theme.Primary
+            SliderFill.BorderSizePixel = 0
+            SliderFill.Parent = SliderBg
+            
+            local FillCorner = Instance.new("UICorner")
+            FillCorner.CornerRadius = UDim.new(1, 0)
+            FillCorner.Parent = SliderFill
+            
+            return SliderFrame
+        end
+        
+        return Tab
+    end
+    
+    return Window
+end
+
+return EliteUI
