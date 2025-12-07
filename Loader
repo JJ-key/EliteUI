@@ -1,11 +1,12 @@
 --[[
     EliteUI Library for Roblox Mobile
-    Version 2.0.0
+    Version 2.0.1
     
     Features:
     - Triple-tap with 3 fingers to toggle UI
     - Dark blue theme
     - Mobile-optimized components
+    - Draggable window
     - Dropdown, TextBox, Label, Paragraph
     - Keybind picker, Color picker
     - Toast notifications
@@ -70,6 +71,42 @@ local function setupMobileGesture(gui)
     end)
 end
 
+-- Dragging functionality
+local function makeDraggable(frame, handle)
+    local UserInputService = game:GetService("UserInputService")
+    local dragging = false
+    local dragInput
+    local dragStart
+    local startPos
+    
+    handle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = frame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
+        end
+    end)
+    
+    handle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            dragInput = input
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - dragStart
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+end
+
 -- Create Window
 function EliteUI:CreateWindow(options)
     local Window = {}
@@ -89,6 +126,7 @@ function EliteUI:CreateWindow(options)
     MainFrame.Position = UDim2.new(0.5, -200, 0.5, -175)
     MainFrame.BackgroundColor3 = Config.Theme.Background
     MainFrame.BorderSizePixel = 0
+    MainFrame.Active = true
     MainFrame.Parent = ScreenGui
     
     local Corner = Instance.new("UICorner")
@@ -105,11 +143,20 @@ function EliteUI:CreateWindow(options)
     Header.Size = UDim2.new(1, 0, 0, 40)
     Header.BackgroundColor3 = Config.Theme.Primary
     Header.BorderSizePixel = 0
+    Header.Active = true
     Header.Parent = MainFrame
     
     local HeaderCorner = Instance.new("UICorner")
     HeaderCorner.CornerRadius = UDim.new(0, 8)
     HeaderCorner.Parent = Header
+    
+    -- Fix header corner overlap
+    local HeaderFix = Instance.new("Frame")
+    HeaderFix.Size = UDim2.new(1, 0, 0, 10)
+    HeaderFix.Position = UDim2.new(0, 0, 1, -10)
+    HeaderFix.BackgroundColor3 = Config.Theme.Primary
+    HeaderFix.BorderSizePixel = 0
+    HeaderFix.Parent = Header
     
     local Title = Instance.new("TextLabel")
     Title.Size = UDim2.new(1, -80, 1, 0)
@@ -122,15 +169,21 @@ function EliteUI:CreateWindow(options)
     Title.TextXAlignment = Enum.TextXAlignment.Left
     Title.Parent = Header
     
+    -- Make window draggable by header
+    makeDraggable(MainFrame, Header)
+    
     -- Setup mobile gesture
     setupMobileGesture(ScreenGui)
     
     -- Tab Container
-    local TabContainer = Instance.new("Frame")
+    local TabContainer = Instance.new("ScrollingFrame")
     TabContainer.Size = UDim2.new(0, 120, 1, -50)
     TabContainer.Position = UDim2.new(0, 5, 0, 45)
     TabContainer.BackgroundColor3 = Color3.fromRGB(22, 24, 29)
     TabContainer.BorderSizePixel = 0
+    TabContainer.ScrollBarThickness = 2
+    TabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+    TabContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
     TabContainer.Parent = MainFrame
     
     local TabCorner = Instance.new("UICorner")
@@ -141,17 +194,18 @@ function EliteUI:CreateWindow(options)
     TabList.Padding = UDim.new(0, 4)
     TabList.Parent = TabContainer
     
+    local TabPadding = Instance.new("UIPadding")
+    TabPadding.PaddingTop = UDim.new(0, 5)
+    TabPadding.PaddingLeft = UDim.new(0, 5)
+    TabPadding.PaddingRight = UDim.new(0, 5)
+    TabPadding.Parent = TabContainer
+    
     -- Content Container
-    local ContentContainer = Instance.new("ScrollingFrame")
+    local ContentContainer = Instance.new("Frame")
     ContentContainer.Size = UDim2.new(1, -135, 1, -55)
     ContentContainer.Position = UDim2.new(0, 130, 0, 50)
     ContentContainer.BackgroundTransparency = 1
-    ContentContainer.ScrollBarThickness = 3
     ContentContainer.Parent = MainFrame
-    
-    local ContentList = Instance.new("UIListLayout")
-    ContentList.Padding = UDim.new(0, 8)
-    ContentList.Parent = ContentContainer
     
     -- Create Tab function
     function Window:CreateTab(name, icon)
@@ -160,7 +214,7 @@ function EliteUI:CreateWindow(options)
         Tab.Elements = {}
         
         local TabButton = Instance.new("TextButton")
-        TabButton.Size = UDim2.new(1, -10, 0, 32)
+        TabButton.Size = UDim2.new(1, 0, 0, 32)
         TabButton.BackgroundColor3 = Config.Theme.Secondary
         TabButton.BorderSizePixel = 0
         TabButton.Text = name
@@ -173,12 +227,26 @@ function EliteUI:CreateWindow(options)
         BtnCorner.CornerRadius = UDim.new(0, 6)
         BtnCorner.Parent = TabButton
         
-        -- Tab content frame
-        local TabContent = Instance.new("Frame")
+        -- Tab content frame (ScrollingFrame for scrollable content)
+        local TabContent = Instance.new("ScrollingFrame")
         TabContent.Size = UDim2.new(1, 0, 1, 0)
         TabContent.BackgroundTransparency = 1
+        TabContent.ScrollBarThickness = 3
+        TabContent.CanvasSize = UDim2.new(0, 0, 0, 0)
+        TabContent.AutomaticCanvasSize = Enum.AutomaticSize.Y
         TabContent.Visible = #Window.Tabs == 0
         TabContent.Parent = ContentContainer
+        
+        -- UIListLayout for tab content (THIS FIXES THE STACKING ISSUE)
+        local ContentList = Instance.new("UIListLayout")
+        ContentList.Padding = UDim.new(0, 8)
+        ContentList.Parent = TabContent
+        
+        -- Padding for content
+        local ContentPadding = Instance.new("UIPadding")
+        ContentPadding.PaddingTop = UDim.new(0, 5)
+        ContentPadding.PaddingRight = UDim.new(0, 5)
+        ContentPadding.Parent = TabContent
         
         TabButton.MouseButton1Click:Connect(function()
             for _, t in ipairs(Window.Tabs) do
@@ -214,6 +282,7 @@ function EliteUI:CreateWindow(options)
             SectionLabel.TextColor3 = Config.Theme.TextSecondary
             SectionLabel.TextSize = 11
             SectionLabel.Font = Enum.Font.GothamMedium
+            SectionLabel.TextXAlignment = Enum.TextXAlignment.Left
             SectionLabel.Parent = Section
             
             return Section
@@ -257,7 +326,7 @@ function EliteUI:CreateWindow(options)
             Corner.Parent = ToggleFrame
             
             local Label = Instance.new("TextLabel")
-            Label.Size = UDim2.new(1, -50, 1, 0)
+            Label.Size = UDim2.new(1, -60, 1, 0)
             Label.Position = UDim2.new(0, 12, 0, 0)
             Label.BackgroundTransparency = 1
             Label.Text = options.Name
@@ -291,14 +360,18 @@ function EliteUI:CreateWindow(options)
             
             local isEnabled = options.CurrentValue or false
             
-            ToggleFrame.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-                    isEnabled = not isEnabled
-                    Toggle.BackgroundColor3 = isEnabled and Config.Theme.Primary or Color3.fromRGB(75, 85, 99)
-                    Indicator.Position = isEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
-                    if options.Callback then
-                        options.Callback(isEnabled)
-                    end
+            local ToggleButton = Instance.new("TextButton")
+            ToggleButton.Size = UDim2.new(1, 0, 1, 0)
+            ToggleButton.BackgroundTransparency = 1
+            ToggleButton.Text = ""
+            ToggleButton.Parent = ToggleFrame
+            
+            ToggleButton.MouseButton1Click:Connect(function()
+                isEnabled = not isEnabled
+                Toggle.BackgroundColor3 = isEnabled and Config.Theme.Primary or Color3.fromRGB(75, 85, 99)
+                Indicator.Position = isEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+                if options.Callback then
+                    options.Callback(isEnabled)
                 end
             end)
             
@@ -360,6 +433,53 @@ function EliteUI:CreateWindow(options)
             local FillCorner = Instance.new("UICorner")
             FillCorner.CornerRadius = UDim.new(1, 0)
             FillCorner.Parent = SliderFill
+            
+            -- Slider interaction
+            local SliderButton = Instance.new("TextButton")
+            SliderButton.Size = UDim2.new(1, 0, 1, 10)
+            SliderButton.Position = UDim2.new(0, 0, 0, -5)
+            SliderButton.BackgroundTransparency = 1
+            SliderButton.Text = ""
+            SliderButton.Parent = SliderBg
+            
+            local currentValue = options.CurrentValue or options.Min
+            local dragging = false
+            
+            local function updateSlider(input)
+                local pos = input.Position
+                local sliderPos = SliderBg.AbsolutePosition
+                local sliderSize = SliderBg.AbsoluteSize
+                
+                local percent = math.clamp((pos.X - sliderPos.X) / sliderSize.X, 0, 1)
+                local value = math.floor(options.Min + (options.Max - options.Min) * percent)
+                
+                SliderFill.Size = UDim2.new(percent, 0, 1, 0)
+                Value.Text = tostring(value)
+                currentValue = value
+                
+                if options.Callback then
+                    options.Callback(value)
+                end
+            end
+            
+            SliderButton.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    dragging = true
+                    updateSlider(input)
+                end
+            end)
+            
+            SliderButton.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                    dragging = false
+                end
+            end)
+            
+            game:GetService("UserInputService").InputChanged:Connect(function(input)
+                if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                    updateSlider(input)
+                end
+            end)
             
             return SliderFrame
         end
@@ -789,8 +909,6 @@ function EliteUI:CreateWindow(options)
         Content.TextXAlignment = Enum.TextXAlignment.Left
         Content.TextWrapped = true
         Content.Parent = NotifFrame
-        
-        local TweenService = game:GetService("TweenService")
         
         NotifFrame:TweenPosition(UDim2.new(1, -290, 1, -90), Enum.EasingDirection.Out, Enum.EasingStyle.Quart, 0.3, true)
         
