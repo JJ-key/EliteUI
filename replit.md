@@ -12,6 +12,7 @@ EliteUI is a modern, mobile-optimized UI library for Roblox. This project hosts 
 │   ├── index.html     # Documentation website
 │   └── styles.css     # Website styles
 ├── package.json       # Node.js dependencies
+├── .gitignore         # Git ignore patterns
 └── replit.md          # This file
 ```
 
@@ -22,16 +23,17 @@ EliteUI is a modern, mobile-optimized UI library for Roblox. This project hosts 
 4. Roblox scripts can load the library using: `loadstring(game:HttpGet("URL/Loader"))()`
 
 ## Running the Project
+The project is configured to run automatically in Replit. The workflow "Start EliteUI Server" runs:
 ```bash
 npm start
 ```
-The server runs on port 5000.
+The server runs on port 5000 and is accessible via the Replit webview.
 
 ## Features of EliteUI
 - Mobile-optimized UI with touch-friendly controls
 - Dark blue theme
 - Triple-tap gesture (3 fingers) to toggle UI
-- Components: Window, Tab, Section, Button, Toggle, Slider
+- Components: Window, Tab, Section, Button, Toggle, Slider, Dropdown, TextBox, Label, Paragraph, Keybind, ColorPicker, Notification
 
 ## API Endpoints
 - `GET /` - Documentation website
@@ -40,7 +42,21 @@ The server runs on port 5000.
 - `GET /api/loader-url` - Returns the full loader URL as JSON
 
 ## Technical Details
-- **Runtime**: Node.js
+- **Runtime**: Node.js 20
 - **Framework**: Express.js
 - **Port**: 5000
 - **Host**: 0.0.0.0 (accessible externally)
+- **Cache Control**: Disabled (no-cache headers)
+- **CORS**: Enabled for cross-origin requests
+
+## Recent Changes
+- **December 7, 2025**: Redesigned documentation website
+  - Removed emojis, replaced with clean SVG icons
+  - Added interactive component previews (buttons, toggles, sliders, dropdowns, etc.)
+  - Fixed component layout with responsive grid
+  - Updated Example script with all available components
+  - Clean, professional documentation style
+- **December 7, 2025**: Successfully imported and configured for Replit environment
+  - Added .gitignore for Node.js
+  - Configured deployment settings for autoscale
+  - Verified all endpoints are working correctly
