@@ -1,4 +1,4 @@
-local EliteUI = loadstring(game:HttpGet('https://yoursite.com/eliteui.lua'))()
+local EliteUI = loadstring(game:https://raw.githubusercontent.com/JJ-key/EliteUI/refs/heads/main/Loader'))()
 
 local Window = EliteUI:CreateWindow({
     Name = "My Script Hub",
