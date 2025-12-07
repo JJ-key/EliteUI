@@ -1,4 +1,4 @@
-local EliteUI = loadstring(game:HttpGet("YOUR_URL/Loader"))()
+local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/refs/heads/main/Loader"))()
 
 local Window = EliteUI:CreateWindow({
     Name = "EliteUI Demo Hub",
