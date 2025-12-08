@@ -96,7 +96,7 @@ local IconLibrary = {
     check = "rbxassetid://7733949551",
     
     -- Gaming & Combat
-    sword = "rbxassetid://7734054288",
+    sword = "rbxassetid://6031763426",
     shield = "rbxassetid://7734053233",
     combat = "rbxassetid://7733960287",
     target = "rbxassetid://7734054708",
