@@ -56,12 +56,12 @@ local Window = EliteUI:CreateWindow({
     
     -- Custom theme colors (optional)
     Theme = {
-        Primary = Color3.fromRGB(59, 130, 246),
-        Background = Color3.fromRGB(26, 29, 36),
-        Secondary = Color3.fromRGB(42, 45, 53),
+        Primary = Color3.fromRGB(139, 92, 246),
+        Background = Color3.fromRGB(15, 15, 20),
+        Secondary = Color3.fromRGB(30, 30, 40),
         Text = Color3.fromRGB(255, 255, 255),
         TextSecondary = Color3.fromRGB(156, 163, 175),
-        Accent = Color3.fromRGB(99, 102, 241)
+        Accent = Color3.fromRGB(168, 85, 247)
     }
 })
 
@@ -257,13 +257,13 @@ ManualSettingsTab:CreateColorPicker({
 
 ManualSettingsTab:CreateDropdown({
     Name = "Theme Preset",
-    Options = {"Dark Blue", "Dark Purple", "Dark Green", "Dark Red"},
-    CurrentValue = "Dark Blue",
+    Options = {"Dark Purple", "Violet", "Dark Green", "Dark Red"},
+    CurrentValue = "Dark Purple",
     Flag = "ThemePreset",
     Callback = function(Theme)
         local themes = {
-            ["Dark Blue"] = Color3.fromRGB(59, 130, 246),
-            ["Dark Purple"] = Color3.fromRGB(168, 85, 247),
+            ["Dark Purple"] = Color3.fromRGB(139, 92, 246),
+            ["Violet"] = Color3.fromRGB(168, 85, 247),
             ["Dark Green"] = Color3.fromRGB(34, 197, 94),
             ["Dark Red"] = Color3.fromRGB(239, 68, 68)
         }

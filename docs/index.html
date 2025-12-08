@@ -54,7 +54,7 @@
           <p>A mobile-optimized UI library for Roblox</p>
         </div>
         
-        <p class="intro-text">EliteUI is a modern UI library designed for Roblox mobile scripts. It provides a dark blue theme, touch-friendly controls, and a simple API for building script hubs and tools.</p>
+        <p class="intro-text">EliteUI is a modern UI library designed for Roblox mobile scripts. It provides a sharp purple theme, touch-friendly controls, and a simple API for building script hubs and tools.</p>
         
         <div class="features-list">
           <div class="feature-item">
@@ -67,7 +67,7 @@
           <div class="feature-item">
             <div class="feature-bullet"></div>
             <div>
-              <h4>Dark Blue Theme</h4>
+              <h4>Purple & Black Theme</h4>
               <p>Modern dark theme with smooth animations and clean typography.</p>
             </div>
           </div>
@@ -587,7 +587,7 @@ SettingsTab:CreateSection("Customization")
 
 SettingsTab:CreateColorPicker({
     Name = "Accent Color",
-    CurrentColor = Color3.fromRGB(59, 130, 246),
+    CurrentColor = Color3.fromRGB(139, 92, 246),
     Callback = function(Color)
         print("Color:", Color)
     end
@@ -595,8 +595,8 @@ SettingsTab:CreateColorPicker({
 
 SettingsTab:CreateDropdown({
     Name = "Theme",
-    Options = {"Dark Blue", "Dark Purple", "Dark Green"},
-    CurrentValue = "Dark Blue",
+    Options = {"Dark Purple", "Violet", "Dark Green"},
+    CurrentValue = "Dark Purple",
     Callback = function(Theme)
         print("Theme:", Theme)
     end
