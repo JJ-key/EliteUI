@@ -1,4 +1,4 @@
--- EliteUI v3.1.0 Complete Example Script
+-- EliteUI v3.2.0 Complete Example Script
 -- This script demonstrates all available features including:
 -- - Key System (optional, fetch keys from raw URL, saveable)
 -- - Responsive UI sizing (auto-adjusts for PC vs Mobile)
@@ -7,6 +7,8 @@
 -- - Theme customization
 -- - Settings save/load system
 -- - Custom logo support
+-- - Custom icons for tabs and sections (NEW!)
+-- - Enhanced shadows and glow effects (NEW!)
 
 -- Replace the URL below with your own hosted Loader URL
 local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/refs/heads/main/Loader"))()
@@ -63,7 +65,10 @@ local Window = EliteUI:CreateWindow({
     }
 })
 
--- Create Tabs
+-- Create Tabs (with built-in icons)
+-- Available icons: home, settings, sword, shield, player, world, star, heart, 
+-- gem, coin, bolt, code, script, folder, eye, lightning, fire, magic, pet, 
+-- inventory, shop, trophy, crown, vip, and many more!
 local MainTab = Window:CreateTab("Main", "home")
 local CombatTab = Window:CreateTab("Combat", "sword")
 
@@ -101,9 +106,9 @@ local SettingsTab = Window:CreateDefaultSettingsTab({
 -- You can still manually build a settings tab if you need complete control
 
 -- ==========================================
--- Main Tab - Basic Components
+-- Main Tab - Basic Components (with icon in section)
 -- ==========================================
-MainTab:CreateSection("Welcome")
+MainTab:CreateSection("Welcome", "star")  -- Using built-in icon
 
 MainTab:CreateParagraph({
     Title = "EliteUI v3.0.0",
@@ -145,9 +150,9 @@ MainTab:CreateToggle({
 })
 
 -- ==========================================
--- Combat Tab - Advanced Components
+-- Combat Tab - Advanced Components (with icons in sections)
 -- ==========================================
-CombatTab:CreateSection("Combat Features")
+CombatTab:CreateSection("Combat Features", "sword")  -- Using built-in icon
 
 CombatTab:CreateToggle({
     Name = "Kill Aura",
@@ -191,7 +196,7 @@ CombatTab:CreateKeybind({
     end
 })
 
-CombatTab:CreateSection("Additional Options")
+CombatTab:CreateSection("Additional Options", "bolt")  -- Using built-in icon
 
 CombatTab:CreateToggle({
     Name = "Auto Farm",
