@@ -50,6 +50,14 @@ The server runs on port 5000 and is accessible via the Replit webview.
 - **CORS**: Enabled for cross-origin requests
 
 ## Recent Changes
+- **December 8, 2025**: Added CreateDefaultSettingsTab function
+  - New optional helper function that creates a complete settings tab in one line
+  - Includes theme customization (color picker + theme presets), UI scale, size presets
+  - Includes notification toggle, clear settings button, and info section
+  - All settings persist automatically using the library's save/load system
+  - Fully customizable via options parameter
+  - Updated documentation website with new component info
+  - Fixed Window:Notify to respect NotificationsEnabled flag
 - **December 7, 2025**: Redesigned documentation website
   - Removed emojis, replaced with clean SVG icons
   - Added interactive component previews (buttons, toggles, sliders, dropdowns, etc.)
