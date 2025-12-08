@@ -484,6 +484,56 @@ MyColor:SetColor(Color3.fromRGB(255, 0, 0))</code></pre>
             </div>
           </div>
         </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Default Settings Tab</h3>
+            <p>Automatically creates a complete settings tab with theme customization, UI scale, size presets, notifications, and more. This is optional but saves a lot of time!</p>
+          </div>
+          <div class="component-body">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua - Quick One-Liner</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>-- Creates a complete settings tab with all options
+local SettingsTab = Window:CreateDefaultSettingsTab()</code></pre>
+            </div>
+            <div class="code-block" style="margin-top: 12px;">
+              <div class="code-header">
+                <span>Lua - With Custom Options</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>local SettingsTab = Window:CreateDefaultSettingsTab({
+    TabName = "Settings",           -- Tab name (default: "Settings")
+    TabIcon = "settings",           -- Tab icon
+    ShowThemeCustomization = true,  -- Color picker & theme presets
+    ShowUIScale = true,             -- UI scale slider
+    ShowUISizePresets = true,       -- Size preset dropdown
+    ShowNotifications = true,       -- Notification toggle & test
+    ShowDataManagement = true,      -- Clear settings button
+    ShowControls = true,            -- Toggle key info
+    ShowInfo = true,                -- Version & about
+    Version = "1.0.0",              -- Your script version
+    AboutText = "My custom script.",
+    CustomThemePresets = {          -- Optional: custom themes
+        ["Ocean"] = Color3.fromRGB(6, 182, 212),
+        ["Forest"] = Color3.fromRGB(34, 197, 94)
+    }
+})
+
+-- You can still add custom elements to the tab!
+SettingsTab:CreateSection("My Custom Settings")
+SettingsTab:CreateToggle({
+    Name = "Debug Mode",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Debug:", Value)
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section id="example" class="content-section">
