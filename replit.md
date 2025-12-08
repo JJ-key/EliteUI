@@ -50,6 +50,14 @@ The server runs on port 5000 and is accessible via the Replit webview.
 - **CORS**: Enabled for cross-origin requests
 
 ## Recent Changes
+- **December 8, 2025**: Added custom icons and enhanced visual effects (v3.2.0)
+  - Added built-in icon library with 60+ icons (home, settings, sword, shield, player, world, etc.)
+  - Tabs now support custom icons: `Window:CreateTab("Main", "home")`
+  - Sections now support custom icons: `Tab:CreateSection("Features", "star")`
+  - Enhanced multi-layer shadow effects for better depth
+  - Added glow effects to main window, buttons, and toggles
+  - Glow effects animate on hover and toggle states
+  - Updated Example script to demonstrate new icon features
 - **December 8, 2025**: Added CreateDefaultSettingsTab function
   - New optional helper function that creates a complete settings tab in one line
   - Includes theme customization (color picker + theme presets), UI scale, size presets
