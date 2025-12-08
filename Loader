@@ -1,12 +1,12 @@
 --[[
     EliteUI Library for Roblox
-    Version 3.2.0
+    Version 3.3.0
     
     Features:
     - Key System (optional, fetch keys from raw URL, saveable)
     - Responsive sizing (auto-adjusts for PC vs Mobile)
     - PC keybind support (press key to toggle UI)
-    - Triple-tap with 3 fingers to toggle UI (mobile)
+    - Hold 3 fingers for 0.8s to toggle UI (mobile) - won't trigger during gameplay
     - Smooth animations (open/close, component interactions)
     - Working theme/color customization
     - Settings save/load system (customizable folder/file)
@@ -51,8 +51,7 @@ local DefaultConfig = {
     MobileGesture = {
         Enabled = true,
         Fingers = 3,
-        TapCount = 2,
-        TimeWindow = 0.5
+        HoldDuration = 0.8
     },
     Animation = {
         Enabled = true,
@@ -255,30 +254,32 @@ local function animate(object, properties, duration, easingStyle, easingDirectio
     return tween
 end
 
--- Mobile Gesture Detection
+-- Mobile Gesture Detection (Hold-based: hold 3 fingers for duration to toggle)
 local function setupMobileGesture(gui, config)
     local touches = {}
-    local lastTapTime = 0
-    local tapCount = 0
+    local holdStartTime = nil
+    local holdCheckConnection = nil
+    
+    local function checkHoldComplete()
+        if holdStartTime and #touches >= config.MobileGesture.Fingers then
+            local elapsed = tick() - holdStartTime
+            if elapsed >= config.MobileGesture.HoldDuration then
+                gui.Enabled = not gui.Enabled
+                holdStartTime = nil
+                if holdCheckConnection then
+                    holdCheckConnection:Disconnect()
+                    holdCheckConnection = nil
+                end
+            end
+        end
+    end
     
     UserInputService.TouchStarted:Connect(function(touch)
         table.insert(touches, touch)
         
-        if #touches >= config.MobileGesture.Fingers then
-            local currentTime = tick()
-            
-            if currentTime - lastTapTime < config.MobileGesture.TimeWindow then
-                tapCount = tapCount + 1
-            else
-                tapCount = 1
-            end
-            
-            lastTapTime = currentTime
-            
-            if tapCount >= config.MobileGesture.TapCount then
-                gui.Enabled = not gui.Enabled
-                tapCount = 0
-            end
+        if #touches >= config.MobileGesture.Fingers and not holdStartTime then
+            holdStartTime = tick()
+            holdCheckConnection = game:GetService("RunService").Heartbeat:Connect(checkHoldComplete)
         end
     end)
     
@@ -287,6 +288,14 @@ local function setupMobileGesture(gui, config)
             if t == touch then
                 table.remove(touches, i)
                 break
+            end
+        end
+        
+        if #touches < config.MobileGesture.Fingers then
+            holdStartTime = nil
+            if holdCheckConnection then
+                holdCheckConnection:Disconnect()
+                holdCheckConnection = nil
             end
         end
     end)

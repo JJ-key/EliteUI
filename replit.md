@@ -32,7 +32,7 @@ The server runs on port 5000 and is accessible via the Replit webview.
 ## Features of EliteUI
 - Mobile-optimized UI with touch-friendly controls
 - Dark blue theme
-- Triple-tap gesture (3 fingers) to toggle UI
+- Hold 3 fingers for 0.8 seconds to toggle UI (won't trigger during gameplay)
 - Components: Window, Tab, Section, Button, Toggle, Slider, Dropdown, TextBox, Label, Paragraph, Keybind, ColorPicker, Notification
 
 ## API Endpoints
@@ -50,6 +50,10 @@ The server runs on port 5000 and is accessible via the Replit webview.
 - **CORS**: Enabled for cross-origin requests
 
 ## Recent Changes
+- **December 8, 2025**: Improved mobile gesture detection (v3.3.0)
+  - Changed from triple-tap to hold-based gesture (hold 3 fingers for 0.8 seconds)
+  - Prevents accidental UI toggles during gameplay when using multiple fingers
+  - Hold duration is configurable via MobileGesture.HoldDuration
 - **December 8, 2025**: Added custom icons and enhanced visual effects (v3.2.0)
   - Added built-in icon library with 60+ icons (home, settings, sword, shield, player, world, etc.)
   - Tabs now support custom icons: `Window:CreateTab("Main", "home")`
