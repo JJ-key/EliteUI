@@ -1065,6 +1065,11 @@ function EliteUI:CreateWindow(options)
     
     -- Notification function
     function Window:Notify(options)
+        -- Check if notifications are enabled (default to true if not set)
+        if Window.NotificationsEnabled == false then
+            return
+        end
+        
         local notifWidth = DeviceType == "Mobile" and 260 or 300
         local NotifFrame = Instance.new("Frame")
         NotifFrame.Size = UDim2.new(0, notifWidth, 0, 70)
@@ -2032,6 +2037,231 @@ function EliteUI:CreateWindow(options)
         end
         
         return Tab
+    end
+    
+    -- CreateDefaultSettingsTab: Creates a pre-built settings tab with common UI customization options
+    -- This is optional but helpful for script creators who want a quick settings tab
+    -- Options:
+    --   TabName: string (default: "Settings") - Name of the tab
+    --   TabIcon: string (default: "settings") - Icon for the tab
+    --   ShowThemeCustomization: boolean (default: true) - Show theme color picker and presets
+    --   ShowUIScale: boolean (default: true) - Show UI scale slider
+    --   ShowUISizePresets: boolean (default: true) - Show UI size preset dropdown
+    --   ShowNotifications: boolean (default: true) - Show notification toggle and test
+    --   ShowDataManagement: boolean (default: true) - Show clear settings button
+    --   ShowInfo: boolean (default: true) - Show version and about info
+    --   ShowControls: boolean (default: true) - Show toggle controls info
+    --   CustomThemePresets: table (optional) - Custom theme presets {["Name"] = Color3}
+    --   Version: string (default: "3.1.0") - Version to display
+    --   AboutText: string (optional) - Custom about text
+    function Window:CreateDefaultSettingsTab(options)
+        options = options or {}
+        
+        local tabName = options.TabName or "Settings"
+        local tabIcon = options.TabIcon or "settings"
+        
+        -- Create the settings tab
+        local SettingsTab = Window:CreateTab(tabName, tabIcon)
+        
+        -- Default options
+        local showTheme = options.ShowThemeCustomization ~= false
+        local showScale = options.ShowUIScale ~= false
+        local showSizePresets = options.ShowUISizePresets ~= false
+        local showNotifications = options.ShowNotifications ~= false
+        local showDataManagement = options.ShowDataManagement ~= false
+        local showInfo = options.ShowInfo ~= false
+        local showControls = options.ShowControls ~= false
+        
+        -- Initialize notifications enabled from saved settings
+        local savedNotifSetting = Window:GetSetting("EliteUI_ShowNotifications", true)
+        Window.NotificationsEnabled = savedNotifSetting
+        
+        -- Theme Presets definition (needed for both color picker and dropdown)
+        local themePresets = options.CustomThemePresets or {
+            ["Dark Blue"] = Color3.fromRGB(59, 130, 246),
+            ["Dark Purple"] = Color3.fromRGB(168, 85, 247),
+            ["Dark Green"] = Color3.fromRGB(34, 197, 94),
+            ["Dark Red"] = Color3.fromRGB(239, 68, 68),
+            ["Dark Orange"] = Color3.fromRGB(249, 115, 22),
+            ["Dark Pink"] = Color3.fromRGB(236, 72, 153),
+            ["Dark Cyan"] = Color3.fromRGB(6, 182, 212),
+            ["Dark Yellow"] = Color3.fromRGB(234, 179, 8)
+        }
+        
+        local presetNames = {}
+        for name, _ in pairs(themePresets) do
+            table.insert(presetNames, name)
+        end
+        table.sort(presetNames)
+        
+        -- Get saved theme preset to determine current color
+        local savedThemePreset = Window:GetSetting("EliteUI_ThemePreset", "Dark Blue")
+        local currentThemeColor = themePresets[savedThemePreset] or Config.Theme.Primary
+        
+        -- Apply saved theme on load
+        if savedThemePreset and themePresets[savedThemePreset] then
+            Window:SetTheme({
+                Primary = themePresets[savedThemePreset]
+            })
+        end
+        
+        -- Get saved UI scale and apply it
+        local savedUIScale = Window:GetSetting("EliteUI_UIScale", 100)
+        if savedUIScale and savedUIScale ~= 100 then
+            Window:SetScale(savedUIScale / 100)
+        end
+        
+        -- Get saved size preset and apply it
+        local savedSizePreset = Window:GetSetting("EliteUI_UISizePreset", "Normal")
+        local sizePresets = {
+            ["Small"] = {350, 300},
+            ["Normal"] = {420, 380},
+            ["Large"] = {500, 450},
+            ["Extra Large"] = {600, 520}
+        }
+        if savedSizePreset and savedSizePreset ~= "Normal" and sizePresets[savedSizePreset] then
+            local size = sizePresets[savedSizePreset]
+            Window:SetSize(size[1], size[2])
+        end
+        
+        -- Theme Customization Section
+        if showTheme then
+            SettingsTab:CreateSection("Theme Customization")
+            
+            -- Color Picker for UI Accent
+            SettingsTab:CreateColorPicker({
+                Name = "UI Accent Color",
+                CurrentColor = currentThemeColor,
+                Flag = "EliteUI_AccentColor",
+                Callback = function(Color)
+                    Window:SetTheme({
+                        Primary = Color
+                    })
+                end
+            })
+            
+            SettingsTab:CreateDropdown({
+                Name = "Theme Preset",
+                Options = presetNames,
+                CurrentValue = savedThemePreset,
+                Flag = "EliteUI_ThemePreset",
+                Callback = function(Preset)
+                    local color = themePresets[Preset]
+                    if color then
+                        Window:SetTheme({
+                            Primary = color
+                        })
+                    end
+                end
+            })
+        end
+        
+        -- UI Configuration Section
+        if showScale or showSizePresets then
+            SettingsTab:CreateSection("UI Configuration")
+            
+            if showScale then
+                SettingsTab:CreateSlider({
+                    Name = "UI Scale",
+                    Min = 50,
+                    Max = 150,
+                    CurrentValue = savedUIScale,
+                    Flag = "EliteUI_UIScale",
+                    Callback = function(Value)
+                        local scaleFactor = Value / 100
+                        Window:SetScale(scaleFactor)
+                    end
+                })
+            end
+            
+            if showSizePresets then
+                SettingsTab:CreateDropdown({
+                    Name = "UI Size Preset",
+                    Options = {"Small", "Normal", "Large", "Extra Large"},
+                    CurrentValue = savedSizePreset,
+                    Flag = "EliteUI_UISizePreset",
+                    Callback = function(Preset)
+                        local size = sizePresets[Preset]
+                        if size then
+                            Window:SetSize(size[1], size[2])
+                        end
+                    end
+                })
+            end
+        end
+        
+        -- Controls Section
+        if showControls then
+            SettingsTab:CreateSection("Controls")
+            
+            local toggleKeyName = Config.ToggleKey and Config.ToggleKey.Name or "RightShift"
+            SettingsTab:CreateParagraph({
+                Title = "Toggle UI",
+                Content = "PC: Press " .. toggleKeyName .. " | Mobile: Triple-tap with 3 fingers"
+            })
+        end
+        
+        -- Notifications Section
+        if showNotifications then
+            SettingsTab:CreateSection("Notifications")
+            
+            SettingsTab:CreateToggle({
+                Name = "Show Notifications",
+                CurrentValue = savedNotifSetting,
+                Flag = "EliteUI_ShowNotifications",
+                Callback = function(Value)
+                    Window.NotificationsEnabled = Value
+                end
+            })
+            
+            SettingsTab:CreateButton({
+                Name = "Show Test Notification",
+                Callback = function()
+                    if Window.NotificationsEnabled ~= false then
+                        Window:Notify({
+                            Title = "Test Notification",
+                            Content = "Notifications are working!",
+                            Duration = 3
+                        })
+                    end
+                end
+            })
+        end
+        
+        -- Data Management Section
+        if showDataManagement then
+            SettingsTab:CreateSection("Data Management")
+            
+            SettingsTab:CreateButton({
+                Name = "Clear All Saved Settings",
+                Callback = function()
+                    Window:ClearSettings()
+                    if Window.NotificationsEnabled ~= false then
+                        Window:Notify({
+                            Title = "Settings Cleared",
+                            Content = "All saved settings have been deleted.",
+                            Duration = 3
+                        })
+                    end
+                end
+            })
+        end
+        
+        -- Info Section
+        if showInfo then
+            SettingsTab:CreateSection("Info")
+            
+            local version = options.Version or "3.1.0"
+            SettingsTab:CreateLabel("EliteUI v" .. version)
+            
+            local aboutText = options.AboutText or "Built for Roblox with PC & Mobile support. Settings are saved automatically."
+            SettingsTab:CreateParagraph({
+                Title = "About",
+                Content = aboutText
+            })
+        end
+        
+        return SettingsTab
     end
     
     return Window
