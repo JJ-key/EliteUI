@@ -1,6 +1,6 @@
 --[[
     EliteUI Library for Roblox
-    Version 3.1.0
+    Version 3.2.0
     
     Features:
     - Key System (optional, fetch keys from raw URL, saveable)
@@ -12,6 +12,8 @@
     - Settings save/load system (customizable folder/file)
     - Custom logo with name support
     - Dark theme with all components
+    - Custom icons for tabs and sections
+    - Enhanced shadows and glow effects
 ]]
 
 local EliteUI = {}
@@ -69,6 +71,111 @@ local DefaultConfig = {
         Tablet = 0.9
     }
 }
+
+-- Built-in Icon Library (Roblox Image Asset IDs)
+local IconLibrary = {
+    -- Navigation & UI
+    home = "rbxassetid://7733960981",
+    settings = "rbxassetid://7734053495",
+    menu = "rbxassetid://7734068991",
+    close = "rbxassetid://7734050200",
+    search = "rbxassetid://7734053088",
+    info = "rbxassetid://7733985115",
+    help = "rbxassetid://7733984851",
+    
+    -- Actions
+    play = "rbxassetid://7734011963",
+    pause = "rbxassetid://7734011390",
+    stop = "rbxassetid://7734053890",
+    refresh = "rbxassetid://7734015388",
+    download = "rbxassetid://7733964789",
+    upload = "rbxassetid://7734072878",
+    edit = "rbxassetid://7733964418",
+    delete = "rbxassetid://7733962738",
+    add = "rbxassetid://7733928613",
+    remove = "rbxassetid://7734015169",
+    check = "rbxassetid://7733949551",
+    
+    -- Gaming & Combat
+    sword = "rbxassetid://7734054288",
+    shield = "rbxassetid://7734053233",
+    combat = "rbxassetid://7733960287",
+    target = "rbxassetid://7734054708",
+    crosshair = "rbxassetid://7733962066",
+    gamepad = "rbxassetid://7733971700",
+    controller = "rbxassetid://7733961701",
+    
+    -- Player & Character
+    player = "rbxassetid://7734011767",
+    users = "rbxassetid://7734073278",
+    team = "rbxassetid://7734054708",
+    avatar = "rbxassetid://7733935066",
+    character = "rbxassetid://7733950800",
+    
+    -- World & Environment
+    world = "rbxassetid://7734081398",
+    globe = "rbxassetid://7733974588",
+    map = "rbxassetid://7733998660",
+    location = "rbxassetid://7733998208",
+    compass = "rbxassetid://7733960984",
+    
+    -- Objects & Items
+    star = "rbxassetid://7734053728",
+    heart = "rbxassetid://7733981929",
+    gem = "rbxassetid://7733972509",
+    coin = "rbxassetid://7733960496",
+    gift = "rbxassetid://7733972878",
+    key = "rbxassetid://7733993378",
+    lock = "rbxassetid://7733998449",
+    unlock = "rbxassetid://7734072641",
+    
+    -- System & Tools
+    tool = "rbxassetid://7734072184",
+    wrench = "rbxassetid://7734082190",
+    bolt = "rbxassetid://7733942050",
+    code = "rbxassetid://7733960287",
+    script = "rbxassetid://7734052901",
+    terminal = "rbxassetid://7734055121",
+    folder = "rbxassetid://7733971201",
+    file = "rbxassetid://7733968878",
+    
+    -- Communication
+    chat = "rbxassetid://7733950800",
+    message = "rbxassetid://7734001108",
+    notification = "rbxassetid://7734008730",
+    bell = "rbxassetid://7733940878",
+    
+    -- Misc
+    eye = "rbxassetid://7733967028",
+    eyeoff = "rbxassetid://7733967401",
+    lightning = "rbxassetid://7733996141",
+    fire = "rbxassetid://7733969800",
+    water = "rbxassetid://7734078941",
+    magic = "rbxassetid://7733999501",
+    pet = "rbxassetid://7734010838",
+    inventory = "rbxassetid://7733985898",
+    shop = "rbxassetid://7734053345",
+    trophy = "rbxassetid://7734072403",
+    crown = "rbxassetid://7733962347",
+    vip = "rbxassetid://7734077100"
+}
+
+-- Helper function to get icon from library or use custom asset ID
+local function getIconImage(iconName)
+    if iconName == nil then
+        return nil
+    end
+    if typeof(iconName) == "string" then
+        if IconLibrary[iconName:lower()] then
+            return IconLibrary[iconName:lower()]
+        elseif iconName:match("^rbxassetid://") then
+            return iconName
+        elseif tonumber(iconName) then
+            return "rbxassetid://" .. iconName
+        end
+    end
+    return nil
+end
 
 -- Deep copy function for config
 local function deepCopy(original)
@@ -625,19 +732,58 @@ function EliteUI:CreateWindow(options)
     
     Window.MainStroke = Stroke
     
-    -- Shadow effect
-    local Shadow = Instance.new("ImageLabel")
-    Shadow.Name = "Shadow"
-    Shadow.BackgroundTransparency = 1
-    Shadow.Position = UDim2.new(0, -15, 0, -15)
-    Shadow.Size = UDim2.new(1, 30, 1, 30)
-    Shadow.ZIndex = -1
-    Shadow.Image = "rbxassetid://5554236805"
-    Shadow.ImageColor3 = Color3.new(0, 0, 0)
-    Shadow.ImageTransparency = 0.6
-    Shadow.ScaleType = Enum.ScaleType.Slice
-    Shadow.SliceCenter = Rect.new(23, 23, 277, 277)
-    Shadow.Parent = MainFrame
+    -- Enhanced multi-layer shadow effect
+    local ShadowContainer = Instance.new("Frame")
+    ShadowContainer.Name = "ShadowContainer"
+    ShadowContainer.BackgroundTransparency = 1
+    ShadowContainer.Size = UDim2.new(1, 60, 1, 60)
+    ShadowContainer.Position = UDim2.new(0, -30, 0, -30)
+    ShadowContainer.ZIndex = -2
+    ShadowContainer.Parent = MainFrame
+    
+    -- Outer soft shadow (diffuse)
+    local ShadowOuter = Instance.new("ImageLabel")
+    ShadowOuter.Name = "ShadowOuter"
+    ShadowOuter.BackgroundTransparency = 1
+    ShadowOuter.Position = UDim2.new(0, 0, 0, 0)
+    ShadowOuter.Size = UDim2.new(1, 0, 1, 0)
+    ShadowOuter.ZIndex = -2
+    ShadowOuter.Image = "rbxassetid://5554236805"
+    ShadowOuter.ImageColor3 = Color3.new(0, 0, 0)
+    ShadowOuter.ImageTransparency = 0.75
+    ShadowOuter.ScaleType = Enum.ScaleType.Slice
+    ShadowOuter.SliceCenter = Rect.new(23, 23, 277, 277)
+    ShadowOuter.Parent = ShadowContainer
+    
+    -- Inner sharp shadow (depth)
+    local ShadowInner = Instance.new("ImageLabel")
+    ShadowInner.Name = "ShadowInner"
+    ShadowInner.BackgroundTransparency = 1
+    ShadowInner.Position = UDim2.new(0, 10, 0, 10)
+    ShadowInner.Size = UDim2.new(1, -20, 1, -20)
+    ShadowInner.ZIndex = -1
+    ShadowInner.Image = "rbxassetid://5554236805"
+    ShadowInner.ImageColor3 = Color3.new(0, 0, 0)
+    ShadowInner.ImageTransparency = 0.5
+    ShadowInner.ScaleType = Enum.ScaleType.Slice
+    ShadowInner.SliceCenter = Rect.new(23, 23, 277, 277)
+    ShadowInner.Parent = ShadowContainer
+    
+    -- Glow effect (colored outer glow based on theme)
+    local GlowEffect = Instance.new("ImageLabel")
+    GlowEffect.Name = "GlowEffect"
+    GlowEffect.BackgroundTransparency = 1
+    GlowEffect.Position = UDim2.new(0, -5, 0, -5)
+    GlowEffect.Size = UDim2.new(1, 10, 1, 10)
+    GlowEffect.ZIndex = -1
+    GlowEffect.Image = "rbxassetid://5554236805"
+    GlowEffect.ImageColor3 = Config.Theme.Primary
+    GlowEffect.ImageTransparency = 0.85
+    GlowEffect.ScaleType = Enum.ScaleType.Slice
+    GlowEffect.SliceCenter = Rect.new(23, 23, 277, 277)
+    GlowEffect.Parent = MainFrame
+    
+    Window.GlowEffect = GlowEffect
     
     -- Header
     local headerHeight = DeviceType == "Mobile" and 38 or 44
@@ -1153,11 +1299,14 @@ function EliteUI:CreateWindow(options)
         Tab.Elements = {}
         
         local btnHeight = DeviceType == "Mobile" and 30 or 34
+        local iconSize = DeviceType == "Mobile" and 14 or 16
+        local hasIcon = icon ~= nil and getIconImage(icon) ~= nil
+        
         local TabButton = Instance.new("TextButton")
         TabButton.Size = UDim2.new(1, 0, 0, btnHeight)
         TabButton.BackgroundColor3 = Config.Theme.Secondary
         TabButton.BorderSizePixel = 0
-        TabButton.Text = name
+        TabButton.Text = ""
         TabButton.TextColor3 = Config.Theme.TextSecondary
         TabButton.TextSize = DeviceType == "Mobile" and 11 or 12
         TabButton.Font = Enum.Font.GothamMedium
@@ -1166,6 +1315,36 @@ function EliteUI:CreateWindow(options)
         local BtnCorner = Instance.new("UICorner")
         BtnCorner.CornerRadius = UDim.new(0, 6)
         BtnCorner.Parent = TabButton
+        
+        -- Tab icon (if provided)
+        local TabIcon
+        if hasIcon then
+            TabIcon = Instance.new("ImageLabel")
+            TabIcon.Name = "TabIcon"
+            TabIcon.Size = UDim2.new(0, iconSize, 0, iconSize)
+            TabIcon.Position = UDim2.new(0, 10, 0.5, -iconSize/2)
+            TabIcon.BackgroundTransparency = 1
+            TabIcon.Image = getIconImage(icon)
+            TabIcon.ImageColor3 = Config.Theme.TextSecondary
+            TabIcon.ScaleType = Enum.ScaleType.Fit
+            TabIcon.Parent = TabButton
+        end
+        
+        -- Tab label
+        local TabLabel = Instance.new("TextLabel")
+        TabLabel.Name = "TabLabel"
+        TabLabel.Size = hasIcon and UDim2.new(1, -(iconSize + 18), 1, 0) or UDim2.new(1, -20, 1, 0)
+        TabLabel.Position = hasIcon and UDim2.new(0, iconSize + 14, 0, 0) or UDim2.new(0, 10, 0, 0)
+        TabLabel.BackgroundTransparency = 1
+        TabLabel.Text = name
+        TabLabel.TextColor3 = Config.Theme.TextSecondary
+        TabLabel.TextSize = DeviceType == "Mobile" and 11 or 12
+        TabLabel.Font = Enum.Font.GothamMedium
+        TabLabel.TextXAlignment = Enum.TextXAlignment.Left
+        TabLabel.Parent = TabButton
+        
+        Tab.Icon = TabIcon
+        Tab.Label = TabLabel
         
         local TabContent = Instance.new("ScrollingFrame")
         TabContent.Size = UDim2.new(1, 0, 1, 0)
@@ -1195,7 +1374,12 @@ function EliteUI:CreateWindow(options)
                 else
                     t.Button.BackgroundColor3 = Config.Theme.Secondary
                 end
-                t.Button.TextColor3 = Config.Theme.TextSecondary
+                if t.Label then
+                    t.Label.TextColor3 = Config.Theme.TextSecondary
+                end
+                if t.Icon then
+                    t.Icon.ImageColor3 = Config.Theme.TextSecondary
+                end
             end
             TabContent.Visible = true
             if Config.Animation.Enabled then
@@ -1203,12 +1387,22 @@ function EliteUI:CreateWindow(options)
             else
                 TabButton.BackgroundColor3 = Config.Theme.Primary
             end
-            TabButton.TextColor3 = Config.Theme.Text
+            if TabLabel then
+                TabLabel.TextColor3 = Config.Theme.Text
+            end
+            if TabIcon then
+                TabIcon.ImageColor3 = Config.Theme.Text
+            end
         end)
         
         if #Window.Tabs == 0 then
             TabButton.BackgroundColor3 = Config.Theme.Primary
-            TabButton.TextColor3 = Config.Theme.Text
+            if TabLabel then
+                TabLabel.TextColor3 = Config.Theme.Text
+            end
+            if TabIcon then
+                TabIcon.ImageColor3 = Config.Theme.Text
+            end
         end
         
         Tab.Button = TabButton
@@ -1219,15 +1413,32 @@ function EliteUI:CreateWindow(options)
         local componentHeight = DeviceType == "Mobile" and 34 or 38
         local textSize = DeviceType == "Mobile" and 11 or 12
         
-        -- Create Section
-        function Tab:CreateSection(name)
+        -- Create Section (with optional icon support)
+        function Tab:CreateSection(name, icon)
+            local sectionIconSize = DeviceType == "Mobile" and 12 or 14
+            local hasIcon = icon ~= nil and getIconImage(icon) ~= nil
+            
             local Section = Instance.new("Frame")
             Section.Size = UDim2.new(1, -10, 0, 22)
             Section.BackgroundTransparency = 1
             Section.Parent = TabContent
             
+            -- Section icon (if provided)
+            if hasIcon then
+                local SectionIcon = Instance.new("ImageLabel")
+                SectionIcon.Name = "SectionIcon"
+                SectionIcon.Size = UDim2.new(0, sectionIconSize, 0, sectionIconSize)
+                SectionIcon.Position = UDim2.new(0, 0, 0.5, -sectionIconSize/2)
+                SectionIcon.BackgroundTransparency = 1
+                SectionIcon.Image = getIconImage(icon)
+                SectionIcon.ImageColor3 = Config.Theme.Primary
+                SectionIcon.ScaleType = Enum.ScaleType.Fit
+                SectionIcon.Parent = Section
+            end
+            
             local SectionLabel = Instance.new("TextLabel")
-            SectionLabel.Size = UDim2.new(1, 0, 1, 0)
+            SectionLabel.Size = hasIcon and UDim2.new(1, -(sectionIconSize + 6), 1, 0) or UDim2.new(1, 0, 1, 0)
+            SectionLabel.Position = hasIcon and UDim2.new(0, sectionIconSize + 6, 0, 0) or UDim2.new(0, 0, 0, 0)
             SectionLabel.BackgroundTransparency = 1
             SectionLabel.Text = name
             SectionLabel.TextColor3 = Config.Theme.TextSecondary
@@ -1239,39 +1450,62 @@ function EliteUI:CreateWindow(options)
             return Section
         end
         
-        -- Create Button
+        -- Create Button (with glow effect)
         function Tab:CreateButton(options)
+            local ButtonContainer = Instance.new("Frame")
+            ButtonContainer.Size = UDim2.new(1, -10, 0, componentHeight)
+            ButtonContainer.BackgroundTransparency = 1
+            ButtonContainer.Parent = TabContent
+            
             local Button = Instance.new("TextButton")
-            Button.Size = UDim2.new(1, -10, 0, componentHeight)
+            Button.Size = UDim2.new(1, 0, 1, 0)
             Button.BackgroundColor3 = Config.Theme.Primary
             Button.BorderSizePixel = 0
             Button.Text = options.Name
             Button.TextColor3 = Config.Theme.Text
             Button.TextSize = textSize
             Button.Font = Enum.Font.GothamMedium
-            Button.Parent = TabContent
+            Button.Parent = ButtonContainer
             
             local Corner = Instance.new("UICorner")
             Corner.CornerRadius = UDim.new(0, 6)
             Corner.Parent = Button
             
+            -- Subtle glow effect on button
+            local ButtonGlow = Instance.new("ImageLabel")
+            ButtonGlow.Name = "ButtonGlow"
+            ButtonGlow.BackgroundTransparency = 1
+            ButtonGlow.Position = UDim2.new(0, -4, 0, -4)
+            ButtonGlow.Size = UDim2.new(1, 8, 1, 8)
+            ButtonGlow.ZIndex = -1
+            ButtonGlow.Image = "rbxassetid://5554236805"
+            ButtonGlow.ImageColor3 = Config.Theme.Primary
+            ButtonGlow.ImageTransparency = 0.9
+            ButtonGlow.ScaleType = Enum.ScaleType.Slice
+            ButtonGlow.SliceCenter = Rect.new(23, 23, 277, 277)
+            ButtonGlow.Parent = ButtonContainer
+            
             Button.MouseEnter:Connect(function()
                 if Config.Animation.Enabled then
                     animate(Button, {BackgroundColor3 = Config.Theme.Accent}, 0.15)
+                    animate(ButtonGlow, {ImageTransparency = 0.7, ImageColor3 = Config.Theme.Accent}, 0.15)
                 end
             end)
             
             Button.MouseLeave:Connect(function()
                 if Config.Animation.Enabled then
                     animate(Button, {BackgroundColor3 = Config.Theme.Primary}, 0.15)
+                    animate(ButtonGlow, {ImageTransparency = 0.9, ImageColor3 = Config.Theme.Primary}, 0.15)
                 end
             end)
             
             Button.MouseButton1Click:Connect(function()
                 if Config.Animation.Enabled then
-                    animate(Button, {Size = UDim2.new(1, -14, 0, componentHeight - 4)}, 0.1)
+                    animate(Button, {Size = UDim2.new(1, -4, 1, -4)}, 0.1)
+                    animate(ButtonGlow, {ImageTransparency = 0.5}, 0.1)
                     task.wait(0.1)
-                    animate(Button, {Size = UDim2.new(1, -10, 0, componentHeight)}, 0.1)
+                    animate(Button, {Size = UDim2.new(1, 0, 1, 0)}, 0.1)
+                    animate(ButtonGlow, {ImageTransparency = 0.9}, 0.1)
                 end
                 if options.Callback then
                     options.Callback()
@@ -1281,7 +1515,7 @@ function EliteUI:CreateWindow(options)
             return Button
         end
         
-        -- Create Toggle
+        -- Create Toggle (with glow effect)
         function Tab:CreateToggle(options)
             local settingKey = options.Flag or options.Name
             local savedValue = Window:GetSetting(settingKey, options.CurrentValue)
@@ -1318,6 +1552,20 @@ function EliteUI:CreateWindow(options)
             ToggleCorner.CornerRadius = UDim.new(1, 0)
             ToggleCorner.Parent = Toggle
             
+            -- Toggle glow effect (visible when enabled)
+            local ToggleGlow = Instance.new("ImageLabel")
+            ToggleGlow.Name = "ToggleGlow"
+            ToggleGlow.BackgroundTransparency = 1
+            ToggleGlow.Position = UDim2.new(0, -3, 0, -3)
+            ToggleGlow.Size = UDim2.new(1, 6, 1, 6)
+            ToggleGlow.ZIndex = -1
+            ToggleGlow.Image = "rbxassetid://5554236805"
+            ToggleGlow.ImageColor3 = Config.Theme.Primary
+            ToggleGlow.ImageTransparency = savedValue and 0.7 or 1
+            ToggleGlow.ScaleType = Enum.ScaleType.Slice
+            ToggleGlow.SliceCenter = Rect.new(23, 23, 277, 277)
+            ToggleGlow.Parent = Toggle
+            
             local Indicator = Instance.new("Frame")
             Indicator.Size = UDim2.new(0, 16, 0, 16)
             Indicator.Position = savedValue and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
@@ -1343,9 +1591,11 @@ function EliteUI:CreateWindow(options)
                 if animate_ and Config.Animation.Enabled then
                     animate(Toggle, {BackgroundColor3 = value and Config.Theme.Primary or Color3.fromRGB(75, 85, 99)}, 0.2)
                     animate(Indicator, {Position = value and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2)
+                    animate(ToggleGlow, {ImageTransparency = value and 0.7 or 1}, 0.2)
                 else
                     Toggle.BackgroundColor3 = value and Config.Theme.Primary or Color3.fromRGB(75, 85, 99)
                     Indicator.Position = value and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+                    ToggleGlow.ImageTransparency = value and 0.7 or 1
                 end
             end
             
