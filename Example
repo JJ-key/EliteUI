@@ -66,7 +66,39 @@ local Window = EliteUI:CreateWindow({
 -- Create Tabs
 local MainTab = Window:CreateTab("Main", "home")
 local CombatTab = Window:CreateTab("Combat", "sword")
-local SettingsTab = Window:CreateTab("Settings", "settings")
+
+-- ==========================================
+-- Settings Tab - Using CreateDefaultSettingsTab (RECOMMENDED)
+-- ==========================================
+-- Option 1: Quick one-liner with all default settings
+-- This creates a complete settings tab with theme customization,
+-- UI scale, size presets, notifications, data management, and info sections
+local SettingsTab = Window:CreateDefaultSettingsTab()
+
+-- Option 2: Customize which sections appear (uncomment to use instead)
+--[[
+local SettingsTab = Window:CreateDefaultSettingsTab({
+    TabName = "Settings",                    -- Tab name (default: "Settings")
+    TabIcon = "settings",                    -- Tab icon (default: "settings")
+    ShowThemeCustomization = true,           -- Show color picker & theme presets
+    ShowUIScale = true,                      -- Show UI scale slider
+    ShowUISizePresets = true,                -- Show size preset dropdown
+    ShowNotifications = true,                -- Show notification toggle & test
+    ShowDataManagement = true,               -- Show clear settings button
+    ShowControls = true,                     -- Show toggle key info
+    ShowInfo = true,                         -- Show version & about
+    Version = "1.0.0",                       -- Your script version
+    AboutText = "My custom script description here.",
+    CustomThemePresets = {                   -- Optional: custom color themes
+        ["Ocean"] = Color3.fromRGB(6, 182, 212),
+        ["Forest"] = Color3.fromRGB(34, 197, 94),
+        ["Sunset"] = Color3.fromRGB(249, 115, 22)
+    }
+})
+]]
+
+-- Option 3: Manual settings tab (for full control - see commented code below)
+-- You can still manually build a settings tab if you need complete control
 
 -- ==========================================
 -- Main Tab - Basic Components
@@ -182,109 +214,74 @@ CombatTab:CreateSlider({
 })
 
 -- ==========================================
--- Settings Tab - Customization Components
+-- Adding Custom Elements to Default Settings Tab (Optional)
 -- ==========================================
-SettingsTab:CreateSection("Theme Customization")
+-- You can still add your own custom elements to the default settings tab!
+-- The CreateDefaultSettingsTab returns the tab object, so you can use it like any other tab.
 
-SettingsTab:CreateColorPicker({
+SettingsTab:CreateSection("Custom Script Settings")
+
+SettingsTab:CreateToggle({
+    Name = "Enable Debug Mode",
+    CurrentValue = false,
+    Flag = "DebugMode",
+    Callback = function(Value)
+        print("Debug Mode:", Value)
+    end
+})
+
+-- ==========================================
+-- MANUAL SETTINGS TAB EXAMPLE (For Reference)
+-- ==========================================
+-- If you prefer full control, you can still create a manual settings tab.
+-- Just replace CreateDefaultSettingsTab() with CreateTab("Settings", "settings")
+-- and add all elements yourself. The old code is preserved below as a reference:
+--[[
+local ManualSettingsTab = Window:CreateTab("Settings", "settings")
+
+ManualSettingsTab:CreateSection("Theme Customization")
+
+ManualSettingsTab:CreateColorPicker({
     Name = "UI Accent Color",
     CurrentColor = Color3.fromRGB(59, 130, 246),
     Flag = "AccentColor",
     Callback = function(Color)
-        print("Color changed:", Color)
-        -- Apply the color to the UI theme
-        Window:SetTheme({
-            Primary = Color
-        })
+        Window:SetTheme({ Primary = Color })
     end
 })
 
-SettingsTab:CreateDropdown({
+ManualSettingsTab:CreateDropdown({
     Name = "Theme Preset",
     Options = {"Dark Blue", "Dark Purple", "Dark Green", "Dark Red"},
     CurrentValue = "Dark Blue",
     Flag = "ThemePreset",
     Callback = function(Theme)
-        print("Theme:", Theme)
         local themes = {
             ["Dark Blue"] = Color3.fromRGB(59, 130, 246),
             ["Dark Purple"] = Color3.fromRGB(168, 85, 247),
             ["Dark Green"] = Color3.fromRGB(34, 197, 94),
             ["Dark Red"] = Color3.fromRGB(239, 68, 68)
         }
-        Window:SetTheme({
-            Primary = themes[Theme]
-        })
+        Window:SetTheme({ Primary = themes[Theme] })
     end
 })
 
-SettingsTab:CreateSection("UI Configuration")
+ManualSettingsTab:CreateSection("UI Configuration")
 
-SettingsTab:CreateSlider({
+ManualSettingsTab:CreateSlider({
     Name = "UI Scale",
     Min = 50,
     Max = 150,
     CurrentValue = 100,
     Flag = "UIScale",
     Callback = function(Value)
-        local scaleFactor = Value / 100
-        Window:SetScale(scaleFactor)
-        print("UI Scale:", scaleFactor)
+        Window:SetScale(Value / 100)
     end
 })
 
-SettingsTab:CreateDropdown({
-    Name = "UI Size Preset",
-    Options = {"Small", "Normal", "Large", "Extra Large"},
-    CurrentValue = "Normal",
-    Flag = "UISizePreset",
-    Callback = function(Preset)
-        local sizes = {
-            ["Small"] = {350, 300},
-            ["Normal"] = {420, 380},
-            ["Large"] = {500, 450},
-            ["Extra Large"] = {600, 520}
-        }
-        local size = sizes[Preset]
-        if size then
-            Window:SetSize(size[1], size[2])
-        end
-        print("Size Preset:", Preset)
-    end
-})
+ManualSettingsTab:CreateSection("Data Management")
 
-SettingsTab:CreateSection("Controls")
-
-SettingsTab:CreateParagraph({
-    Title = "Toggle UI",
-    Content = "PC: Press RightShift | Mobile: Triple-tap with 3 fingers"
-})
-
-SettingsTab:CreateSection("Notifications")
-
-SettingsTab:CreateToggle({
-    Name = "Show Notifications",
-    CurrentValue = true,
-    Flag = "ShowNotifications",
-    Callback = function(Value)
-        print("Notifications:", Value)
-    end
-})
-
-SettingsTab:CreateButton({
-    Name = "Show Test Notification",
-    Callback = function()
-        Window:Notify({
-            Title = "Hello!",
-            Content = "This is a notification from EliteUI.",
-            Duration = 4
-        })
-    end
-})
-
-SettingsTab:CreateSection("Data Management")
-
-SettingsTab:CreateButton({
+ManualSettingsTab:CreateButton({
     Name = "Clear All Saved Settings",
     Callback = function()
         Window:ClearSettings()
@@ -295,12 +292,4 @@ SettingsTab:CreateButton({
         })
     end
 })
-
-SettingsTab:CreateSection("Info")
-
-SettingsTab:CreateLabel("EliteUI v3.1.0")
-
-SettingsTab:CreateParagraph({
-    Title = "About",
-    Content = "Built for Roblox with PC & Mobile support. Settings are saved automatically."
-})
+]]
