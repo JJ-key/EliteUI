@@ -308,13 +308,14 @@ ManualSettingsTab:CreateButton({
 ]]
 
 local InvisibleBtn = Window:CreateInvisibleButton({
-    Size = 70,                    -- Button size in pixels (default: 50)
-    TapCount = 2,                 -- Taps required to trigger (default: 3)
-    SavePosition = true,          -- Save position between sessions (default: true)
-    Callback = function()         -- Custom callback (default: toggles UI)
-    Window:Notify({
-    Title = "Success!",
-    Content = "Secret button is working! completed successfully.",
-    Duration = 3
-    })
+    Size = 70,                    -- Button size in pixels
+    TapCount = 2,                 -- Taps required to trigger
+    SavePosition = true,          -- Save position between sessions
+    Callback = function()          -- Callback function
+        Window:Notify({
+            Title = "Success!",
+            Content = "Secret button is working! completed successfully.",
+            Duration = 3
+        })
+    end
 })
