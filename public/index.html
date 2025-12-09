@@ -120,23 +120,12 @@
         <div class="component-combined">
           <div class="component-header">
             <h3>Window</h3>
-            <p>The main container for your UI. Creates a draggable window with tabs. Supports optional Key System for access control.</p>
+            <p>The main container for your UI. Creates a draggable window with tabs. Supports optional Key System for access control and Snow Effect for a festive animated background.</p>
           </div>
           <div class="component-body">
             <div class="code-block">
               <div class="code-header">
-                <span>Lua - Basic</span>
-                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-              </div>
-              <pre><code>local Window = EliteUI:CreateWindow({
-    Name = "My Script Hub",
-    LoadingTitle = "Loading...",
-    Subtitle = "v1.0"
-})</code></pre>
-            </div>
-            <div class="code-block" style="margin-top: 12px;">
-              <div class="code-header">
-                <span>Lua - With Key System</span>
+                <span>Lua</span>
                 <button class="copy-btn" onclick="copyCode(this)">Copy</button>
               </div>
               <pre><code>local Window = EliteUI:CreateWindow({
@@ -154,6 +143,14 @@
         NoteURL = "https://yoursite.com/getkey",
         SaveKey = true,
         FileName = "key.txt"
+    },
+    
+    -- Snow Effect (optional)
+    SnowEffect = {
+        Enabled = true,
+        ParticleCount = 50,  -- Number of snowflakes (default: 50)
+        Speed = 1,           -- Fall speed multiplier (default: 1)
+        Glow = true          -- Enable glow effect on snowflakes (default: true)
     }
 })</code></pre>
             </div>

@@ -71,6 +71,12 @@ local DefaultConfig = {
         PC = 1.0,
         Mobile = 0.85,
         Tablet = 0.9
+    },
+    SnowEffect = {
+        Enabled = false,
+        ParticleCount = 50,
+        Speed = 1,
+        Glow = true
     }
 }
 
@@ -500,6 +506,11 @@ function EliteUI:CreateWindow(options)
             end
         end
     end
+    if options.SnowEffect then
+        for k, v in pairs(options.SnowEffect) do
+            Config.SnowEffect[k] = v
+        end
+    end
     
     Window.Config = Config
     
@@ -796,6 +807,93 @@ function EliteUI:CreateWindow(options)
     GlowEffect.Parent = MainFrame
     
     Window.GlowEffect = GlowEffect
+    
+    -- Snow Effect
+    if Config.SnowEffect.Enabled then
+        local SnowContainer = Instance.new("Frame")
+        SnowContainer.Name = "SnowContainer"
+        SnowContainer.Size = UDim2.new(1, 0, 1, 0)
+        SnowContainer.Position = UDim2.new(0, 0, 0, 0)
+        SnowContainer.BackgroundTransparency = 1
+        SnowContainer.ClipsDescendants = true
+        SnowContainer.ZIndex = 0
+        SnowContainer.Parent = MainFrame
+        
+        local snowflakes = {}
+        local particleCount = Config.SnowEffect.ParticleCount or 50
+        local speed = Config.SnowEffect.Speed or 1
+        local glowEnabled = Config.SnowEffect.Glow
+        
+        local function createSnowflake()
+            local size = math.random(2, 6)
+            local snowflake = Instance.new("Frame")
+            snowflake.Name = "Snowflake"
+            snowflake.Size = UDim2.new(0, size, 0, size)
+            snowflake.Position = UDim2.new(math.random() * 0.95, 0, -0.05, 0)
+            snowflake.BackgroundColor3 = Color3.new(1, 1, 1)
+            snowflake.BackgroundTransparency = math.random() * 0.4 + 0.2
+            snowflake.BorderSizePixel = 0
+            snowflake.ZIndex = 0
+            snowflake.Parent = SnowContainer
+            
+            local corner = Instance.new("UICorner")
+            corner.CornerRadius = UDim.new(1, 0)
+            corner.Parent = snowflake
+            
+            if glowEnabled then
+                local glow = Instance.new("ImageLabel")
+                glow.Name = "Glow"
+                glow.Size = UDim2.new(3, 0, 3, 0)
+                glow.Position = UDim2.new(-1, 0, -1, 0)
+                glow.BackgroundTransparency = 1
+                glow.Image = "rbxassetid://5554236805"
+                glow.ImageColor3 = Color3.new(1, 1, 1)
+                glow.ImageTransparency = 0.7
+                glow.ZIndex = 0
+                glow.Parent = snowflake
+            end
+            
+            return {
+                frame = snowflake,
+                speed = (math.random() * 0.3 + 0.2) * speed,
+                drift = (math.random() - 0.5) * 0.1,
+                y = -0.05
+            }
+        end
+        
+        for i = 1, particleCount do
+            local flake = createSnowflake()
+            flake.y = math.random() * 1.1
+            flake.frame.Position = UDim2.new(math.random() * 0.95, 0, flake.y, 0)
+            table.insert(snowflakes, flake)
+        end
+        
+        local snowConnection
+        snowConnection = game:GetService("RunService").Heartbeat:Connect(function(dt)
+            if not SnowContainer.Parent then
+                snowConnection:Disconnect()
+                return
+            end
+            
+            for _, flake in ipairs(snowflakes) do
+                flake.y = flake.y + flake.speed * dt
+                local newX = flake.frame.Position.X.Scale + flake.drift * dt
+                
+                if flake.y > 1.05 then
+                    flake.y = -0.05
+                    newX = math.random() * 0.95
+                end
+                
+                if newX < 0 then newX = 0.95 end
+                if newX > 0.95 then newX = 0 end
+                
+                flake.frame.Position = UDim2.new(newX, 0, flake.y, 0)
+            end
+        end)
+        
+        Window.SnowContainer = SnowContainer
+        Window.SnowConnection = snowConnection
+    end
     
     -- Header
     local headerHeight = DeviceType == "Mobile" and 38 or 44
