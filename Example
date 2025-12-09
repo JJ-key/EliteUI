@@ -1,30 +1,33 @@
--- EliteUI v3.2.0 Complete Example Script
+-- EliteUI v3.5.0 Complete Example Script
 -- This script demonstrates all available features including:
 -- - Key System (optional, fetch keys from raw URL, saveable)
 -- - Responsive UI sizing (auto-adjusts for PC vs Mobile)
 -- - PC keybind support (RightShift to toggle by default)
 -- - Smooth animations
--- - Theme customization
--- - Settings save/load system
+-- - Theme customization (now built into user panel!)
+-- - Settings save/load system (automatic, no function call needed)
 -- - Custom logo support
--- - Custom icons for tabs and sections (NEW!)
--- - Enhanced shadows and glow effects (NEW!)
+-- - Custom icons for tabs and sections
+-- - Enhanced shadows and glow effects
+-- - Settings panel integrated in user info area (NEW!)
 
 -- Replace the URL below with your own hosted Loader URL
 local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/refs/heads/main/Loader"))()
 
 -- Create Window with all options
+-- Settings are now automatically included in the user panel (bottom left)
+-- No need to call CreateDefaultSettingsTab anymore!
 local Window = EliteUI:CreateWindow({
-    Name = "EliteUI litte example",
+    Name = "EliteUI Example",
     LoadingTitle = "Loading...",
-    Subtitle = "v3.1",
+    Subtitle = "v3.5",
 
--- Snow Effect (optional)
+    -- Snow Effect (optional)
     SnowEffect = {
         Enabled = true,
-        ParticleCount = 50,  -- Number of snowflakes (default: 50)
-        Speed = 1,           -- Fall speed multiplier (default: 1)
-        Glow = true          -- Enable glow effect on snowflakes (default: true)
+        ParticleCount = 50,
+        Speed = 1,
+        Glow = true
     },
 
     -- Key System (optional - can be disabled or removed entirely)
@@ -38,9 +41,6 @@ local Window = EliteUI:CreateWindow({
         SaveKey = true,
         FileName = "key.txt"
     },
-    
-    -- Optional: Custom logo (use Roblox asset ID)
-    -- Logo = "rbxassetid://123456789",
     
     -- Custom toggle keybind (default is RightShift)
     ToggleKey = Enum.KeyCode.RightShift,
@@ -63,6 +63,7 @@ local Window = EliteUI:CreateWindow({
     },
     
     -- Custom theme colors (optional)
+    -- Note: Users can change theme via the Settings button in user panel
     Theme = {
         Primary = Color3.fromRGB(139, 92, 246),
         Background = Color3.fromRGB(15, 15, 20),
@@ -79,48 +80,30 @@ local Window = EliteUI:CreateWindow({
 -- inventory, shop, trophy, crown, vip, and many more!
 local MainTab = Window:CreateTab("Main", "home")
 local CombatTab = Window:CreateTab("Combat", "sword")
+local FarmTab = Window:CreateTab("Farm", "bolt")
 
 -- ==========================================
--- Settings Tab - Using CreateDefaultSettingsTab (RECOMMENDED)
+-- SETTINGS ARE NOW BUILT-IN!
 -- ==========================================
--- Option 1: Quick one-liner with all default settings
--- This creates a complete settings tab with theme customization,
--- UI scale, size presets, notifications, data management, and info sections
-local SettingsTab = Window:CreateDefaultSettingsTab()
-
--- Option 2: Customize which sections appear (uncomment to use instead)
---[[
-local SettingsTab = Window:CreateDefaultSettingsTab({
-    TabName = "Settings",                    -- Tab name (default: "Settings")
-    TabIcon = "settings",                    -- Tab icon (default: "settings")
-    ShowThemeCustomization = true,           -- Show color picker & theme presets
-    ShowUIScale = true,                      -- Show UI scale slider
-    ShowUISizePresets = true,                -- Show size preset dropdown
-    ShowNotifications = true,                -- Show notification toggle & test
-    ShowDataManagement = true,               -- Show clear settings button
-    ShowControls = true,                     -- Show toggle key info
-    ShowInfo = true,                         -- Show version & about
-    Version = "1.0.0",                       -- Your script version
-    AboutText = "My custom script description here.",
-    CustomThemePresets = {                   -- Optional: custom color themes
-        ["Ocean"] = Color3.fromRGB(6, 182, 212),
-        ["Forest"] = Color3.fromRGB(34, 197, 94),
-        ["Sunset"] = Color3.fromRGB(249, 115, 22)
-    }
-})
-]]
-
--- Option 3: Manual settings tab (for full control - see commented code below)
--- You can still manually build a settings tab if you need complete control
+-- Settings are automatically available via the "Settings" button 
+-- in the user panel (bottom left, below the tabs).
+-- 
+-- The built-in settings include:
+-- - Theme color presets (8 colors to choose from)
+-- - UI Scale slider (50% - 150%)
+-- - Notifications toggle
+-- - Clear all settings button
+--
+-- No need to create a separate Settings tab anymore!
 
 -- ==========================================
--- Main Tab - Basic Components (with icon in section)
+-- Main Tab - Basic Components
 -- ==========================================
-MainTab:CreateSection("Welcome", "star")  -- Using built-in icon
+MainTab:CreateSection("Welcome", "star")
 
 MainTab:CreateParagraph({
-    Title = "EliteUI v3.0.0",
-    Content = "A modern, responsive UI library with PC & Mobile support, animations, and save system."
+    Title = "EliteUI v3.5.0",
+    Content = "A modern, responsive UI library with PC & Mobile support, animations, and auto-save system. Settings are now in the user panel!"
 })
 
 MainTab:CreateButton({
@@ -158,9 +141,9 @@ MainTab:CreateToggle({
 })
 
 -- ==========================================
--- Combat Tab - Advanced Components (with icons in sections)
+-- Combat Tab - Advanced Components
 -- ==========================================
-CombatTab:CreateSection("Combat Features", "sword")  -- Using built-in icon
+CombatTab:CreateSection("Combat Features", "sword")
 
 CombatTab:CreateToggle({
     Name = "Kill Aura",
@@ -204,9 +187,12 @@ CombatTab:CreateKeybind({
     end
 })
 
-CombatTab:CreateSection("Additional Options", "bolt")  -- Using built-in icon
+-- ==========================================
+-- Farm Tab - More Examples
+-- ==========================================
+FarmTab:CreateSection("Farming Options", "bolt")
 
-CombatTab:CreateToggle({
+FarmTab:CreateToggle({
     Name = "Auto Farm",
     CurrentValue = false,
     Flag = "AutoFarm",
@@ -215,7 +201,7 @@ CombatTab:CreateToggle({
     end
 })
 
-CombatTab:CreateSlider({
+FarmTab:CreateSlider({
     Name = "Walk Speed",
     Min = 16,
     Max = 200,
@@ -226,95 +212,36 @@ CombatTab:CreateSlider({
     end
 })
 
--- ==========================================
--- Adding Custom Elements to Default Settings Tab (Optional)
--- ==========================================
--- You can still add your own custom elements to the default settings tab!
--- The CreateDefaultSettingsTab returns the tab object, so you can use it like any other tab.
-
-SettingsTab:CreateSection("Custom Script Settings")
-
-SettingsTab:CreateToggle({
-    Name = "Enable Debug Mode",
+FarmTab:CreateToggle({
+    Name = "Auto Collect",
     CurrentValue = false,
-    Flag = "DebugMode",
+    Flag = "AutoCollect",
     Callback = function(Value)
-        print("Debug Mode:", Value)
+        print("Auto Collect:", Value)
+    end
+})
+
+FarmTab:CreateDropdown({
+    Name = "Farm Zone",
+    Options = {"Zone 1", "Zone 2", "Zone 3", "Boss Area"},
+    CurrentValue = "Zone 1",
+    Flag = "FarmZone",
+    Callback = function(Option)
+        print("Farm Zone:", Option)
     end
 })
 
 -- ==========================================
--- MANUAL SETTINGS TAB EXAMPLE (For Reference)
+-- Invisible Button (Optional)
 -- ==========================================
--- If you prefer full control, you can still create a manual settings tab.
--- Just replace CreateDefaultSettingsTab() with CreateTab("Settings", "settings")
--- and add all elements yourself. The old code is preserved below as a reference:
---[[
-local ManualSettingsTab = Window:CreateTab("Settings", "settings")
-
-ManualSettingsTab:CreateSection("Theme Customization")
-
-ManualSettingsTab:CreateColorPicker({
-    Name = "UI Accent Color",
-    CurrentColor = Color3.fromRGB(59, 130, 246),
-    Flag = "AccentColor",
-    Callback = function(Color)
-        Window:SetTheme({ Primary = Color })
-    end
-})
-
-ManualSettingsTab:CreateDropdown({
-    Name = "Theme Preset",
-    Options = {"Dark Purple", "Violet", "Dark Green", "Dark Red"},
-    CurrentValue = "Dark Purple",
-    Flag = "ThemePreset",
-    Callback = function(Theme)
-        local themes = {
-            ["Dark Purple"] = Color3.fromRGB(139, 92, 246),
-            ["Violet"] = Color3.fromRGB(168, 85, 247),
-            ["Dark Green"] = Color3.fromRGB(34, 197, 94),
-            ["Dark Red"] = Color3.fromRGB(239, 68, 68)
-        }
-        Window:SetTheme({ Primary = themes[Theme] })
-    end
-})
-
-ManualSettingsTab:CreateSection("UI Configuration")
-
-ManualSettingsTab:CreateSlider({
-    Name = "UI Scale",
-    Min = 50,
-    Max = 150,
-    CurrentValue = 100,
-    Flag = "UIScale",
-    Callback = function(Value)
-        Window:SetScale(Value / 100)
-    end
-})
-
-ManualSettingsTab:CreateSection("Data Management")
-
-ManualSettingsTab:CreateButton({
-    Name = "Clear All Saved Settings",
-    Callback = function()
-        Window:ClearSettings()
-        Window:Notify({
-            Title = "Settings Cleared",
-            Content = "All saved settings have been deleted.",
-            Duration = 3
-        })
-    end
-})
-]]
-
 local InvisibleBtn = Window:CreateInvisibleButton({
-    Size = 70,                    -- Button size in pixels
-    TapCount = 2,                 -- Taps required to trigger
-    SavePosition = true,          -- Save position between sessions
-    Callback = function()          -- Callback function
+    Size = 70,
+    TapCount = 2,
+    SavePosition = true,
+    Callback = function()
         Window:Notify({
             Title = "Success!",
-            Content = "Secret button is working! completed successfully.",
+            Content = "Secret button activated!",
             Duration = 3
         })
     end
