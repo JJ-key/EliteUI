@@ -1,22 +1,20 @@
--- EliteUI v3.5.0 Complete Example Script
+-- EliteUI v3.6.0 Complete Example Script
 -- This script demonstrates all available features including:
 -- - Key System (optional, fetch keys from raw URL, saveable)
 -- - Responsive UI sizing (auto-adjusts for PC vs Mobile)
 -- - PC keybind support (RightShift to toggle by default)
 -- - Smooth animations
--- - Theme customization (now built into user panel!)
+-- - Theme customization
 -- - Settings save/load system (automatic, no function call needed)
 -- - Custom logo support
 -- - Custom icons for tabs and sections
 -- - Enhanced shadows and glow effects
--- - Settings panel integrated in user info area (NEW!)
 
 -- Replace the URL below with your own hosted Loader URL
 local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/refs/heads/main/Loader"))()
 
 -- Create Window with all options
--- Settings are now automatically included in the user panel (bottom left)
--- No need to call CreateDefaultSettingsTab anymore!
+-- Settings tab is automatically created with every window!
 local Window = EliteUI:CreateWindow({
     Name = "EliteUI Example",
     LoadingTitle = "Loading...",
@@ -83,18 +81,10 @@ local CombatTab = Window:CreateTab("Combat", "sword")
 local FarmTab = Window:CreateTab("Farm", "bolt")
 
 -- ==========================================
--- SETTINGS ARE NOW BUILT-IN!
+-- SETTINGS TAB IS AUTOMATIC!
 -- ==========================================
--- Settings are automatically available via the "Settings" button 
--- in the user panel (bottom left, below the tabs).
--- 
--- The built-in settings include:
--- - Theme color presets (8 colors to choose from)
--- - UI Scale slider (50% - 150%)
--- - Notifications toggle
--- - Clear all settings button
---
--- No need to create a separate Settings tab anymore!
+-- A Settings tab is automatically created with every window.
+-- It includes theme customization, UI scale, notifications, and more.
 
 -- ==========================================
 -- Main Tab - Basic Components
@@ -102,8 +92,8 @@ local FarmTab = Window:CreateTab("Farm", "bolt")
 MainTab:CreateSection("Welcome", "star")
 
 MainTab:CreateParagraph({
-    Title = "EliteUI v3.5.0",
-    Content = "A modern, responsive UI library with PC & Mobile support, animations, and auto-save system. Settings are now in the user panel!"
+    Title = "EliteUI v3.6.0",
+    Content = "A modern, responsive UI library with PC & Mobile support, animations, and auto-save system. Settings tab is automatic!"
 })
 
 MainTab:CreateButton({

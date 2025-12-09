@@ -50,6 +50,18 @@ The server runs on port 5000 and is accessible via the Replit webview.
 - **CORS**: Enabled for cross-origin requests
 
 ## Recent Changes
+- **December 9, 2025**: Automatic Settings tab (v3.6.0)
+  - Settings tab is now automatically created when using CreateWindow
+  - No need for users to manually call any settings function
+  - Includes theme customization (color picker + 8 theme presets)
+  - Includes UI scale slider (50%-150%) and size presets
+  - Includes notification toggle and test button
+  - Includes clear settings and info sections
+  - All settings persist automatically
+- **December 9, 2025**: Fixed UI issues (v3.5.0)
+  - Increased base window dimensions for better visibility
+  - Fixed tab section layout corruption
+  - Removed UserInfoPanel that was causing layout issues
 - **December 8, 2025**: Improved mobile gesture detection (v3.3.0)
   - Changed from triple-tap to hold-based gesture (hold 3 fingers for 0.8 seconds)
   - Prevents accidental UI toggles during gameplay when using multiple fingers
@@ -62,14 +74,6 @@ The server runs on port 5000 and is accessible via the Replit webview.
   - Added glow effects to main window, buttons, and toggles
   - Glow effects animate on hover and toggle states
   - Updated Example script to demonstrate new icon features
-- **December 8, 2025**: Added CreateDefaultSettingsTab function
-  - New optional helper function that creates a complete settings tab in one line
-  - Includes theme customization (color picker + theme presets), UI scale, size presets
-  - Includes notification toggle, clear settings button, and info section
-  - All settings persist automatically using the library's save/load system
-  - Fully customizable via options parameter
-  - Updated documentation website with new component info
-  - Fixed Window:Notify to respect NotificationsEnabled flag
 - **December 7, 2025**: Redesigned documentation website
   - Removed emojis, replaced with clean SVG icons
   - Added interactive component previews (buttons, toggles, sliders, dropdowns, etc.)
