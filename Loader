@@ -831,14 +831,16 @@ function EliteUI:CreateWindow(options)
     LogoCorner.Parent = LogoContainer
     
     -- Logo Image or Text
+    local hasValidLogo = options.Logo ~= nil and options.Logo ~= ""
+    
     local LogoImage = Instance.new("ImageLabel")
     LogoImage.Name = "LogoImage"
     LogoImage.Size = UDim2.new(0.8, 0, 0.8, 0)
     LogoImage.Position = UDim2.new(0.1, 0, 0.1, 0)
     LogoImage.BackgroundTransparency = 1
-    LogoImage.Image = options.Logo or ""
+    LogoImage.Image = hasValidLogo and options.Logo or ""
     LogoImage.ScaleType = Enum.ScaleType.Fit
-    LogoImage.Visible = options.Logo ~= nil
+    LogoImage.Visible = hasValidLogo
     LogoImage.Parent = LogoContainer
     
     local LogoText = Instance.new("TextLabel")
@@ -849,7 +851,7 @@ function EliteUI:CreateWindow(options)
     LogoText.TextColor3 = Config.Theme.Text
     LogoText.TextSize = DeviceType == "Mobile" and 14 or 16
     LogoText.Font = Enum.Font.GothamBold
-    LogoText.Visible = options.Logo == nil
+    LogoText.Visible = not hasValidLogo
     LogoText.Parent = LogoContainer
     
     Window.LogoImage = LogoImage
@@ -2521,6 +2523,172 @@ function EliteUI:CreateWindow(options)
         end
         
         return SettingsTab
+    end
+    
+    -- Create Invisible Button
+    function Window:CreateInvisibleButton(options)
+        local invisibleButton = {}
+        options = options or {}
+        
+        local buttonSize = options.Size or 50
+        local tapCount = options.TapCount or 3
+        local callback = options.Callback or function() Window:Toggle() end
+        local savePosition = options.SavePosition ~= false
+        
+        local savedPosX = Window:GetSetting("InvisibleButton_X", 0.5)
+        local savedPosY = Window:GetSetting("InvisibleButton_Y", 0.1)
+        
+        local InvisibleButtonGui = Instance.new("ScreenGui")
+        InvisibleButtonGui.Name = "EliteUI_InvisibleButton"
+        InvisibleButtonGui.ResetOnSpawn = false
+        InvisibleButtonGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        InvisibleButtonGui.Parent = game:GetService("CoreGui")
+        
+        invisibleButton.Gui = InvisibleButtonGui
+        
+        local ButtonFrame = Instance.new("Frame")
+        ButtonFrame.Name = "InvisibleButton"
+        ButtonFrame.Size = UDim2.new(0, buttonSize, 0, buttonSize)
+        ButtonFrame.Position = UDim2.new(savedPosX, -buttonSize/2, savedPosY, -buttonSize/2)
+        ButtonFrame.BackgroundColor3 = Config.Theme.Primary
+        ButtonFrame.BackgroundTransparency = 0.5
+        ButtonFrame.BorderSizePixel = 0
+        ButtonFrame.Active = true
+        ButtonFrame.Parent = InvisibleButtonGui
+        
+        local ButtonCorner = Instance.new("UICorner")
+        ButtonCorner.CornerRadius = UDim.new(0, 8)
+        ButtonCorner.Parent = ButtonFrame
+        
+        local ButtonStroke = Instance.new("UIStroke")
+        ButtonStroke.Color = Config.Theme.Primary
+        ButtonStroke.Transparency = 0
+        ButtonStroke.Thickness = 2
+        ButtonStroke.Parent = ButtonFrame
+        
+        local ButtonLabel = Instance.new("TextLabel")
+        ButtonLabel.Size = UDim2.new(1, 0, 1, 0)
+        ButtonLabel.BackgroundTransparency = 1
+        ButtonLabel.Text = "Drag"
+        ButtonLabel.TextColor3 = Config.Theme.Text
+        ButtonLabel.TextSize = 10
+        ButtonLabel.Font = Enum.Font.GothamMedium
+        ButtonLabel.Parent = ButtonFrame
+        
+        invisibleButton.Frame = ButtonFrame
+        invisibleButton.Stroke = ButtonStroke
+        invisibleButton.Label = ButtonLabel
+        
+        local tapCounter = 0
+        local lastTapTime = 0
+        local tapResetTime = 0.8
+        
+        local HitArea = Instance.new("TextButton")
+        HitArea.Name = "HitArea"
+        HitArea.Size = UDim2.new(1, 0, 1, 0)
+        HitArea.BackgroundTransparency = 1
+        HitArea.Text = ""
+        HitArea.Parent = ButtonFrame
+        
+        HitArea.MouseButton1Click:Connect(function()
+            local currentTime = tick()
+            
+            if currentTime - lastTapTime > tapResetTime then
+                tapCounter = 0
+            end
+            
+            tapCounter = tapCounter + 1
+            lastTapTime = currentTime
+            
+            if tapCounter >= tapCount then
+                tapCounter = 0
+                if callback then
+                    callback()
+                end
+            end
+        end)
+        
+        local dragging = false
+        local dragInput
+        local dragStart
+        local startPos
+        
+        ButtonFrame.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                dragging = true
+                dragStart = input.Position
+                startPos = ButtonFrame.Position
+                
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        dragging = false
+                        
+                        if savePosition then
+                            local posX = ButtonFrame.Position.X.Scale + (ButtonFrame.Position.X.Offset + buttonSize/2) / InvisibleButtonGui.AbsoluteSize.X
+                            local posY = ButtonFrame.Position.Y.Scale + (ButtonFrame.Position.Y.Offset + buttonSize/2) / InvisibleButtonGui.AbsoluteSize.Y
+                            Window:SaveSettings("InvisibleButton_X", posX)
+                            Window:SaveSettings("InvisibleButton_Y", posY)
+                        end
+                    end
+                end)
+            end
+        end)
+        
+        ButtonFrame.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                dragInput = input
+            end
+        end)
+        
+        UserInputService.InputChanged:Connect(function(input)
+            if input == dragInput and dragging then
+                local delta = input.Position - dragStart
+                ButtonFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            end
+        end)
+        
+        local function updateVisibility()
+            if ScreenGui.Enabled then
+                ButtonFrame.BackgroundTransparency = 0.5
+                ButtonStroke.Transparency = 0
+                ButtonLabel.Visible = true
+            else
+                ButtonFrame.BackgroundTransparency = 1
+                ButtonStroke.Transparency = 1
+                ButtonLabel.Visible = false
+            end
+        end
+        
+        updateVisibility()
+        
+        ScreenGui:GetPropertyChangedSignal("Enabled"):Connect(updateVisibility)
+        
+        function invisibleButton:SetSize(newSize)
+            buttonSize = newSize
+            ButtonFrame.Size = UDim2.new(0, buttonSize, 0, buttonSize)
+        end
+        
+        function invisibleButton:SetTapCount(count)
+            tapCount = count
+        end
+        
+        function invisibleButton:SetCallback(newCallback)
+            callback = newCallback
+        end
+        
+        function invisibleButton:SetPosition(x, y)
+            ButtonFrame.Position = UDim2.new(x, -buttonSize/2, y, -buttonSize/2)
+            if savePosition then
+                Window:SaveSettings("InvisibleButton_X", x)
+                Window:SaveSettings("InvisibleButton_Y", y)
+            end
+        end
+        
+        function invisibleButton:Destroy()
+            InvisibleButtonGui:Destroy()
+        end
+        
+        return invisibleButton
     end
     
     return Window
