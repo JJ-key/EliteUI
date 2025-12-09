@@ -18,7 +18,15 @@ local Window = EliteUI:CreateWindow({
     Name = "EliteUI litte example",
     LoadingTitle = "Loading...",
     Subtitle = "v3.1",
-    
+
+-- Snow Effect (optional)
+    SnowEffect = {
+        Enabled = true,
+        ParticleCount = 50,  -- Number of snowflakes (default: 50)
+        Speed = 1,           -- Fall speed multiplier (default: 1)
+        Glow = true          -- Enable glow effect on snowflakes (default: true)
+    },
+
     -- Key System (optional - can be disabled or removed entirely)
     KeySystem = {
         Enabled = true,
