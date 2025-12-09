@@ -1076,12 +1076,13 @@ function EliteUI:CreateWindow(options)
     -- Setup PC keybind
     setupPCKeybind(ScreenGui, Config, MainFrame, Config.Animation)
     
-    -- Tab width definition (no user info panel at bottom)
+    -- Tab width definition (with user info panel at bottom)
     local tabWidth = DeviceType == "Mobile" and 120 or 140
+    local userPanelHeight = DeviceType == "Mobile" and 50 or 60
     
-    -- Tab Container (full height since user panel is removed)
+    -- Tab Container (leaves room for user panel at bottom)
     local TabContainer = Instance.new("ScrollingFrame")
-    TabContainer.Size = UDim2.new(0, tabWidth, 1, -(headerHeight + 10))
+    TabContainer.Size = UDim2.new(0, tabWidth, 1, -(headerHeight + userPanelHeight + 20))
     TabContainer.Position = UDim2.new(0, 5, 0, headerHeight + 5)
     TabContainer.BackgroundColor3 = Color3.fromRGB(22, 24, 29)
     TabContainer.BorderSizePixel = 0
@@ -1105,6 +1106,94 @@ function EliteUI:CreateWindow(options)
     TabPadding.PaddingRight = UDim.new(0, 5)
     TabPadding.PaddingBottom = UDim.new(0, 5)
     TabPadding.Parent = TabContainer
+    
+    -- User Panel at bottom of sidebar (clicking opens Settings tab)
+    local UserPanel = Instance.new("TextButton")
+    UserPanel.Name = "UserPanel"
+    UserPanel.Size = UDim2.new(0, tabWidth, 0, userPanelHeight)
+    UserPanel.Position = UDim2.new(0, 5, 1, -(userPanelHeight + 5))
+    UserPanel.BackgroundColor3 = Color3.fromRGB(22, 24, 29)
+    UserPanel.BorderSizePixel = 0
+    UserPanel.Text = ""
+    UserPanel.AutoButtonColor = false
+    UserPanel.Parent = MainFrame
+    
+    local UserPanelCorner = Instance.new("UICorner")
+    UserPanelCorner.CornerRadius = UDim.new(0, 8)
+    UserPanelCorner.Parent = UserPanel
+    
+    local UserPanelStroke = Instance.new("UIStroke")
+    UserPanelStroke.Color = Config.Theme.Secondary
+    UserPanelStroke.Transparency = 0.5
+    UserPanelStroke.Parent = UserPanel
+    
+    -- Player Avatar
+    local player = Players.LocalPlayer
+    local avatarSize = DeviceType == "Mobile" and 32 or 40
+    
+    local AvatarFrame = Instance.new("ImageLabel")
+    AvatarFrame.Name = "Avatar"
+    AvatarFrame.Size = UDim2.new(0, avatarSize, 0, avatarSize)
+    AvatarFrame.Position = UDim2.new(0, 8, 0.5, -avatarSize/2)
+    AvatarFrame.BackgroundColor3 = Config.Theme.Secondary
+    AvatarFrame.BorderSizePixel = 0
+    AvatarFrame.Image = ""
+    AvatarFrame.Parent = UserPanel
+    
+    local AvatarCorner = Instance.new("UICorner")
+    AvatarCorner.CornerRadius = UDim.new(0, avatarSize/2)
+    AvatarCorner.Parent = AvatarFrame
+    
+    -- Load player avatar
+    pcall(function()
+        local userId = player.UserId
+        local thumbType = Enum.ThumbnailType.HeadShot
+        local thumbSize = Enum.ThumbnailSize.Size100x100
+        local content = Players:GetUserThumbnailAsync(userId, thumbType, thumbSize)
+        AvatarFrame.Image = content
+    end)
+    
+    -- Username
+    local UsernameLabel = Instance.new("TextLabel")
+    UsernameLabel.Name = "Username"
+    UsernameLabel.Size = UDim2.new(1, -(avatarSize + 20), 0, 16)
+    UsernameLabel.Position = UDim2.new(0, avatarSize + 14, 0.5, -8)
+    UsernameLabel.BackgroundTransparency = 1
+    UsernameLabel.Text = player.DisplayName or player.Name
+    UsernameLabel.TextColor3 = Config.Theme.Text
+    UsernameLabel.TextSize = DeviceType == "Mobile" and 11 or 12
+    UsernameLabel.Font = Enum.Font.GothamMedium
+    UsernameLabel.TextXAlignment = Enum.TextXAlignment.Left
+    UsernameLabel.TextTruncate = Enum.TextTruncate.AtEnd
+    UsernameLabel.Parent = UserPanel
+    
+    -- Settings icon indicator
+    local SettingsIndicator = Instance.new("ImageLabel")
+    SettingsIndicator.Name = "SettingsIndicator"
+    SettingsIndicator.Size = UDim2.new(0, 12, 0, 12)
+    SettingsIndicator.Position = UDim2.new(1, -18, 0.5, -6)
+    SettingsIndicator.BackgroundTransparency = 1
+    SettingsIndicator.Image = IconLibrary.settings
+    SettingsIndicator.ImageColor3 = Config.Theme.TextSecondary
+    SettingsIndicator.ScaleType = Enum.ScaleType.Fit
+    SettingsIndicator.Parent = UserPanel
+    
+    -- Hover effects for user panel
+    UserPanel.MouseEnter:Connect(function()
+        animate(UserPanel, {BackgroundColor3 = Config.Theme.Secondary}, 0.15)
+        animate(UserPanelStroke, {Color = Config.Theme.Primary, Transparency = 0}, 0.15)
+        animate(SettingsIndicator, {ImageColor3 = Config.Theme.Primary}, 0.15)
+    end)
+    
+    UserPanel.MouseLeave:Connect(function()
+        animate(UserPanel, {BackgroundColor3 = Color3.fromRGB(22, 24, 29)}, 0.15)
+        animate(UserPanelStroke, {Color = Config.Theme.Secondary, Transparency = 0.5}, 0.15)
+        animate(SettingsIndicator, {ImageColor3 = Config.Theme.TextSecondary}, 0.15)
+    end)
+    
+    -- Store reference to user panel for settings tab connection
+    Window._userPanel = UserPanel
+    Window._settingsTab = nil
     
     -- Content Container
     local ContentContainer = Instance.new("Frame")
@@ -1459,10 +1548,12 @@ function EliteUI:CreateWindow(options)
         TabButton.MouseButton1Click:Connect(function()
             for _, t in ipairs(Window.Tabs) do
                 t.Content.Visible = false
-                if Config.Animation.Enabled then
-                    animate(t.Button, {BackgroundColor3 = Config.Theme.Secondary}, 0.2)
-                else
-                    t.Button.BackgroundColor3 = Config.Theme.Secondary
+                if t.Button and t.Button.Visible then
+                    if Config.Animation.Enabled then
+                        animate(t.Button, {BackgroundColor3 = Config.Theme.Secondary}, 0.2)
+                    else
+                        t.Button.BackgroundColor3 = Config.Theme.Secondary
+                    end
                 end
                 if t.Label then
                     t.Label.TextColor3 = Config.Theme.TextSecondary
@@ -1482,6 +1573,15 @@ function EliteUI:CreateWindow(options)
             end
             if TabIcon then
                 TabIcon.ImageColor3 = Config.Theme.Text
+            end
+            
+            -- Reset user panel to inactive state when switching to a normal tab
+            if Window._userPanel then
+                if Config.Animation.Enabled then
+                    animate(Window._userPanel, {BackgroundColor3 = Color3.fromRGB(22, 24, 29)}, 0.15)
+                else
+                    Window._userPanel.BackgroundColor3 = Color3.fromRGB(22, 24, 29)
+                end
             end
         end)
         
@@ -2602,8 +2702,49 @@ function EliteUI:CreateWindow(options)
         return invisibleButton
     end
     
-    -- Automatically create Settings tab
+    -- Automatically create Settings tab (hidden from tab list, accessed via user panel)
     local SettingsTab = Window:CreateTab("Settings", "settings")
+    
+    -- Hide the Settings tab button from the tab list (only accessible via user panel)
+    if SettingsTab.Button then
+        SettingsTab.Button.Visible = false
+    end
+    
+    -- Store reference to settings tab
+    Window._settingsTab = SettingsTab
+    
+    -- Connect user panel click to show Settings tab
+    if Window._userPanel then
+        Window._userPanel.MouseButton1Click:Connect(function()
+            -- Deactivate all other tabs first
+            for _, tab in ipairs(Window.Tabs) do
+                if tab.Content then
+                    tab.Content.Visible = false
+                end
+                if tab.Button and tab.Button.Visible then
+                    tab.Button.BackgroundColor3 = Config.Theme.Secondary
+                    if tab.Label then
+                        tab.Label.TextColor3 = Config.Theme.TextSecondary
+                    end
+                    if tab.Icon then
+                        tab.Icon.ImageColor3 = Config.Theme.TextSecondary
+                    end
+                end
+            end
+            
+            -- Show Settings tab content
+            if SettingsTab.Content then
+                SettingsTab.Content.Visible = true
+            end
+            
+            -- Animate user panel to show it's active
+            if Config.Animation.Enabled then
+                animate(Window._userPanel, {BackgroundColor3 = Config.Theme.Primary}, 0.15)
+            else
+                Window._userPanel.BackgroundColor3 = Config.Theme.Primary
+            end
+        end)
+    end
     
     -- Initialize notifications enabled from saved settings
     local savedNotifSetting = Window:GetSetting("EliteUI_ShowNotifications", true)

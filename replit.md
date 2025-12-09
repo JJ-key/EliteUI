@@ -50,6 +50,12 @@ The server runs on port 5000 and is accessible via the Replit webview.
 - **CORS**: Enabled for cross-origin requests
 
 ## Recent Changes
+- **December 9, 2025**: User Panel with Settings Access (v3.6.1)
+  - Added user panel at bottom of sidebar showing Roblox avatar and display name
+  - Clicking user panel opens the Settings tab
+  - Settings tab is hidden from normal tab list (only accessible via user panel)
+  - User panel has hover effects and visual feedback
+  - Clean integration with existing tab system
 - **December 9, 2025**: Automatic Settings tab (v3.6.0)
   - Settings tab is now automatically created when using CreateWindow
   - No need for users to manually call any settings function
