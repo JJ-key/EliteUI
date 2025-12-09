@@ -1,6 +1,6 @@
 --[[
     EliteUI Library for Roblox
-    Version 3.3.0
+    Version 3.4.0
     
     Features:
     - Key System (optional, fetch keys from raw URL, saveable)
@@ -10,10 +10,11 @@
     - Smooth animations (open/close, component interactions)
     - Working theme/color customization
     - Settings save/load system (customizable folder/file)
-    - Custom logo with name support
+    - Custom logo with name support (fixed)
     - Dark theme with all components
     - Custom icons for tabs and sections
     - Enhanced shadows and glow effects
+    - Invisible Button (draggable when UI open, completely invisible when closed)
 ]]
 
 local EliteUI = {}
