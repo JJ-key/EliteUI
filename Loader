@@ -1,6 +1,6 @@
 --[[
     EliteUI Library for Roblox
-    Version 3.4.0
+    Version 3.5.0
     
     Features:
     - Key System (optional, fetch keys from raw URL, saveable)
@@ -15,6 +15,8 @@
     - Custom icons for tabs and sections
     - Enhanced shadows and glow effects
     - Invisible Button (draggable when UI open, completely invisible when closed)
+    - Custom image support for invisible button (visible when UI is open)
+    - Invisible button is properly destroyed when UI is destroyed
 ]]
 
 local EliteUI = {}
@@ -1182,6 +1184,9 @@ function EliteUI:CreateWindow(options)
     
     -- Destroy
     function Window:Destroy()
+        if Window._invisibleButton and Window._invisibleButton.Gui then
+            Window._invisibleButton.Gui:Destroy()
+        end
         ScreenGui:Destroy()
     end
     
@@ -2535,6 +2540,7 @@ function EliteUI:CreateWindow(options)
         local tapCount = options.TapCount or 3
         local callback = options.Callback or function() Window:Toggle() end
         local savePosition = options.SavePosition ~= false
+        local customImage = options.Image or nil
         
         local savedPosX = Window:GetSetting("InvisibleButton_X", 0.5)
         local savedPosY = Window:GetSetting("InvisibleButton_Y", 0.1)
@@ -2576,9 +2582,26 @@ function EliteUI:CreateWindow(options)
         ButtonLabel.Font = Enum.Font.GothamMedium
         ButtonLabel.Parent = ButtonFrame
         
+        local ButtonImage = nil
+        if customImage then
+            local imageId = getIconImage(customImage) or customImage
+            ButtonImage = Instance.new("ImageLabel")
+            ButtonImage.Name = "ButtonImage"
+            ButtonImage.Size = UDim2.new(0.7, 0, 0.7, 0)
+            ButtonImage.Position = UDim2.new(0.15, 0, 0.15, 0)
+            ButtonImage.BackgroundTransparency = 1
+            ButtonImage.Image = imageId
+            ButtonImage.ImageColor3 = Config.Theme.Text
+            ButtonImage.ScaleType = Enum.ScaleType.Fit
+            ButtonImage.Visible = false
+            ButtonImage.Parent = ButtonFrame
+            ButtonLabel.Visible = false
+        end
+        
         invisibleButton.Frame = ButtonFrame
         invisibleButton.Stroke = ButtonStroke
         invisibleButton.Label = ButtonLabel
+        invisibleButton.Image = ButtonImage
         
         local tapCounter = 0
         local lastTapTime = 0
@@ -2652,17 +2675,27 @@ function EliteUI:CreateWindow(options)
             if ScreenGui.Enabled then
                 ButtonFrame.BackgroundTransparency = 0.5
                 ButtonStroke.Transparency = 0
-                ButtonLabel.Visible = true
+                if ButtonImage then
+                    ButtonImage.Visible = true
+                    ButtonLabel.Visible = false
+                else
+                    ButtonLabel.Visible = true
+                end
             else
                 ButtonFrame.BackgroundTransparency = 1
                 ButtonStroke.Transparency = 1
                 ButtonLabel.Visible = false
+                if ButtonImage then
+                    ButtonImage.Visible = false
+                end
             end
         end
         
         updateVisibility()
         
         ScreenGui:GetPropertyChangedSignal("Enabled"):Connect(updateVisibility)
+        
+        Window._invisibleButton = invisibleButton
         
         function invisibleButton:SetSize(newSize)
             buttonSize = newSize
@@ -2685,8 +2718,29 @@ function EliteUI:CreateWindow(options)
             end
         end
         
+        function invisibleButton:SetImage(newImage)
+            local imageId = getIconImage(newImage) or newImage
+            if ButtonImage then
+                ButtonImage.Image = imageId
+            else
+                ButtonImage = Instance.new("ImageLabel")
+                ButtonImage.Name = "ButtonImage"
+                ButtonImage.Size = UDim2.new(0.7, 0, 0.7, 0)
+                ButtonImage.Position = UDim2.new(0.15, 0, 0.15, 0)
+                ButtonImage.BackgroundTransparency = 1
+                ButtonImage.Image = imageId
+                ButtonImage.ImageColor3 = Config.Theme.Text
+                ButtonImage.ScaleType = Enum.ScaleType.Fit
+                ButtonImage.Visible = ScreenGui.Enabled
+                ButtonImage.Parent = ButtonFrame
+                ButtonLabel.Visible = false
+                invisibleButton.Image = ButtonImage
+            end
+        end
+        
         function invisibleButton:Destroy()
             InvisibleButtonGui:Destroy()
+            Window._invisibleButton = nil
         end
         
         return invisibleButton

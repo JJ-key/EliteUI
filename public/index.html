@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EliteUI v3.3 - Documentation</title>
+  <title>EliteUI v3.5 - Documentation</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -14,7 +14,7 @@
           <div class="logo-icon">E</div>
           <div class="logo-text">
             <h1>EliteUI</h1>
-            <span class="version">v3.3.0</span>
+            <span class="version">v3.5.0</span>
           </div>
         </div>
       </div>
@@ -481,6 +481,50 @@ MyColor:SetColor(Color3.fromRGB(255, 0, 0))</code></pre>
     Content = "Operation completed successfully.",
     Duration = 3
 })</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Invisible Button</h3>
+            <p>A draggable button that can be used to toggle the UI. Completely invisible when UI is closed, visible when UI is open. Supports custom images.</p>
+          </div>
+          <div class="component-body">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua - Basic</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>local InvisibleBtn = Window:CreateInvisibleButton({
+    Size = 50,
+    TapCount = 3,
+    SavePosition = true
+})</code></pre>
+            </div>
+            <div class="code-block" style="margin-top: 12px;">
+              <div class="code-header">
+                <span>Lua - With Custom Image</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>local InvisibleBtn = Window:CreateInvisibleButton({
+    Size = 50,
+    TapCount = 3,
+    SavePosition = true,
+    Image = "rbxassetid://123456789",
+    Callback = function()
+        Window:Toggle()
+    end
+})
+
+-- Update image later
+InvisibleBtn:SetImage("star")
+
+-- Methods
+InvisibleBtn:SetSize(60)
+InvisibleBtn:SetPosition(0.5, 0.1)
+InvisibleBtn:SetTapCount(2)
+InvisibleBtn:Destroy()</code></pre>
             </div>
           </div>
         </div>
