@@ -1076,8 +1076,8 @@ function EliteUI:CreateWindow(options)
     -- Setup PC keybind
     setupPCKeybind(ScreenGui, Config, MainFrame, Config.Animation)
     
-    -- User Info Panel (bottom left)
-    local userInfoHeight = DeviceType == "Mobile" and 50 or 56
+    -- User Info Panel (bottom left) - Now includes settings button
+    local userInfoHeight = DeviceType == "Mobile" and 70 or 80
     local tabWidth = DeviceType == "Mobile" and 100 or 120
     
     local UserInfoPanel = Instance.new("Frame")
@@ -1093,12 +1093,12 @@ function EliteUI:CreateWindow(options)
     UserInfoCorner.Parent = UserInfoPanel
     
     local Player = Players.LocalPlayer
-    local avatarSize = DeviceType == "Mobile" and 32 or 38
+    local avatarSize = DeviceType == "Mobile" and 28 or 32
     
     local AvatarFrame = Instance.new("ImageLabel")
     AvatarFrame.Name = "Avatar"
     AvatarFrame.Size = UDim2.new(0, avatarSize, 0, avatarSize)
-    AvatarFrame.Position = UDim2.new(0, 8, 0.5, -avatarSize/2)
+    AvatarFrame.Position = UDim2.new(0, 8, 0, 8)
     AvatarFrame.BackgroundColor3 = Config.Theme.Secondary
     AvatarFrame.BorderSizePixel = 0
     AvatarFrame.Image = ""
@@ -1118,12 +1118,12 @@ function EliteUI:CreateWindow(options)
     
     local UsernameLabel = Instance.new("TextLabel")
     UsernameLabel.Name = "Username"
-    UsernameLabel.Size = UDim2.new(1, -(avatarSize + 16), 0, 16)
-    UsernameLabel.Position = UDim2.new(0, avatarSize + 12, 0, 10)
+    UsernameLabel.Size = UDim2.new(1, -(avatarSize + 14), 0, 14)
+    UsernameLabel.Position = UDim2.new(0, avatarSize + 12, 0, 8)
     UsernameLabel.BackgroundTransparency = 1
     UsernameLabel.Text = Player.Name
     UsernameLabel.TextColor3 = Config.Theme.Text
-    UsernameLabel.TextSize = DeviceType == "Mobile" and 11 or 12
+    UsernameLabel.TextSize = DeviceType == "Mobile" and 10 or 11
     UsernameLabel.Font = Enum.Font.GothamBold
     UsernameLabel.TextXAlignment = Enum.TextXAlignment.Left
     UsernameLabel.TextTruncate = Enum.TextTruncate.AtEnd
@@ -1131,18 +1131,510 @@ function EliteUI:CreateWindow(options)
     
     local DisplayNameLabel = Instance.new("TextLabel")
     DisplayNameLabel.Name = "DisplayName"
-    DisplayNameLabel.Size = UDim2.new(1, -(avatarSize + 16), 0, 14)
-    DisplayNameLabel.Position = UDim2.new(0, avatarSize + 12, 0, 26)
+    DisplayNameLabel.Size = UDim2.new(1, -(avatarSize + 14), 0, 12)
+    DisplayNameLabel.Position = UDim2.new(0, avatarSize + 12, 0, 22)
     DisplayNameLabel.BackgroundTransparency = 1
     DisplayNameLabel.Text = "@" .. Player.DisplayName
     DisplayNameLabel.TextColor3 = Config.Theme.TextSecondary
-    DisplayNameLabel.TextSize = DeviceType == "Mobile" and 9 or 10
+    DisplayNameLabel.TextSize = DeviceType == "Mobile" and 8 or 9
     DisplayNameLabel.Font = Enum.Font.Gotham
     DisplayNameLabel.TextXAlignment = Enum.TextXAlignment.Left
     DisplayNameLabel.TextTruncate = Enum.TextTruncate.AtEnd
     DisplayNameLabel.Parent = UserInfoPanel
     
+    -- Settings Button in User Panel
+    local settingsBtnSize = DeviceType == "Mobile" and 22 or 26
+    local SettingsButton = Instance.new("TextButton")
+    SettingsButton.Name = "SettingsButton"
+    SettingsButton.Size = UDim2.new(1, -16, 0, settingsBtnSize)
+    SettingsButton.Position = UDim2.new(0, 8, 1, -(settingsBtnSize + 8))
+    SettingsButton.BackgroundColor3 = Config.Theme.Secondary
+    SettingsButton.BorderSizePixel = 0
+    SettingsButton.Text = ""
+    SettingsButton.Parent = UserInfoPanel
+    
+    local SettingsBtnCorner = Instance.new("UICorner")
+    SettingsBtnCorner.CornerRadius = UDim.new(0, 6)
+    SettingsBtnCorner.Parent = SettingsButton
+    
+    local SettingsIcon = Instance.new("ImageLabel")
+    SettingsIcon.Name = "SettingsIcon"
+    SettingsIcon.Size = UDim2.new(0, 14, 0, 14)
+    SettingsIcon.Position = UDim2.new(0, 6, 0.5, -7)
+    SettingsIcon.BackgroundTransparency = 1
+    SettingsIcon.Image = IconLibrary.settings
+    SettingsIcon.ImageColor3 = Config.Theme.TextSecondary
+    SettingsIcon.ScaleType = Enum.ScaleType.Fit
+    SettingsIcon.Parent = SettingsButton
+    
+    local SettingsBtnLabel = Instance.new("TextLabel")
+    SettingsBtnLabel.Name = "Label"
+    SettingsBtnLabel.Size = UDim2.new(1, -26, 1, 0)
+    SettingsBtnLabel.Position = UDim2.new(0, 22, 0, 0)
+    SettingsBtnLabel.BackgroundTransparency = 1
+    SettingsBtnLabel.Text = "Settings"
+    SettingsBtnLabel.TextColor3 = Config.Theme.TextSecondary
+    SettingsBtnLabel.TextSize = DeviceType == "Mobile" and 9 or 10
+    SettingsBtnLabel.Font = Enum.Font.GothamMedium
+    SettingsBtnLabel.TextXAlignment = Enum.TextXAlignment.Left
+    SettingsBtnLabel.Parent = SettingsButton
+    
+    -- Settings popup panel (hidden by default)
+    local settingsPopupWidth = DeviceType == "Mobile" and 200 or 240
+    local settingsPopupHeight = DeviceType == "Mobile" and 280 or 320
+    
+    local SettingsPopup = Instance.new("Frame")
+    SettingsPopup.Name = "SettingsPopup"
+    SettingsPopup.Size = UDim2.new(0, settingsPopupWidth, 0, settingsPopupHeight)
+    SettingsPopup.Position = UDim2.new(0, tabWidth + 10, 1, -(settingsPopupHeight + 5))
+    SettingsPopup.BackgroundColor3 = Config.Theme.Background
+    SettingsPopup.BorderSizePixel = 0
+    SettingsPopup.Visible = false
+    SettingsPopup.ZIndex = 10
+    SettingsPopup.Parent = MainFrame
+    
+    local SettingsPopupCorner = Instance.new("UICorner")
+    SettingsPopupCorner.CornerRadius = UDim.new(0, 10)
+    SettingsPopupCorner.Parent = SettingsPopup
+    
+    local SettingsPopupStroke = Instance.new("UIStroke")
+    SettingsPopupStroke.Color = Config.Theme.Primary
+    SettingsPopupStroke.Transparency = 0.5
+    SettingsPopupStroke.Thickness = 1.5
+    SettingsPopupStroke.Parent = SettingsPopup
+    
+    -- Settings popup header
+    local SettingsPopupHeader = Instance.new("Frame")
+    SettingsPopupHeader.Name = "Header"
+    SettingsPopupHeader.Size = UDim2.new(1, 0, 0, 32)
+    SettingsPopupHeader.BackgroundColor3 = Config.Theme.Primary
+    SettingsPopupHeader.BorderSizePixel = 0
+    SettingsPopupHeader.ZIndex = 11
+    SettingsPopupHeader.Parent = SettingsPopup
+    
+    local SettingsPopupHeaderCorner = Instance.new("UICorner")
+    SettingsPopupHeaderCorner.CornerRadius = UDim.new(0, 10)
+    SettingsPopupHeaderCorner.Parent = SettingsPopupHeader
+    
+    local SettingsPopupHeaderFix = Instance.new("Frame")
+    SettingsPopupHeaderFix.Size = UDim2.new(1, 0, 0, 10)
+    SettingsPopupHeaderFix.Position = UDim2.new(0, 0, 1, -10)
+    SettingsPopupHeaderFix.BackgroundColor3 = Config.Theme.Primary
+    SettingsPopupHeaderFix.BorderSizePixel = 0
+    SettingsPopupHeaderFix.ZIndex = 11
+    SettingsPopupHeaderFix.Parent = SettingsPopupHeader
+    
+    local SettingsPopupTitle = Instance.new("TextLabel")
+    SettingsPopupTitle.Size = UDim2.new(1, -40, 1, 0)
+    SettingsPopupTitle.Position = UDim2.new(0, 10, 0, 0)
+    SettingsPopupTitle.BackgroundTransparency = 1
+    SettingsPopupTitle.Text = "Settings"
+    SettingsPopupTitle.TextColor3 = Config.Theme.Text
+    SettingsPopupTitle.TextSize = 13
+    SettingsPopupTitle.Font = Enum.Font.GothamBold
+    SettingsPopupTitle.TextXAlignment = Enum.TextXAlignment.Left
+    SettingsPopupTitle.ZIndex = 12
+    SettingsPopupTitle.Parent = SettingsPopupHeader
+    
+    local CloseSettingsBtn = Instance.new("TextButton")
+    CloseSettingsBtn.Size = UDim2.new(0, 20, 0, 20)
+    CloseSettingsBtn.Position = UDim2.new(1, -26, 0.5, -10)
+    CloseSettingsBtn.BackgroundTransparency = 1
+    CloseSettingsBtn.Text = "×"
+    CloseSettingsBtn.TextColor3 = Config.Theme.Text
+    CloseSettingsBtn.TextSize = 16
+    CloseSettingsBtn.Font = Enum.Font.GothamBold
+    CloseSettingsBtn.ZIndex = 12
+    CloseSettingsBtn.Parent = SettingsPopupHeader
+    
+    -- Settings popup content
+    local SettingsPopupContent = Instance.new("ScrollingFrame")
+    SettingsPopupContent.Name = "Content"
+    SettingsPopupContent.Size = UDim2.new(1, -10, 1, -42)
+    SettingsPopupContent.Position = UDim2.new(0, 5, 0, 37)
+    SettingsPopupContent.BackgroundTransparency = 1
+    SettingsPopupContent.ScrollBarThickness = 3
+    SettingsPopupContent.ScrollBarImageColor3 = Config.Theme.Primary
+    SettingsPopupContent.CanvasSize = UDim2.new(0, 0, 0, 0)
+    SettingsPopupContent.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    SettingsPopupContent.ZIndex = 11
+    SettingsPopupContent.Parent = SettingsPopup
+    
+    local SettingsContentList = Instance.new("UIListLayout")
+    SettingsContentList.Padding = UDim.new(0, 6)
+    SettingsContentList.Parent = SettingsPopupContent
+    
+    local SettingsContentPadding = Instance.new("UIPadding")
+    SettingsContentPadding.PaddingTop = UDim.new(0, 3)
+    SettingsContentPadding.PaddingBottom = UDim.new(0, 5)
+    SettingsContentPadding.Parent = SettingsPopupContent
+    
+    Window.SettingsPopup = SettingsPopup
+    Window.SettingsPopupContent = SettingsPopupContent
+    Window._settingsPopupVisible = false
+    
+    -- Toggle settings popup
+    local function toggleSettingsPopup()
+        Window._settingsPopupVisible = not Window._settingsPopupVisible
+        if Config.Animation.Enabled then
+            if Window._settingsPopupVisible then
+                SettingsPopup.Visible = true
+                SettingsPopup.Size = UDim2.new(0, 0, 0, 0)
+                SettingsPopup.Position = UDim2.new(0, tabWidth + 10, 1, -5)
+                animate(SettingsPopup, {
+                    Size = UDim2.new(0, settingsPopupWidth, 0, settingsPopupHeight),
+                    Position = UDim2.new(0, tabWidth + 10, 1, -(settingsPopupHeight + 5))
+                }, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            else
+                local tween = animate(SettingsPopup, {
+                    Size = UDim2.new(0, 0, 0, 0),
+                    Position = UDim2.new(0, tabWidth + 10, 1, -5)
+                }, 0.15, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+                tween.Completed:Connect(function()
+                    SettingsPopup.Visible = false
+                end)
+            end
+        else
+            SettingsPopup.Visible = Window._settingsPopupVisible
+        end
+        
+        -- Update button appearance
+        if Window._settingsPopupVisible then
+            SettingsButton.BackgroundColor3 = Config.Theme.Primary
+            SettingsBtnLabel.TextColor3 = Config.Theme.Text
+            SettingsIcon.ImageColor3 = Config.Theme.Text
+        else
+            SettingsButton.BackgroundColor3 = Config.Theme.Secondary
+            SettingsBtnLabel.TextColor3 = Config.Theme.TextSecondary
+            SettingsIcon.ImageColor3 = Config.Theme.TextSecondary
+        end
+    end
+    
+    SettingsButton.MouseButton1Click:Connect(toggleSettingsPopup)
+    CloseSettingsBtn.MouseButton1Click:Connect(function()
+        if Window._settingsPopupVisible then
+            toggleSettingsPopup()
+        end
+    end)
+    
+    -- Hover effects for settings button
+    SettingsButton.MouseEnter:Connect(function()
+        if not Window._settingsPopupVisible then
+            animate(SettingsButton, {BackgroundColor3 = Color3.fromRGB(40, 40, 50)}, 0.15)
+        end
+    end)
+    
+    SettingsButton.MouseLeave:Connect(function()
+        if not Window._settingsPopupVisible then
+            animate(SettingsButton, {BackgroundColor3 = Config.Theme.Secondary}, 0.15)
+        end
+    end)
+    
     Window.UserInfoPanel = UserInfoPanel
+    Window.SettingsButton = SettingsButton
+    
+    -- Populate settings popup with default settings automatically
+    local function populateDefaultSettings()
+        local popupContent = SettingsPopupContent
+        local componentHeight = DeviceType == "Mobile" and 28 or 32
+        local textSize = DeviceType == "Mobile" and 10 or 11
+        local labelSize = DeviceType == "Mobile" and 9 or 10
+        
+        -- Theme Presets
+        local themePresets = {
+            ["Purple"] = Color3.fromRGB(139, 92, 246),
+            ["Violet"] = Color3.fromRGB(168, 85, 247),
+            ["Green"] = Color3.fromRGB(34, 197, 94),
+            ["Red"] = Color3.fromRGB(239, 68, 68),
+            ["Orange"] = Color3.fromRGB(249, 115, 22),
+            ["Pink"] = Color3.fromRGB(236, 72, 153),
+            ["Cyan"] = Color3.fromRGB(6, 182, 212),
+            ["Yellow"] = Color3.fromRGB(234, 179, 8)
+        }
+        
+        local presetNames = {}
+        for name, _ in pairs(themePresets) do
+            table.insert(presetNames, name)
+        end
+        table.sort(presetNames)
+        
+        -- Load saved settings
+        local savedThemePreset = Window:GetSetting("EliteUI_ThemePreset", "Purple")
+        local savedUIScale = Window:GetSetting("EliteUI_UIScale", 100)
+        local savedNotifSetting = Window:GetSetting("EliteUI_ShowNotifications", true)
+        Window.NotificationsEnabled = savedNotifSetting
+        
+        -- Apply saved theme on load
+        if savedThemePreset and themePresets[savedThemePreset] then
+            Window:SetTheme({ Primary = themePresets[savedThemePreset] })
+        end
+        
+        -- Apply saved UI scale
+        if savedUIScale and savedUIScale ~= 100 then
+            Window:SetScale(savedUIScale / 100)
+        end
+        
+        -- Helper to create a setting row
+        local function createSettingLabel(text)
+            local Label = Instance.new("TextLabel")
+            Label.Size = UDim2.new(1, -10, 0, 16)
+            Label.BackgroundTransparency = 1
+            Label.Text = text
+            Label.TextColor3 = Config.Theme.TextSecondary
+            Label.TextSize = labelSize
+            Label.Font = Enum.Font.GothamMedium
+            Label.TextXAlignment = Enum.TextXAlignment.Left
+            Label.ZIndex = 12
+            Label.Parent = popupContent
+            return Label
+        end
+        
+        -- Theme Preset Section
+        createSettingLabel("Theme Color")
+        
+        local ThemeContainer = Instance.new("Frame")
+        ThemeContainer.Size = UDim2.new(1, -10, 0, 50)
+        ThemeContainer.BackgroundTransparency = 1
+        ThemeContainer.ZIndex = 12
+        ThemeContainer.Parent = popupContent
+        
+        local ThemeGrid = Instance.new("UIGridLayout")
+        ThemeGrid.CellSize = UDim2.new(0, 22, 0, 22)
+        ThemeGrid.CellPadding = UDim2.new(0, 4, 0, 4)
+        ThemeGrid.Parent = ThemeContainer
+        
+        for _, presetName in ipairs(presetNames) do
+            local color = themePresets[presetName]
+            local ColorBtn = Instance.new("TextButton")
+            ColorBtn.Size = UDim2.new(0, 22, 0, 22)
+            ColorBtn.BackgroundColor3 = color
+            ColorBtn.BorderSizePixel = 0
+            ColorBtn.Text = ""
+            ColorBtn.ZIndex = 13
+            ColorBtn.Parent = ThemeContainer
+            
+            local ColorBtnCorner = Instance.new("UICorner")
+            ColorBtnCorner.CornerRadius = UDim.new(0, 6)
+            ColorBtnCorner.Parent = ColorBtn
+            
+            local ColorBtnStroke = Instance.new("UIStroke")
+            ColorBtnStroke.Color = Color3.new(1, 1, 1)
+            ColorBtnStroke.Transparency = savedThemePreset == presetName and 0 or 0.8
+            ColorBtnStroke.Thickness = 2
+            ColorBtnStroke.Parent = ColorBtn
+            
+            ColorBtn.MouseButton1Click:Connect(function()
+                Window:SetTheme({ Primary = color })
+                Window:SaveSettings("EliteUI_ThemePreset", presetName)
+                
+                for _, child in pairs(ThemeContainer:GetChildren()) do
+                    if child:IsA("TextButton") then
+                        local stroke = child:FindFirstChildOfClass("UIStroke")
+                        if stroke then
+                            stroke.Transparency = 0.8
+                        end
+                    end
+                end
+                ColorBtnStroke.Transparency = 0
+            end)
+        end
+        
+        -- UI Scale Section
+        createSettingLabel("UI Scale")
+        
+        local ScaleFrame = Instance.new("Frame")
+        ScaleFrame.Size = UDim2.new(1, -10, 0, componentHeight)
+        ScaleFrame.BackgroundColor3 = Config.Theme.Secondary
+        ScaleFrame.BorderSizePixel = 0
+        ScaleFrame.ZIndex = 12
+        ScaleFrame.Parent = popupContent
+        
+        local ScaleFrameCorner = Instance.new("UICorner")
+        ScaleFrameCorner.CornerRadius = UDim.new(0, 6)
+        ScaleFrameCorner.Parent = ScaleFrame
+        
+        local ScaleValue = Instance.new("TextLabel")
+        ScaleValue.Size = UDim2.new(0, 35, 1, 0)
+        ScaleValue.Position = UDim2.new(1, -40, 0, 0)
+        ScaleValue.BackgroundTransparency = 1
+        ScaleValue.Text = savedUIScale .. "%"
+        ScaleValue.TextColor3 = Config.Theme.Text
+        ScaleValue.TextSize = textSize
+        ScaleValue.Font = Enum.Font.GothamMedium
+        ScaleValue.ZIndex = 13
+        ScaleValue.Parent = ScaleFrame
+        
+        local ScaleSliderBg = Instance.new("Frame")
+        ScaleSliderBg.Size = UDim2.new(1, -55, 0, 6)
+        ScaleSliderBg.Position = UDim2.new(0, 8, 0.5, -3)
+        ScaleSliderBg.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        ScaleSliderBg.BorderSizePixel = 0
+        ScaleSliderBg.ZIndex = 13
+        ScaleSliderBg.Parent = ScaleFrame
+        
+        local ScaleSliderBgCorner = Instance.new("UICorner")
+        ScaleSliderBgCorner.CornerRadius = UDim.new(1, 0)
+        ScaleSliderBgCorner.Parent = ScaleSliderBg
+        
+        local ScaleSliderFill = Instance.new("Frame")
+        ScaleSliderFill.Size = UDim2.new((savedUIScale - 50) / 100, 0, 1, 0)
+        ScaleSliderFill.BackgroundColor3 = Config.Theme.Primary
+        ScaleSliderFill.BorderSizePixel = 0
+        ScaleSliderFill.ZIndex = 14
+        ScaleSliderFill.Parent = ScaleSliderBg
+        
+        local ScaleSliderFillCorner = Instance.new("UICorner")
+        ScaleSliderFillCorner.CornerRadius = UDim.new(1, 0)
+        ScaleSliderFillCorner.Parent = ScaleSliderFill
+        
+        local ScaleSliderBtn = Instance.new("TextButton")
+        ScaleSliderBtn.Size = UDim2.new(1, 0, 1, 0)
+        ScaleSliderBtn.BackgroundTransparency = 1
+        ScaleSliderBtn.Text = ""
+        ScaleSliderBtn.ZIndex = 15
+        ScaleSliderBtn.Parent = ScaleSliderBg
+        
+        local scaleDragging = false
+        
+        ScaleSliderBtn.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                scaleDragging = true
+            end
+        end)
+        
+        ScaleSliderBtn.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                scaleDragging = false
+            end
+        end)
+        
+        UserInputService.InputChanged:Connect(function(input)
+            if scaleDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+                local relativeX = (input.Position.X - ScaleSliderBg.AbsolutePosition.X) / ScaleSliderBg.AbsoluteSize.X
+                relativeX = math.clamp(relativeX, 0, 1)
+                local scaleVal = math.floor(50 + relativeX * 100)
+                ScaleSliderFill.Size = UDim2.new(relativeX, 0, 1, 0)
+                ScaleValue.Text = scaleVal .. "%"
+                Window:SetScale(scaleVal / 100)
+                Window:SaveSettings("EliteUI_UIScale", scaleVal)
+            end
+        end)
+        
+        -- Notifications Toggle
+        createSettingLabel("Notifications")
+        
+        local NotifFrame = Instance.new("Frame")
+        NotifFrame.Size = UDim2.new(1, -10, 0, componentHeight)
+        NotifFrame.BackgroundColor3 = Config.Theme.Secondary
+        NotifFrame.BorderSizePixel = 0
+        NotifFrame.ZIndex = 12
+        NotifFrame.Parent = popupContent
+        
+        local NotifFrameCorner = Instance.new("UICorner")
+        NotifFrameCorner.CornerRadius = UDim.new(0, 6)
+        NotifFrameCorner.Parent = NotifFrame
+        
+        local NotifLabel = Instance.new("TextLabel")
+        NotifLabel.Size = UDim2.new(1, -50, 1, 0)
+        NotifLabel.Position = UDim2.new(0, 10, 0, 0)
+        NotifLabel.BackgroundTransparency = 1
+        NotifLabel.Text = "Show Notifications"
+        NotifLabel.TextColor3 = Config.Theme.Text
+        NotifLabel.TextSize = textSize
+        NotifLabel.Font = Enum.Font.GothamMedium
+        NotifLabel.TextXAlignment = Enum.TextXAlignment.Left
+        NotifLabel.ZIndex = 13
+        NotifLabel.Parent = NotifFrame
+        
+        local NotifToggle = Instance.new("TextButton")
+        NotifToggle.Size = UDim2.new(0, 36, 0, 20)
+        NotifToggle.Position = UDim2.new(1, -44, 0.5, -10)
+        NotifToggle.BackgroundColor3 = savedNotifSetting and Config.Theme.Primary or Color3.fromRGB(60, 60, 70)
+        NotifToggle.BorderSizePixel = 0
+        NotifToggle.Text = ""
+        NotifToggle.ZIndex = 13
+        NotifToggle.Parent = NotifFrame
+        
+        local NotifToggleCorner = Instance.new("UICorner")
+        NotifToggleCorner.CornerRadius = UDim.new(1, 0)
+        NotifToggleCorner.Parent = NotifToggle
+        
+        local NotifToggleCircle = Instance.new("Frame")
+        NotifToggleCircle.Size = UDim2.new(0, 16, 0, 16)
+        NotifToggleCircle.Position = savedNotifSetting and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+        NotifToggleCircle.BackgroundColor3 = Color3.new(1, 1, 1)
+        NotifToggleCircle.BorderSizePixel = 0
+        NotifToggleCircle.ZIndex = 14
+        NotifToggleCircle.Parent = NotifToggle
+        
+        local NotifToggleCircleCorner = Instance.new("UICorner")
+        NotifToggleCircleCorner.CornerRadius = UDim.new(1, 0)
+        NotifToggleCircleCorner.Parent = NotifToggleCircle
+        
+        NotifToggle.MouseButton1Click:Connect(function()
+            Window.NotificationsEnabled = not Window.NotificationsEnabled
+            Window:SaveSettings("EliteUI_ShowNotifications", Window.NotificationsEnabled)
+            
+            if Config.Animation.Enabled then
+                animate(NotifToggle, {BackgroundColor3 = Window.NotificationsEnabled and Config.Theme.Primary or Color3.fromRGB(60, 60, 70)}, 0.15)
+                animate(NotifToggleCircle, {Position = Window.NotificationsEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.15)
+            else
+                NotifToggle.BackgroundColor3 = Window.NotificationsEnabled and Config.Theme.Primary or Color3.fromRGB(60, 60, 70)
+                NotifToggleCircle.Position = Window.NotificationsEnabled and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+            end
+        end)
+        
+        -- Clear Settings Button
+        createSettingLabel("Data")
+        
+        local ClearBtn = Instance.new("TextButton")
+        ClearBtn.Size = UDim2.new(1, -10, 0, componentHeight)
+        ClearBtn.BackgroundColor3 = Color3.fromRGB(180, 60, 60)
+        ClearBtn.BorderSizePixel = 0
+        ClearBtn.Text = "Clear All Settings"
+        ClearBtn.TextColor3 = Config.Theme.Text
+        ClearBtn.TextSize = textSize
+        ClearBtn.Font = Enum.Font.GothamMedium
+        ClearBtn.ZIndex = 12
+        ClearBtn.Parent = popupContent
+        
+        local ClearBtnCorner = Instance.new("UICorner")
+        ClearBtnCorner.CornerRadius = UDim.new(0, 6)
+        ClearBtnCorner.Parent = ClearBtn
+        
+        ClearBtn.MouseButton1Click:Connect(function()
+            Window:ClearSettings()
+            if Window.NotificationsEnabled ~= false then
+                Window:Notify({
+                    Title = "Settings Cleared",
+                    Content = "All saved settings have been deleted.",
+                    Duration = 3
+                })
+            end
+        end)
+        
+        ClearBtn.MouseEnter:Connect(function()
+            animate(ClearBtn, {BackgroundColor3 = Color3.fromRGB(200, 70, 70)}, 0.15)
+        end)
+        
+        ClearBtn.MouseLeave:Connect(function()
+            animate(ClearBtn, {BackgroundColor3 = Color3.fromRGB(180, 60, 60)}, 0.15)
+        end)
+        
+        -- Info Label
+        local InfoLabel = Instance.new("TextLabel")
+        InfoLabel.Size = UDim2.new(1, -10, 0, 20)
+        InfoLabel.BackgroundTransparency = 1
+        InfoLabel.Text = "EliteUI v3.5.0"
+        InfoLabel.TextColor3 = Config.Theme.TextSecondary
+        InfoLabel.TextSize = 9
+        InfoLabel.Font = Enum.Font.Gotham
+        InfoLabel.ZIndex = 12
+        InfoLabel.Parent = popupContent
+    end
+    
+    -- Automatically populate settings on window creation
+    populateDefaultSettings()
     
     -- Tab Container
     local TabContainer = Instance.new("ScrollingFrame")
