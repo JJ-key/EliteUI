@@ -810,21 +810,11 @@ function EliteUI:CreateWindow(options)
     
     -- Snow Effect
     if Config.SnowEffect.Enabled then
-        local SnowContainer = Instance.new("Frame")
-        SnowContainer.Name = "SnowContainer"
-        SnowContainer.Size = UDim2.new(1, 0, 1, 0)
-        SnowContainer.Position = UDim2.new(0, 0, 0, 0)
-        SnowContainer.BackgroundTransparency = 1
-        SnowContainer.ClipsDescendants = true
-        SnowContainer.ZIndex = 0
-        SnowContainer.Parent = MainFrame
-        
-        local snowflakes = {}
         local particleCount = Config.SnowEffect.ParticleCount or 50
         local speed = Config.SnowEffect.Speed or 1
         local glowEnabled = Config.SnowEffect.Glow
         
-        local function createSnowflake()
+        local function createSnowflake(parent)
             local size = math.random(2, 6)
             local snowflake = Instance.new("Frame")
             snowflake.Name = "Snowflake"
@@ -834,7 +824,7 @@ function EliteUI:CreateWindow(options)
             snowflake.BackgroundTransparency = math.random() * 0.4 + 0.2
             snowflake.BorderSizePixel = 0
             snowflake.ZIndex = 0
-            snowflake.Parent = SnowContainer
+            snowflake.Parent = parent
             
             local corner = Instance.new("UICorner")
             corner.CornerRadius = UDim.new(1, 0)
@@ -861,20 +851,53 @@ function EliteUI:CreateWindow(options)
             }
         end
         
+        -- Inner snow container (inside UI window)
+        local SnowContainer = Instance.new("Frame")
+        SnowContainer.Name = "SnowContainer"
+        SnowContainer.Size = UDim2.new(1, 0, 1, 0)
+        SnowContainer.Position = UDim2.new(0, 0, 0, 0)
+        SnowContainer.BackgroundTransparency = 1
+        SnowContainer.ClipsDescendants = true
+        SnowContainer.ZIndex = 0
+        SnowContainer.Parent = MainFrame
+        
+        local snowflakes = {}
+        
         for i = 1, particleCount do
-            local flake = createSnowflake()
+            local flake = createSnowflake(SnowContainer)
             flake.y = math.random() * 1.1
             flake.frame.Position = UDim2.new(math.random() * 0.95, 0, flake.y, 0)
             table.insert(snowflakes, flake)
         end
         
+        -- Outer snow container (full screen background, visible only when UI is open)
+        local OuterSnowContainer = Instance.new("Frame")
+        OuterSnowContainer.Name = "OuterSnowContainer"
+        OuterSnowContainer.Size = UDim2.new(1, 0, 1, 0)
+        OuterSnowContainer.Position = UDim2.new(0, 0, 0, 0)
+        OuterSnowContainer.BackgroundTransparency = 1
+        OuterSnowContainer.ClipsDescendants = true
+        OuterSnowContainer.ZIndex = -10
+        OuterSnowContainer.Parent = ScreenGui
+        
+        local outerSnowflakes = {}
+        local outerParticleCount = math.floor(particleCount * 1.5)
+        
+        for i = 1, outerParticleCount do
+            local flake = createSnowflake(OuterSnowContainer)
+            flake.y = math.random() * 1.1
+            flake.frame.Position = UDim2.new(math.random() * 0.98, 0, flake.y, 0)
+            table.insert(outerSnowflakes, flake)
+        end
+        
         local snowConnection
         snowConnection = game:GetService("RunService").Heartbeat:Connect(function(dt)
-            if not SnowContainer.Parent then
+            if not SnowContainer.Parent and not OuterSnowContainer.Parent then
                 snowConnection:Disconnect()
                 return
             end
             
+            -- Update inner snowflakes
             for _, flake in ipairs(snowflakes) do
                 flake.y = flake.y + flake.speed * dt
                 local newX = flake.frame.Position.X.Scale + flake.drift * dt
@@ -889,9 +912,26 @@ function EliteUI:CreateWindow(options)
                 
                 flake.frame.Position = UDim2.new(newX, 0, flake.y, 0)
             end
+            
+            -- Update outer snowflakes
+            for _, flake in ipairs(outerSnowflakes) do
+                flake.y = flake.y + flake.speed * dt
+                local newX = flake.frame.Position.X.Scale + flake.drift * dt
+                
+                if flake.y > 1.05 then
+                    flake.y = -0.05
+                    newX = math.random() * 0.98
+                end
+                
+                if newX < 0 then newX = 0.98 end
+                if newX > 0.98 then newX = 0 end
+                
+                flake.frame.Position = UDim2.new(newX, 0, flake.y, 0)
+            end
         end)
         
         Window.SnowContainer = SnowContainer
+        Window.OuterSnowContainer = OuterSnowContainer
         Window.SnowConnection = snowConnection
     end
     
@@ -2710,7 +2750,11 @@ function EliteUI:CreateWindow(options)
         HitArea.Size = UDim2.new(1, 0, 1, 0)
         HitArea.BackgroundTransparency = 1
         HitArea.Text = ""
+        HitArea.Active = true
+        HitArea.ZIndex = 10
         HitArea.Parent = ButtonFrame
+        
+        ButtonFrame.Active = true
         
         HitArea.MouseButton1Click:Connect(function()
             local currentTime = tick()
@@ -2734,18 +2778,21 @@ function EliteUI:CreateWindow(options)
         local dragInput
         local dragStart
         local startPos
+        local dragThreshold = 5
+        local totalDragDistance = 0
         
-        ButtonFrame.InputBegan:Connect(function(input)
+        HitArea.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                 dragging = true
                 dragStart = input.Position
                 startPos = ButtonFrame.Position
+                totalDragDistance = 0
                 
                 input.Changed:Connect(function()
                     if input.UserInputState == Enum.UserInputState.End then
                         dragging = false
                         
-                        if savePosition then
+                        if savePosition and totalDragDistance > dragThreshold then
                             local posX = ButtonFrame.Position.X.Scale + (ButtonFrame.Position.X.Offset + buttonSize/2) / InvisibleButtonGui.AbsoluteSize.X
                             local posY = ButtonFrame.Position.Y.Scale + (ButtonFrame.Position.Y.Offset + buttonSize/2) / InvisibleButtonGui.AbsoluteSize.Y
                             Window:SaveSettings("InvisibleButton_X", posX)
@@ -2756,7 +2803,7 @@ function EliteUI:CreateWindow(options)
             end
         end)
         
-        ButtonFrame.InputChanged:Connect(function(input)
+        HitArea.InputChanged:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
                 dragInput = input
             end
@@ -2765,6 +2812,7 @@ function EliteUI:CreateWindow(options)
         UserInputService.InputChanged:Connect(function(input)
             if input == dragInput and dragging then
                 local delta = input.Position - dragStart
+                totalDragDistance = math.abs(delta.X) + math.abs(delta.Y)
                 ButtonFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
             end
         end)
