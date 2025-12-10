@@ -65,7 +65,8 @@ local DefaultConfig = {
     SaveSettings = {
         Enabled = true,
         FolderName = "EliteUI",
-        FileName = "settings.json"
+        FileName = "settings.json",
+        ConfigFolder = "Configs"
     },
     UIScale = {
         PC = 1.0,
@@ -249,6 +250,114 @@ function SettingsManager:Delete()
             delfile(self:GetFilePath())
         end
     end)
+end
+
+-- Config Manager (for .cfg config files)
+local ConfigManager = {}
+ConfigManager.__index = ConfigManager
+
+function ConfigManager.new(baseFolder, configFolder)
+    local self = setmetatable({}, ConfigManager)
+    self.BaseFolder = baseFolder or "EliteUI"
+    self.ConfigFolder = configFolder or "Configs"
+    self.AutoloadFile = "_autoload.txt"
+    return self
+end
+
+function ConfigManager:GetConfigPath()
+    return self.BaseFolder .. "/" .. self.ConfigFolder
+end
+
+function ConfigManager:GetAutoloadPath()
+    return self:GetConfigPath() .. "/" .. self.AutoloadFile
+end
+
+function ConfigManager:EnsureFolder()
+    if not isfolder(self.BaseFolder) then
+        makefolder(self.BaseFolder)
+    end
+    local configPath = self:GetConfigPath()
+    if not isfolder(configPath) then
+        makefolder(configPath)
+    end
+end
+
+function ConfigManager:SaveConfig(name, settings)
+    local success, err = pcall(function()
+        self:EnsureFolder()
+        local filePath = self:GetConfigPath() .. "/" .. name .. ".cfg"
+        local data = HttpService:JSONEncode(settings)
+        writefile(filePath, data)
+    end)
+    return success, err
+end
+
+function ConfigManager:LoadConfig(name)
+    local success, result = pcall(function()
+        local filePath = self:GetConfigPath() .. "/" .. name .. ".cfg"
+        if isfile(filePath) then
+            local data = readfile(filePath)
+            return HttpService:JSONDecode(data)
+        end
+        return nil
+    end)
+    if success then
+        return result
+    end
+    return nil
+end
+
+function ConfigManager:DeleteConfig(name)
+    pcall(function()
+        local filePath = self:GetConfigPath() .. "/" .. name .. ".cfg"
+        if isfile(filePath) then
+            delfile(filePath)
+        end
+    end)
+end
+
+function ConfigManager:GetConfigs()
+    local configs = {}
+    pcall(function()
+        self:EnsureFolder()
+        local files = listfiles(self:GetConfigPath())
+        for _, file in ipairs(files) do
+            local fileName = file:match("([^/\\]+)$")
+            if fileName and fileName:match("%.cfg$") and fileName ~= self.AutoloadFile then
+                local configName = fileName:gsub("%.cfg$", "")
+                table.insert(configs, configName)
+            end
+        end
+    end)
+    table.sort(configs)
+    return configs
+end
+
+function ConfigManager:SetAutoload(name)
+    pcall(function()
+        self:EnsureFolder()
+        if name and name ~= "" then
+            writefile(self:GetAutoloadPath(), name)
+        else
+            if isfile(self:GetAutoloadPath()) then
+                delfile(self:GetAutoloadPath())
+            end
+        end
+    end)
+end
+
+function ConfigManager:GetAutoload()
+    local result = nil
+    pcall(function()
+        if isfile(self:GetAutoloadPath()) then
+            result = readfile(self:GetAutoloadPath())
+        end
+    end)
+    return result
+end
+
+function ConfigManager:ClearAutoload()
+    self:SetAutoload(nil)
 end
 
 -- Animation Helper
@@ -492,6 +601,9 @@ function EliteUI:CreateWindow(options)
     if options.SaveFile then
         Config.SaveSettings.FileName = options.SaveFile
     end
+    if options.ConfigFolder then
+        Config.SaveSettings.ConfigFolder = options.ConfigFolder
+    end
     if options.UIScale then
         for k, v in pairs(options.UIScale) do
             Config.UIScale[k] = v
@@ -705,10 +817,24 @@ function EliteUI:CreateWindow(options)
     local settingsManager = SettingsManager.new(Config.SaveSettings.FolderName, Config.SaveSettings.FileName)
     Window.SettingsManager = settingsManager
     
+    -- Initialize config manager
+    local configManager = ConfigManager.new(Config.SaveSettings.FolderName, Config.SaveSettings.ConfigFolder)
+    Window.ConfigManager = configManager
+    
     -- Load saved settings
     local savedSettings = settingsManager:Load()
     if savedSettings then
         Window.Settings = savedSettings
+    end
+    
+    -- Check for autoload config and apply it
+    local autoloadConfigName = configManager:GetAutoload()
+    if autoloadConfigName and autoloadConfigName ~= "" then
+        local autoloadSettings = configManager:LoadConfig(autoloadConfigName)
+        if autoloadSettings then
+            Window.Settings = autoloadSettings
+            settingsManager:Save(Window.Settings)
+        end
     end
     
     -- Apply saved UI scale and size preset if available (before calculating window size)
@@ -1320,6 +1446,55 @@ function EliteUI:CreateWindow(options)
     function Window:ClearSettings()
         Window.Settings = {}
         settingsManager:Delete()
+    end
+    
+    -- Config Management Functions
+    function Window:SaveConfig(name)
+        if not name or name == "" then
+            return false, "Config name cannot be empty"
+        end
+        local success, err = configManager:SaveConfig(name, Window.Settings)
+        return success, err
+    end
+    
+    function Window:LoadConfig(name)
+        if not name or name == "" then
+            return false
+        end
+        local loadedSettings = configManager:LoadConfig(name)
+        if loadedSettings then
+            Window.Settings = loadedSettings
+            settingsManager:Save(Window.Settings)
+            return true
+        end
+        return false
+    end
+    
+    function Window:DeleteConfig(name)
+        if not name or name == "" then
+            return
+        end
+        configManager:DeleteConfig(name)
+        local autoloadName = configManager:GetAutoload()
+        if autoloadName == name then
+            configManager:ClearAutoload()
+        end
+    end
+    
+    function Window:GetConfigs()
+        return configManager:GetConfigs()
+    end
+    
+    function Window:SetAutoloadConfig(name)
+        configManager:SetAutoload(name)
+    end
+    
+    function Window:GetAutoloadConfig()
+        return configManager:GetAutoload()
+    end
+    
+    function Window:ClearAutoloadConfig()
+        configManager:ClearAutoload()
     end
     
     -- Toggle Visibility
@@ -2903,6 +3078,164 @@ function EliteUI:CreateWindow(options)
             end
         end
     })
+    
+    -- Config Management Section
+    SettingsTab:CreateSection("Config Management")
+    
+    local configNameInput = ""
+    local selectedConfig = ""
+    local currentAutoload = Window:GetAutoloadConfig() or ""
+    
+    -- Config name input
+    SettingsTab:CreateTextBox({
+        Name = "Config Name",
+        Placeholder = "Enter config name...",
+        CurrentValue = "",
+        Callback = function(Value)
+            configNameInput = Value
+        end
+    })
+    
+    -- Create Config button (loadConfigDropdown will be defined below)
+    local createConfigBtn
+    createConfigBtn = SettingsTab:CreateButton({
+        Name = "Create Config",
+        Callback = function()
+            if configNameInput == "" then
+                if Window.NotificationsEnabled ~= false then
+                    Window:Notify({
+                        Title = "Error",
+                        Content = "Please enter a config name first.",
+                        Duration = 3
+                    })
+                end
+                return
+            end
+            local success = Window:SaveConfig(configNameInput)
+            if success then
+                if Window.NotificationsEnabled ~= false then
+                    Window:Notify({
+                        Title = "Config Saved",
+                        Content = "Config '" .. configNameInput .. "' has been created.",
+                        Duration = 3
+                    })
+                end
+                -- Refresh dropdown
+                local newConfigList = Window:GetConfigs()
+                if #newConfigList == 0 then
+                    newConfigList = {"No configs available"}
+                end
+                if loadConfigDropdown and loadConfigDropdown.UpdateOptions then
+                    loadConfigDropdown:UpdateOptions(newConfigList)
+                end
+            end
+        end
+    })
+    
+    -- Load Config dropdown
+    local configList = Window:GetConfigs()
+    if #configList == 0 then
+        configList = {"No configs available"}
+    end
+    
+    local loadConfigDropdown
+    loadConfigDropdown = SettingsTab:CreateDropdown({
+        Name = "Load Config",
+        Options = configList,
+        CurrentValue = "",
+        Callback = function(Value)
+            if Value and Value ~= "No configs available" then
+                selectedConfig = Value
+                local success = Window:LoadConfig(Value)
+                if success and Window.NotificationsEnabled ~= false then
+                    Window:Notify({
+                        Title = "Config Loaded",
+                        Content = "Config '" .. Value .. "' has been loaded. Rejoin to apply all settings.",
+                        Duration = 4
+                    })
+                end
+            end
+        end
+    })
+    
+    -- Set Autoload button
+    SettingsTab:CreateButton({
+        Name = "Set Current Config as Autoload",
+        Callback = function()
+            if selectedConfig == "" or selectedConfig == "No configs available" then
+                if Window.NotificationsEnabled ~= false then
+                    Window:Notify({
+                        Title = "Error",
+                        Content = "Please select a config first.",
+                        Duration = 3
+                    })
+                end
+                return
+            end
+            Window:SetAutoloadConfig(selectedConfig)
+            currentAutoload = selectedConfig
+            if Window.NotificationsEnabled ~= false then
+                Window:Notify({
+                    Title = "Autoload Set",
+                    Content = "Config '" .. selectedConfig .. "' will load automatically on startup.",
+                    Duration = 3
+                })
+            end
+        end
+    })
+    
+    -- Disable Autoload button
+    SettingsTab:CreateButton({
+        Name = "Disable Autoload",
+        Callback = function()
+            Window:ClearAutoloadConfig()
+            currentAutoload = ""
+            if Window.NotificationsEnabled ~= false then
+                Window:Notify({
+                    Title = "Autoload Disabled",
+                    Content = "No config will be auto-loaded on startup.",
+                    Duration = 3
+                })
+            end
+        end
+    })
+    
+    -- Delete Config button
+    SettingsTab:CreateButton({
+        Name = "Delete Selected Config",
+        Callback = function()
+            if selectedConfig == "" or selectedConfig == "No configs available" then
+                if Window.NotificationsEnabled ~= false then
+                    Window:Notify({
+                        Title = "Error",
+                        Content = "Please select a config first.",
+                        Duration = 3
+                    })
+                end
+                return
+            end
+            Window:DeleteConfig(selectedConfig)
+            if Window.NotificationsEnabled ~= false then
+                Window:Notify({
+                    Title = "Config Deleted",
+                    Content = "Config '" .. selectedConfig .. "' has been deleted.",
+                    Duration = 3
+                })
+            end
+            selectedConfig = ""
+            local newConfigList = Window:GetConfigs()
+            if #newConfigList == 0 then
+                newConfigList = {"No configs available"}
+            end
+            if loadConfigDropdown and loadConfigDropdown.UpdateOptions then
+                loadConfigDropdown:UpdateOptions(newConfigList)
+            end
+        end
+    })
+    
+    -- Show current autoload status
+    local autoloadStatus = currentAutoload ~= "" and ("Autoload: " .. currentAutoload) or "Autoload: None"
+    SettingsTab:CreateLabel(autoloadStatus)
     
     -- Data Management Section
     SettingsTab:CreateSection("Data Management")
