@@ -50,6 +50,18 @@ The server runs on port 5000 and is accessible via the Replit webview.
 - **CORS**: Enabled for cross-origin requests
 
 ## Recent Changes
+- **December 10, 2025**: Config Saving System (v3.7.0)
+  - Added config management system with .cfg file format
+  - Create, load, and delete config files
+  - Autoload feature: set a config to load automatically on startup
+  - Developer-configurable config folder via `ConfigFolder` option
+  - Config files stored in: `[SaveFolder]/Configs/[name].cfg`
+  - New Settings tab section: Config Management
+  - New Window methods: SaveConfig, LoadConfig, DeleteConfig, GetConfigs, SetAutoloadConfig, GetAutoloadConfig, ClearAutoloadConfig
+- **December 10, 2025**: Cleaner Settings Access (v3.6.2)
+  - Removed settings gear icon from user panel
+  - Username and profile picture are now the clickable area to access settings
+  - More subtle/hidden settings access
 - **December 9, 2025**: User Panel with Settings Access (v3.6.1)
   - Added user panel at bottom of sidebar showing Roblox avatar and display name
   - Clicking user panel opens the Settings tab
