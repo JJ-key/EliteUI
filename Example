@@ -9,7 +9,7 @@
 -- - Performance options
 
 -- Replace the URL below with your own hosted Loader URL
-local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/refs/heads/main/Loader"))()
+local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/main/Loader"))()
 
 -- Services
 local Players = game:GetService("Players")
