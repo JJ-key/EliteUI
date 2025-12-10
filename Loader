@@ -1181,10 +1181,10 @@ function EliteUI:CreateWindow(options)
         AvatarFrame.Image = content
     end)
     
-    -- Username
+    -- Username (takes full width now since no settings icon)
     local UsernameLabel = Instance.new("TextLabel")
     UsernameLabel.Name = "Username"
-    UsernameLabel.Size = UDim2.new(1, -(avatarSize + 20), 0, 16)
+    UsernameLabel.Size = UDim2.new(1, -(avatarSize + 16), 0, 16)
     UsernameLabel.Position = UDim2.new(0, avatarSize + 14, 0.5, -8)
     UsernameLabel.BackgroundTransparency = 1
     UsernameLabel.Text = player.DisplayName or player.Name
@@ -1195,28 +1195,15 @@ function EliteUI:CreateWindow(options)
     UsernameLabel.TextTruncate = Enum.TextTruncate.AtEnd
     UsernameLabel.Parent = UserPanel
     
-    -- Settings icon indicator
-    local SettingsIndicator = Instance.new("ImageLabel")
-    SettingsIndicator.Name = "SettingsIndicator"
-    SettingsIndicator.Size = UDim2.new(0, 12, 0, 12)
-    SettingsIndicator.Position = UDim2.new(1, -18, 0.5, -6)
-    SettingsIndicator.BackgroundTransparency = 1
-    SettingsIndicator.Image = IconLibrary.settings
-    SettingsIndicator.ImageColor3 = Config.Theme.TextSecondary
-    SettingsIndicator.ScaleType = Enum.ScaleType.Fit
-    SettingsIndicator.Parent = UserPanel
-    
-    -- Hover effects for user panel
+    -- Hover effects for user panel (clicking opens settings)
     UserPanel.MouseEnter:Connect(function()
         animate(UserPanel, {BackgroundColor3 = Config.Theme.Secondary}, 0.15)
         animate(UserPanelStroke, {Color = Config.Theme.Primary, Transparency = 0}, 0.15)
-        animate(SettingsIndicator, {ImageColor3 = Config.Theme.Primary}, 0.15)
     end)
     
     UserPanel.MouseLeave:Connect(function()
         animate(UserPanel, {BackgroundColor3 = Color3.fromRGB(22, 24, 29)}, 0.15)
         animate(UserPanelStroke, {Color = Config.Theme.Secondary, Transparency = 0.5}, 0.15)
-        animate(SettingsIndicator, {ImageColor3 = Config.Theme.TextSecondary}, 0.15)
     end)
     
     -- Store reference to user panel for settings tab connection
