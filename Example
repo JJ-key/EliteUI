@@ -1,8 +1,10 @@
--- EliteUI v3.6.0 Complete Example Script
+-- EliteUI v3.7.0 Complete Example Script
 -- This script demonstrates all available features including:
 -- - Key System (optional, fetch keys from raw URL, saveable)
 -- - Responsive UI sizing (auto-adjusts for PC vs Mobile)
--- - PC keybind support (RightShift to toggle by default)
+-- - PC keybind support (customizable in settings, saved automatically)
+-- - Mobile toggle button (visible button on mobile/tablet, replaces keybind)
+-- - Screen edge glow effect (matches UI theme color)
 -- - Smooth animations
 -- - Theme customization
 -- - Settings save/load system (automatic, no function call needed)
@@ -18,7 +20,7 @@ local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-ke
 local Window = EliteUI:CreateWindow({
     Name = "EliteUI Example",
     LoadingTitle = "Loading...",
-    Subtitle = "v3.5",
+    Subtitle = "v3.7",
 
     -- Snow Effect (optional)
     SnowEffect = {
@@ -26,6 +28,22 @@ local Window = EliteUI:CreateWindow({
         ParticleCount = 50,
         Speed = 1,
         Glow = true
+    },
+    
+    -- Screen Edge Glow Effect (optional)
+    -- Adds a glowing effect on the edges of the screen matching the UI color
+    ScreenGlow = {
+        Enabled = true,
+        Intensity = 0.5,
+        Size = 100
+    },
+    
+    -- Mobile Toggle Button (optional)
+    -- Shows a visible toggle button on mobile/tablet instead of keybind
+    ToggleButton = {
+        Enabled = true,
+        Size = 50,
+        SavePosition = true
     },
 
     -- Key System (optional - can be disabled or removed entirely)
@@ -92,8 +110,8 @@ local FarmTab = Window:CreateTab("Farm", "bolt")
 MainTab:CreateSection("Welcome", "star")
 
 MainTab:CreateParagraph({
-    Title = "EliteUI v3.6.0",
-    Content = "A modern, responsive UI library with PC & Mobile support, animations, and auto-save system. Settings tab is automatic!"
+    Title = "EliteUI v3.7.0",
+    Content = "A modern, responsive UI library with PC & Mobile support, screen glow effects, customizable keybinds, and auto-save system. Settings tab is automatic!"
 })
 
 MainTab:CreateButton({

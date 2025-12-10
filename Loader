@@ -1,12 +1,14 @@
 --[[
     EliteUI Library for Roblox
-    Version 3.6.0
+    Version 3.7.0
     
     Features:
     - Key System (optional, fetch keys from raw URL, saveable)
     - Responsive sizing (auto-adjusts for PC vs Mobile)
-    - PC keybind support (press key to toggle UI)
+    - PC keybind support (customizable, saved to settings)
+    - Mobile toggle button (visible, draggable button for mobile/tablet)
     - Hold 3 fingers for 0.8s to toggle UI (mobile) - won't trigger during gameplay
+    - Screen edge glow effect (matches UI theme color)
     - Smooth animations (open/close, component interactions)
     - Working theme/color customization
     - Settings save/load system (customizable folder/file)
@@ -77,6 +79,16 @@ local DefaultConfig = {
         ParticleCount = 50,
         Speed = 1,
         Glow = true
+    },
+    ScreenGlow = {
+        Enabled = false,
+        Intensity = 0.5,
+        Size = 100
+    },
+    ToggleButton = {
+        Enabled = true,
+        Size = 50,
+        SavePosition = true
     }
 }
 
@@ -511,6 +523,16 @@ function EliteUI:CreateWindow(options)
             Config.SnowEffect[k] = v
         end
     end
+    if options.ScreenGlow then
+        for k, v in pairs(options.ScreenGlow) do
+            Config.ScreenGlow[k] = v
+        end
+    end
+    if options.ToggleButton then
+        for k, v in pairs(options.ToggleButton) do
+            Config.ToggleButton[k] = v
+        end
+    end
     
     Window.Config = Config
     
@@ -935,6 +957,107 @@ function EliteUI:CreateWindow(options)
         Window.SnowConnection = snowConnection
     end
     
+    -- Screen Edge Glow Effect
+    local ScreenGlowFrames = {}
+    local function createScreenGlow()
+        local glowSize = Config.ScreenGlow.Size or 100
+        local glowIntensity = Config.ScreenGlow.Intensity or 0.5
+        local glowColor = Config.Theme.Primary
+        
+        -- Left edge glow
+        local LeftGlow = Instance.new("ImageLabel")
+        LeftGlow.Name = "LeftScreenGlow"
+        LeftGlow.Size = UDim2.new(0, glowSize, 1, 0)
+        LeftGlow.Position = UDim2.new(0, 0, 0, 0)
+        LeftGlow.BackgroundTransparency = 1
+        LeftGlow.Image = "rbxassetid://5554236805"
+        LeftGlow.ImageColor3 = glowColor
+        LeftGlow.ImageTransparency = 1 - glowIntensity
+        LeftGlow.ScaleType = Enum.ScaleType.Slice
+        LeftGlow.SliceCenter = Rect.new(23, 23, 277, 277)
+        LeftGlow.ZIndex = -20
+        LeftGlow.Parent = ScreenGui
+        table.insert(ScreenGlowFrames, LeftGlow)
+        
+        -- Right edge glow
+        local RightGlow = Instance.new("ImageLabel")
+        RightGlow.Name = "RightScreenGlow"
+        RightGlow.Size = UDim2.new(0, glowSize, 1, 0)
+        RightGlow.Position = UDim2.new(1, -glowSize, 0, 0)
+        RightGlow.BackgroundTransparency = 1
+        RightGlow.Image = "rbxassetid://5554236805"
+        RightGlow.ImageColor3 = glowColor
+        RightGlow.ImageTransparency = 1 - glowIntensity
+        RightGlow.ScaleType = Enum.ScaleType.Slice
+        RightGlow.SliceCenter = Rect.new(23, 23, 277, 277)
+        RightGlow.ZIndex = -20
+        RightGlow.Parent = ScreenGui
+        table.insert(ScreenGlowFrames, RightGlow)
+        
+        -- Top edge glow
+        local TopGlow = Instance.new("ImageLabel")
+        TopGlow.Name = "TopScreenGlow"
+        TopGlow.Size = UDim2.new(1, 0, 0, glowSize)
+        TopGlow.Position = UDim2.new(0, 0, 0, 0)
+        TopGlow.BackgroundTransparency = 1
+        TopGlow.Image = "rbxassetid://5554236805"
+        TopGlow.ImageColor3 = glowColor
+        TopGlow.ImageTransparency = 1 - glowIntensity
+        TopGlow.ScaleType = Enum.ScaleType.Slice
+        TopGlow.SliceCenter = Rect.new(23, 23, 277, 277)
+        TopGlow.ZIndex = -20
+        TopGlow.Parent = ScreenGui
+        table.insert(ScreenGlowFrames, TopGlow)
+        
+        -- Bottom edge glow
+        local BottomGlow = Instance.new("ImageLabel")
+        BottomGlow.Name = "BottomScreenGlow"
+        BottomGlow.Size = UDim2.new(1, 0, 0, glowSize)
+        BottomGlow.Position = UDim2.new(0, 0, 1, -glowSize)
+        BottomGlow.BackgroundTransparency = 1
+        BottomGlow.Image = "rbxassetid://5554236805"
+        BottomGlow.ImageColor3 = glowColor
+        BottomGlow.ImageTransparency = 1 - glowIntensity
+        BottomGlow.ScaleType = Enum.ScaleType.Slice
+        BottomGlow.SliceCenter = Rect.new(23, 23, 277, 277)
+        BottomGlow.ZIndex = -20
+        BottomGlow.Parent = ScreenGui
+        table.insert(ScreenGlowFrames, BottomGlow)
+    end
+    
+    if Config.ScreenGlow.Enabled then
+        createScreenGlow()
+    end
+    
+    Window.ScreenGlowFrames = ScreenGlowFrames
+    
+    -- Function to update screen glow color
+    function Window:SetScreenGlowColor(color)
+        for _, glowFrame in ipairs(ScreenGlowFrames) do
+            glowFrame.ImageColor3 = color
+        end
+    end
+    
+    -- Function to toggle screen glow
+    function Window:SetScreenGlowEnabled(enabled)
+        if enabled and #ScreenGlowFrames == 0 then
+            createScreenGlow()
+        elseif not enabled then
+            for _, glowFrame in ipairs(ScreenGlowFrames) do
+                glowFrame:Destroy()
+            end
+            ScreenGlowFrames = {}
+            Window.ScreenGlowFrames = ScreenGlowFrames
+        end
+    end
+    
+    -- Function to set screen glow intensity
+    function Window:SetScreenGlowIntensity(intensity)
+        for _, glowFrame in ipairs(ScreenGlowFrames) do
+            glowFrame.ImageTransparency = 1 - intensity
+        end
+    end
+    
     -- Header
     local headerHeight = DeviceType == "Mobile" and 38 or 44
     local Header = Instance.new("Frame")
@@ -1073,8 +1196,119 @@ function EliteUI:CreateWindow(options)
         setupMobileGesture(ScreenGui, Config)
     end
     
+    -- Load saved toggle key and apply it
+    local savedToggleKeyName = Window:GetSetting("EliteUI_ToggleKey")
+    if savedToggleKeyName and Enum.KeyCode[savedToggleKeyName] then
+        Config.ToggleKey = Enum.KeyCode[savedToggleKeyName]
+    end
+    
     -- Setup PC keybind
     setupPCKeybind(ScreenGui, Config, MainFrame, Config.Animation)
+    
+    -- Create Mobile Toggle Button (visible button for mobile/tablet users)
+    if (DeviceType == "Mobile" or DeviceType == "Tablet") and Config.ToggleButton.Enabled then
+        local toggleBtnSize = Config.ToggleButton.Size or 50
+        local saveTogglePos = Config.ToggleButton.SavePosition ~= false
+        
+        local savedTogglePosX = Window:GetSetting("MobileToggleBtn_X", 0.95)
+        local savedTogglePosY = Window:GetSetting("MobileToggleBtn_Y", 0.5)
+        
+        local MobileToggleGui = Instance.new("ScreenGui")
+        MobileToggleGui.Name = "EliteUI_MobileToggle"
+        MobileToggleGui.ResetOnSpawn = false
+        MobileToggleGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+        MobileToggleGui.Parent = game:GetService("CoreGui")
+        
+        local MobileToggleBtn = Instance.new("Frame")
+        MobileToggleBtn.Name = "MobileToggleButton"
+        MobileToggleBtn.Size = UDim2.new(0, toggleBtnSize, 0, toggleBtnSize)
+        MobileToggleBtn.Position = UDim2.new(savedTogglePosX, -toggleBtnSize/2, savedTogglePosY, -toggleBtnSize/2)
+        MobileToggleBtn.BackgroundColor3 = Config.Theme.Primary
+        MobileToggleBtn.BackgroundTransparency = 0.3
+        MobileToggleBtn.BorderSizePixel = 0
+        MobileToggleBtn.Active = true
+        MobileToggleBtn.Parent = MobileToggleGui
+        
+        local ToggleBtnCorner = Instance.new("UICorner")
+        ToggleBtnCorner.CornerRadius = UDim.new(0, 12)
+        ToggleBtnCorner.Parent = MobileToggleBtn
+        
+        local ToggleBtnStroke = Instance.new("UIStroke")
+        ToggleBtnStroke.Color = Config.Theme.Primary
+        ToggleBtnStroke.Transparency = 0
+        ToggleBtnStroke.Thickness = 2
+        ToggleBtnStroke.Parent = MobileToggleBtn
+        
+        local ToggleBtnIcon = Instance.new("ImageLabel")
+        ToggleBtnIcon.Name = "Icon"
+        ToggleBtnIcon.Size = UDim2.new(0.6, 0, 0.6, 0)
+        ToggleBtnIcon.Position = UDim2.new(0.2, 0, 0.2, 0)
+        ToggleBtnIcon.BackgroundTransparency = 1
+        ToggleBtnIcon.Image = IconLibrary.menu or "rbxassetid://7734068991"
+        ToggleBtnIcon.ImageColor3 = Config.Theme.Text
+        ToggleBtnIcon.ScaleType = Enum.ScaleType.Fit
+        ToggleBtnIcon.Parent = MobileToggleBtn
+        
+        local ToggleHitArea = Instance.new("TextButton")
+        ToggleHitArea.Name = "HitArea"
+        ToggleHitArea.Size = UDim2.new(1, 0, 1, 0)
+        ToggleHitArea.BackgroundTransparency = 1
+        ToggleHitArea.Text = ""
+        ToggleHitArea.Active = true
+        ToggleHitArea.ZIndex = 10
+        ToggleHitArea.Parent = MobileToggleBtn
+        
+        ToggleHitArea.MouseButton1Click:Connect(function()
+            Window:Toggle()
+        end)
+        
+        -- Dragging for mobile toggle button
+        local toggleDragging = false
+        local toggleDragInput
+        local toggleDragStart
+        local toggleStartPos
+        local toggleDragThreshold = 5
+        local toggleTotalDrag = 0
+        
+        ToggleHitArea.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                toggleDragging = true
+                toggleDragStart = input.Position
+                toggleStartPos = MobileToggleBtn.Position
+                toggleTotalDrag = 0
+                
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then
+                        toggleDragging = false
+                        
+                        if saveTogglePos and toggleTotalDrag > toggleDragThreshold then
+                            local posX = MobileToggleBtn.Position.X.Scale + (MobileToggleBtn.Position.X.Offset + toggleBtnSize/2) / MobileToggleGui.AbsoluteSize.X
+                            local posY = MobileToggleBtn.Position.Y.Scale + (MobileToggleBtn.Position.Y.Offset + toggleBtnSize/2) / MobileToggleGui.AbsoluteSize.Y
+                            Window:SaveSettings("MobileToggleBtn_X", posX)
+                            Window:SaveSettings("MobileToggleBtn_Y", posY)
+                        end
+                    end
+                end)
+            end
+        end)
+        
+        ToggleHitArea.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+                toggleDragInput = input
+            end
+        end)
+        
+        UserInputService.InputChanged:Connect(function(input)
+            if input == toggleDragInput and toggleDragging then
+                local delta = input.Position - toggleDragStart
+                toggleTotalDrag = math.abs(delta.X) + math.abs(delta.Y)
+                MobileToggleBtn.Position = UDim2.new(toggleStartPos.X.Scale, toggleStartPos.X.Offset + delta.X, toggleStartPos.Y.Scale, toggleStartPos.Y.Offset + delta.Y)
+            end
+        end)
+        
+        Window._mobileToggleGui = MobileToggleGui
+        Window._mobileToggleBtn = MobileToggleBtn
+    end
     
     -- Tab width definition (with user info panel at bottom)
     local tabWidth = DeviceType == "Mobile" and 120 or 140
@@ -1348,6 +1582,9 @@ function EliteUI:CreateWindow(options)
     function Window:Destroy()
         if Window._invisibleButton and Window._invisibleButton.Gui then
             Window._invisibleButton.Gui:Destroy()
+        end
+        if Window._mobileToggleGui then
+            Window._mobileToggleGui:Destroy()
         end
         ScreenGui:Destroy()
     end
@@ -2858,10 +3095,57 @@ function EliteUI:CreateWindow(options)
     -- Controls Section
     SettingsTab:CreateSection("Controls")
     
-    local toggleKeyName = Config.ToggleKey and Config.ToggleKey.Name or "RightShift"
-    SettingsTab:CreateParagraph({
-        Title = "Toggle UI",
-        Content = "PC: Press " .. toggleKeyName .. " | Mobile: Hold 3 fingers for 0.8s"
+    -- Show keybind option only on PC, button info on mobile
+    if DeviceType == "PC" then
+        -- Customizable toggle keybind for PC
+        local savedToggleKey = Window:GetSetting("EliteUI_ToggleKey")
+        local currentToggleKey = savedToggleKey and Enum.KeyCode[savedToggleKey] or Config.ToggleKey
+        
+        SettingsTab:CreateKeybind({
+            Name = "Toggle UI Key",
+            CurrentKeybind = currentToggleKey,
+            Flag = "EliteUI_ToggleKey",
+            Callback = function(NewKey)
+                Config.ToggleKey = NewKey
+            end
+        })
+        
+        SettingsTab:CreateParagraph({
+            Title = "Toggle Info",
+            Content = "Press the keybind above to toggle the UI visibility."
+        })
+    else
+        -- Mobile/Tablet users see button info
+        SettingsTab:CreateParagraph({
+            Title = "Toggle UI",
+            Content = "Use the toggle button on screen or hold 3 fingers for 0.8s to toggle the UI."
+        })
+    end
+    
+    -- Screen Glow Settings Section
+    SettingsTab:CreateSection("Screen Effects")
+    
+    local savedScreenGlow = Window:GetSetting("EliteUI_ScreenGlow", Config.ScreenGlow.Enabled)
+    local savedGlowIntensity = Window:GetSetting("EliteUI_GlowIntensity", math.floor(Config.ScreenGlow.Intensity * 100))
+    
+    SettingsTab:CreateToggle({
+        Name = "Screen Edge Glow",
+        CurrentValue = savedScreenGlow,
+        Flag = "EliteUI_ScreenGlow",
+        Callback = function(Value)
+            Window:SetScreenGlowEnabled(Value)
+        end
+    })
+    
+    SettingsTab:CreateSlider({
+        Name = "Glow Intensity",
+        Min = 10,
+        Max = 100,
+        CurrentValue = savedGlowIntensity,
+        Flag = "EliteUI_GlowIntensity",
+        Callback = function(Value)
+            Window:SetScreenGlowIntensity(Value / 100)
+        end
     })
     
     -- Notifications Section
@@ -2908,7 +3192,7 @@ function EliteUI:CreateWindow(options)
     
     -- Info Section
     SettingsTab:CreateSection("Info")
-    SettingsTab:CreateLabel("EliteUI v3.6.0")
+    SettingsTab:CreateLabel("EliteUI v3.7.0")
     SettingsTab:CreateParagraph({
         Title = "About",
         Content = "Built for Roblox with PC & Mobile support. Settings are saved automatically."
