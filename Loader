@@ -711,10 +711,38 @@ function EliteUI:CreateWindow(options)
         Window.Settings = savedSettings
     end
     
+    -- Apply saved UI scale and size preset if available (before calculating window size)
+    local savedUIScaleValue = Window.Settings and Window.Settings["EliteUI_UIScale"]
+    local savedSizePresetValue = Window.Settings and Window.Settings["EliteUI_UISizePreset"]
+    
+    -- Size presets define absolute base dimensions
+    local sizePresets = {
+        ["Small"] = {350, 300},
+        ["Normal"] = {420, 380},
+        ["Large"] = {500, 450},
+        ["Extra Large"] = {600, 520}
+    }
+    
+    -- Calculate base dimensions from size preset or defaults
+    local baseWidth, baseHeight
+    if savedSizePresetValue and sizePresets[savedSizePresetValue] then
+        baseWidth = sizePresets[savedSizePresetValue][1]
+        baseHeight = sizePresets[savedSizePresetValue][2]
+    else
+        baseWidth = DeviceType == "Mobile" and 420 or 520
+        baseHeight = DeviceType == "Mobile" and 380 or 480
+    end
+    
+    -- Apply scale factor
+    local appliedScaleFactor = 1
+    if savedUIScaleValue and savedUIScaleValue ~= 100 then
+        appliedScaleFactor = savedUIScaleValue / 100
+    else
+        appliedScaleFactor = getUIScale(Config)
+    end
+    
     -- Calculate scaled sizes
-    local scale = getUIScale(Config)
-    local baseWidth = DeviceType == "Mobile" and 420 or 520
-    local baseHeight = DeviceType == "Mobile" and 380 or 480
+    local scale = appliedScaleFactor
     local windowWidth = math.floor(baseWidth * scale)
     local windowHeight = math.floor(baseHeight * scale)
     
