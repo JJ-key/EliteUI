@@ -61,7 +61,7 @@ local Window = EliteUI:CreateWindow({
     Subtitle = "v2.0 - Enhanced Edition",
 
     SnowEffect = {
-        Enabled = false,
+        Enabled = true,
         ParticleCount = 30,
         Speed = 1,
         Glow = true

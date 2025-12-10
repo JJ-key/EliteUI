@@ -50,6 +50,11 @@ The server runs on port 5000 and is accessible via the Replit webview.
 - **CORS**: Enabled for cross-origin requests
 
 ## Recent Changes
+- **December 10, 2025**: Fixed Built-in Icons (v3.7.1)
+  - Updated all built-in tab/section icons with verified Lucide Roblox asset IDs
+  - Icons now work correctly: home, settings, player, eye, star, world, bolt, etc.
+  - Added 30+ new icons: cpu, database, server, wifi, camera, image, video, etc.
+  - Enabled snow effect in Example script (was disabled)
 - **December 10, 2025**: Config Saving System (v3.7.0)
   - Added config management system with .cfg file format
   - Create, load, and delete config files
