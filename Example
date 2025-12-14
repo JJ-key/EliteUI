@@ -105,6 +105,49 @@ local TeleportTab = Window:CreateTab("Teleport", "world")
 local AutomationTab = Window:CreateTab("Auto", "lightning")
 local MiscTab = Window:CreateTab("Misc", "wrench")
 
+-- Create a main tab
+local CombatTab = Window:CreateTab("Combat", "sword")
+
+-- Create sub-tabs within the main tab
+local SubTabs = CombatTab:CreateSubTab({"Aimlock", "Camlock", "Triggerbot"})
+
+-- Access each sub-tab by name and add components
+SubTabs["Aimlock"]:CreateSection("Aimlock Settings")
+SubTabs["Aimlock"]:CreateToggle({
+    Name = "Enable Aimlock",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Aimlock:", Value)
+    end
+})
+SubTabs["Aimlock"]:CreateSlider({
+    Name = "Smoothness",
+    Min = 0,
+    Max = 100,
+    CurrentValue = 50,
+    Callback = function(Value)
+        print("Smoothness:", Value)
+    end
+})
+
+SubTabs["Camlock"]:CreateSection("Camlock Settings")
+SubTabs["Camlock"]:CreateToggle({
+    Name = "Enable Camlock",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Camlock:", Value)
+    end
+})
+SubTabs["Camlock"]:CreateDropdown({
+    Name = "Target Part",
+    Options = {"Head", "Torso", "HumanoidRootPart"},
+    CurrentValue = "Head",
+    Callback = function(Option)
+        print("Target:", Option)
+    end
+})
+
+
 -- ==========================================
 -- HELPER FUNCTIONS
 -- ==========================================
