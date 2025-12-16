@@ -179,6 +179,62 @@ local SettingsTab = Window:CreateTab("Settings", "settings")</code></pre>
 
         <div class="component-combined">
           <div class="component-header">
+            <h3>Sub-Tab</h3>
+            <p>Create sub-tabs within a main tab to further organize your UI elements into categories.</p>
+          </div>
+          <div class="component-body">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>-- Create a main tab
+local CombatTab = Window:CreateTab("Combat", "sword")
+
+-- Create sub-tabs within the main tab
+local SubTabs = CombatTab:CreateSubTab({"Aimlock", "Camlock", "Triggerbot"})
+
+-- Access each sub-tab by name and add components
+SubTabs["Aimlock"]:CreateSection("Aimlock Settings")
+SubTabs["Aimlock"]:CreateToggle({
+    Name = "Enable Aimlock",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Aimlock:", Value)
+    end
+})
+SubTabs["Aimlock"]:CreateSlider({
+    Name = "Smoothness",
+    Min = 0,
+    Max = 100,
+    CurrentValue = 50,
+    Callback = function(Value)
+        print("Smoothness:", Value)
+    end
+})
+
+SubTabs["Camlock"]:CreateSection("Camlock Settings")
+SubTabs["Camlock"]:CreateToggle({
+    Name = "Enable Camlock",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Camlock:", Value)
+    end
+})
+SubTabs["Camlock"]:CreateDropdown({
+    Name = "Target Part",
+    Options = {"Head", "Torso", "HumanoidRootPart"},
+    CurrentValue = "Head",
+    Callback = function(Option)
+        print("Target:", Option)
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
             <h3>Section</h3>
             <p>Group related elements together with a section header.</p>
           </div>
