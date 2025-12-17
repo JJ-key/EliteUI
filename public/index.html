@@ -608,8 +608,8 @@ local SettingsTab = Window:CreateDefaultSettingsTab()</code></pre>
     ShowUIScale = true,             -- UI scale slider
     ShowUISizePresets = true,       -- Size preset dropdown
     ShowNotifications = true,       -- Notification toggle & test
-    ShowDataManagement = true,      -- Clear settings button
-    ShowControls = true,            -- Toggle key info
+    ShowDataManagement = false,     -- Clear settings button (disabled)
+    ShowControls = false,           -- Toggle key info (disabled)
     ShowInfo = true,                -- Version & about
     Version = "1.0.0",              -- Your script version
     AboutText = "My custom script.",
@@ -644,131 +644,518 @@ SettingsTab:CreateToggle({
             <span>Complete Example Script</span>
             <button class="copy-btn" onclick="copyCode(this)">Copy</button>
           </div>
-          <pre><code id="example-code">-- Load EliteUI
+          <pre><code id="example-code">-- EliteUI v3.6.0 Universal Script
+-- Works for most Roblox games with common features
+
 local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/main/Loader"))()
+
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+local Mouse = LocalPlayer:GetMouse()
+
+-- Variables
+local movementEnabled = false
+local flyEnabled = false
+local noclipEnabled = false
+local espEnabled = false
+local espTracers = false
+local espDistance = true
+local antiAfkEnabled = true
+local infiniteJumpEnabled = false
+local fullbrightEnabled = false
+local clickTpEnabled = false
+local antiVoidEnabled = false
+local sprintEnabled = false
+
+local flySpeed = 50
+local walkSpeed = 16
+local jumpPower = 50
+local sprintMultiplier = 2
+
+local espBoxes = {}
+local connections = {}
+local lastSafePosition = nil
+local antiVoidDebounce = false
 
 -- Create Window
 local Window = EliteUI:CreateWindow({
-    Name = "EliteUI Demo Hub",
+    Name = "Universal Script",
     LoadingTitle = "Loading...",
+    Subtitle = "v3.6.0",
+
+    SnowEffect = {
+        Enabled = true,
+        ParticleCount = 30,
+        Speed = 1,
+        Glow = true
+    },
+
+    KeySystem = {
+        Enabled = false
+    },
+    
+    ToggleKey = Enum.KeyCode.RightShift,
+    
+    UIScale = {
+        PC = 1.0,
+        Mobile = 0.85,
+        Tablet = 0.9
+    },
+    
+    Theme = {
+        Primary = Color3.fromRGB(88, 101, 242),
+        Background = Color3.fromRGB(18, 18, 24),
+        Secondary = Color3.fromRGB(32, 34, 44),
+        Text = Color3.fromRGB(255, 255, 255),
+        TextSecondary = Color3.fromRGB(148, 155, 164),
+        Accent = Color3.fromRGB(114, 137, 218)
+    }
 })
 
--- Create Tabs
-local MainTab = Window:CreateTab("Main", "home")
+-- Combat Tab with Sub-Tabs (at top)
 local CombatTab = Window:CreateTab("Combat", "sword")
-local SettingsTab = Window:CreateTab("Settings", "settings")
+local SubTabs = CombatTab:CreateSubTab({"Aimlock", "Camlock", "Triggerbot"})
 
--- Main Tab
-MainTab:CreateSection("Welcome")
-
-MainTab:CreateParagraph({
-    Title = "EliteUI Library",
-    Content = "A modern, mobile-optimized UI library for Roblox."
-})
-
-MainTab:CreateButton({
-    Name = "Show Notification",
-    Callback = function()
-        Window:Notify({
-            Title = "Success!",
-            Content = "Button clicked successfully.",
-            Duration = 3
-        })
-    end
-})
-
-local StatusLabel = MainTab:CreateLabel("Status: Ready")
-
-MainTab:CreateTextBox({
-    Name = "Username",
-    Placeholder = "Enter username...",
-    CurrentValue = "",
-    Callback = function(Text, EnterPressed)
-        StatusLabel:SetText("Username: " .. Text)
-    end
-})
-
--- Combat Tab
-CombatTab:CreateSection("Combat Features")
-
-CombatTab:CreateToggle({
-    Name = "Kill Aura",
+SubTabs["Aimlock"]:CreateSection("Aimlock Settings")
+SubTabs["Aimlock"]:CreateToggle({
+    Name = "Enable Aimlock",
     CurrentValue = false,
     Callback = function(Value)
-        print("Kill Aura:", Value)
+        print("Aimlock:", Value)
     end
 })
-
-CombatTab:CreateSlider({
-    Name = "Attack Range",
-    Min = 5,
-    Max = 50,
-    CurrentValue = 15,
+SubTabs["Aimlock"]:CreateSlider({
+    Name = "Smoothness",
+    Min = 0,
+    Max = 100,
+    CurrentValue = 50,
     Callback = function(Value)
-        print("Range:", Value)
+        print("Smoothness:", Value)
     end
 })
 
-CombatTab:CreateDropdown({
-    Name = "Target Mode",
-    Options = {"Nearest", "Lowest HP", "Random", "Manual"},
-    CurrentValue = "Nearest",
+SubTabs["Camlock"]:CreateSection("Camlock Settings")
+SubTabs["Camlock"]:CreateToggle({
+    Name = "Enable Camlock",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Camlock:", Value)
+    end
+})
+SubTabs["Camlock"]:CreateDropdown({
+    Name = "Target Part",
+    Options = {"Head", "Torso", "HumanoidRootPart"},
+    CurrentValue = "Head",
     Callback = function(Option)
-        print("Selected:", Option)
+        print("Target:", Option)
     end
 })
 
-CombatTab:CreateKeybind({
-    Name = "Toggle Aura",
-    CurrentKeybind = Enum.KeyCode.E,
-    Callback = function(NewKey)
-        print("New keybind:", NewKey.Name)
-    end,
-    HoldCallback = function()
-        print("Keybind pressed!")
-    end
-})
+-- Create Other Tabs
+local PlayerTab = Window:CreateTab("Player", "user")
+local MovementTab = Window:CreateTab("Movement", "footprints")
+local VisualsTab = Window:CreateTab("Visuals", "eye")
+local TeleportTab = Window:CreateTab("Teleport", "globe")
+local AutomationTab = Window:CreateTab("Auto", "wand")
+local MiscTab = Window:CreateTab("Misc", "wrench")
 
--- Settings Tab
-SettingsTab:CreateSection("Customization")
+-- Helper Functions
+local function getCharacter()
+    return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+end
 
-SettingsTab:CreateColorPicker({
-    Name = "Accent Color",
-    CurrentColor = Color3.fromRGB(139, 92, 246),
-    Callback = function(Color)
-        print("Color:", Color)
-    end
-})
+local function getHumanoid()
+    local char = getCharacter()
+    return char and char:FindFirstChildOfClass("Humanoid")
+end
 
-SettingsTab:CreateDropdown({
-    Name = "Theme",
-    Options = {"Dark Purple", "Violet", "Dark Green"},
-    CurrentValue = "Dark Purple",
-    Callback = function(Theme)
-        print("Theme:", Theme)
-    end
-})
+local function getRootPart()
+    local char = getCharacter()
+    return char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso"))
+end
 
-SettingsTab:CreateToggle({
-    Name = "Show Notifications",
-    CurrentValue = true,
+local function notify(title, content, duration)
+    Window:Notify({
+        Title = title,
+        Content = content,
+        Duration = duration or 3
+    })
+end
+
+-- PLAYER TAB
+PlayerTab:CreateSection("Character Stats")
+
+PlayerTab:CreateToggle({
+    Name = "Movement Activated",
+    CurrentValue = false,
+    Flag = "MovementActivated",
     Callback = function(Value)
-        print("Notifications:", Value)
+        movementEnabled = Value
+        local humanoid = getHumanoid()
+        if humanoid then
+            if Value then
+                humanoid.WalkSpeed = walkSpeed
+                humanoid.JumpPower = jumpPower
+                humanoid.UseJumpPower = true
+                notify("Movement", "Speed and Jump activated!")
+            else
+                humanoid.WalkSpeed = 16
+                humanoid.JumpPower = 50
+                notify("Movement", "Speed and Jump reset to default!")
+            end
+        end
     end
 })
 
-SettingsTab:CreateLabel("EliteUI v2.0.0")
-
-SettingsTab:CreateButton({
-    Name = "Test Notification",
-    Callback = function()
-        Window:Notify({
-            Title = "Hello!",
-            Content = "This is a notification from EliteUI.",
-            Duration = 4
-        })
+PlayerTab:CreateSlider({
+    Name = "Walk Speed",
+    Min = 16,
+    Max = 500,
+    CurrentValue = 16,
+    Flag = "WalkSpeed",
+    Callback = function(Value)
+        walkSpeed = Value
+        if movementEnabled then
+            local humanoid = getHumanoid()
+            if humanoid then
+                humanoid.WalkSpeed = Value
+            end
+        end
     end
-})</code></pre>
+})
+
+PlayerTab:CreateSlider({
+    Name = "Jump Power",
+    Min = 50,
+    Max = 500,
+    CurrentValue = 50,
+    Flag = "JumpPower",
+    Callback = function(Value)
+        jumpPower = Value
+        if movementEnabled then
+            local humanoid = getHumanoid()
+            if humanoid then
+                humanoid.JumpPower = Value
+                humanoid.UseJumpPower = true
+            end
+        end
+    end
+})
+
+PlayerTab:CreateSection("Character Actions")
+
+PlayerTab:CreateButton({
+    Name = "Reset Character",
+    Callback = function()
+        local humanoid = getHumanoid()
+        if humanoid then humanoid.Health = 0 end
+        notify("Character", "Character reset!")
+    end
+})
+
+PlayerTab:CreateButton({
+    Name = "Full Health (Client)",
+    Callback = function()
+        local humanoid = getHumanoid()
+        if humanoid then
+            humanoid.Health = humanoid.MaxHealth
+            notify("Character", "Health restored!")
+        end
+    end
+})
+
+-- MOVEMENT TAB
+MovementTab:CreateSection("Movement Features")
+
+MovementTab:CreateToggle({
+    Name = "Infinite Jump",
+    CurrentValue = false,
+    Flag = "InfiniteJump",
+    Callback = function(Value)
+        infiniteJumpEnabled = Value
+        notify("Movement", Value and "Infinite Jump enabled!" or "Infinite Jump disabled!")
+    end
+})
+
+UserInputService.JumpRequest:Connect(function()
+    if infiniteJumpEnabled then
+        local humanoid = getHumanoid()
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+MovementTab:CreateToggle({
+    Name = "Noclip",
+    CurrentValue = false,
+    Flag = "Noclip",
+    Callback = function(Value)
+        noclipEnabled = Value
+        notify("Movement", Value and "Noclip enabled!" or "Noclip disabled!")
+    end
+})
+
+RunService.Stepped:Connect(function()
+    if noclipEnabled then
+        local char = getCharacter()
+        if char then
+            for _, part in pairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end
+end)
+
+MovementTab:CreateSection("Safety Features")
+
+MovementTab:CreateToggle({
+    Name = "Anti-Void (Auto TP Back)",
+    CurrentValue = false,
+    Flag = "AntiVoid",
+    Callback = function(Value)
+        antiVoidEnabled = Value
+        if Value then
+            local rootPart = getRootPart()
+            if rootPart and rootPart.Position.Y > -50 then
+                lastSafePosition = rootPart.CFrame
+            end
+        end
+        notify("Safety", Value and "Anti-Void enabled!" or "Anti-Void disabled!")
+    end
+})
+
+RunService.Heartbeat:Connect(function()
+    local rootPart = getRootPart()
+    if rootPart then
+        if rootPart.Position.Y > -50 then
+            lastSafePosition = rootPart.CFrame
+        elseif antiVoidEnabled and lastSafePosition and not antiVoidDebounce then
+            antiVoidDebounce = true
+            rootPart.CFrame = lastSafePosition
+            notify("Safety", "Saved from void!")
+            task.wait(1)
+            antiVoidDebounce = false
+        end
+    end
+end)
+
+MovementTab:CreateSection("Fly System")
+
+MovementTab:CreateToggle({
+    Name = "Fly",
+    CurrentValue = false,
+    Flag = "Fly",
+    Callback = function(Value)
+        flyEnabled = Value
+        local rootPart = getRootPart()
+        local humanoid = getHumanoid()
+        
+        if not rootPart or not humanoid then return end
+        
+        if Value then
+            local bodyGyro = Instance.new("BodyGyro")
+            bodyGyro.Name = "FlyGyro"
+            bodyGyro.P = 9e4
+            bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+            bodyGyro.CFrame = rootPart.CFrame
+            bodyGyro.Parent = rootPart
+            
+            local bodyVelocity = Instance.new("BodyVelocity")
+            bodyVelocity.Name = "FlyVelocity"
+            bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            bodyVelocity.Parent = rootPart
+            
+            connections["fly"] = RunService.RenderStepped:Connect(function()
+                if not flyEnabled then return end
+                local rp = getRootPart()
+                if not rp then return end
+                
+                local bv = rp:FindFirstChild("FlyVelocity")
+                local bg = rp:FindFirstChild("FlyGyro")
+                if not bv or not bg then return end
+                
+                bg.CFrame = Camera.CFrame
+                
+                local moveDir = Vector3.new(0, 0, 0)
+                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                    moveDir = moveDir + Camera.CFrame.LookVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                    moveDir = moveDir - Camera.CFrame.LookVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                    moveDir = moveDir - Camera.CFrame.RightVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                    moveDir = moveDir + Camera.CFrame.RightVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                    moveDir = moveDir + Vector3.new(0, 1, 0)
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+                    moveDir = moveDir - Vector3.new(0, 1, 0)
+                end
+                
+                bv.Velocity = moveDir.Magnitude > 0 and moveDir.Unit * flySpeed or Vector3.new(0, 0, 0)
+            end)
+            
+            notify("Movement", "Fly enabled! WASD + Space/Ctrl to move.")
+        else
+            if connections["fly"] then
+                connections["fly"]:Disconnect()
+                connections["fly"] = nil
+            end
+            
+            if rootPart then
+                local bv = rootPart:FindFirstChild("FlyVelocity")
+                local bg = rootPart:FindFirstChild("FlyGyro")
+                if bv then bv:Destroy() end
+                if bg then bg:Destroy() end
+            end
+            
+            notify("Movement", "Fly disabled!")
+        end
+    end
+})
+
+MovementTab:CreateSlider({
+    Name = "Fly Speed",
+    Min = 10,
+    Max = 500,
+    CurrentValue = 50,
+    Flag = "FlySpeed",
+    Callback = function(Value)
+        flySpeed = Value
+    end
+})
+
+-- AUTOMATION TAB (Fixed)
+AutomationTab:CreateSection("Interaction Automation")
+
+AutomationTab:CreateToggle({
+    Name = "Auto Trigger Prompts",
+    CurrentValue = false,
+    Flag = "PromptSpam",
+    Callback = function(Value)
+        if connections["promptSpam"] then
+            connections["promptSpam"]:Disconnect()
+            connections["promptSpam"] = nil
+        end
+        
+        if Value then
+            connections["promptSpam"] = RunService.Heartbeat:Connect(function()
+                for _, v in pairs(Workspace:GetDescendants()) do
+                    if v:IsA("ProximityPrompt") then
+                        pcall(function()
+                            v:InputHoldBegin()
+                            v:InputHoldEnd()
+                        end)
+                    end
+                end
+            end)
+        end
+        notify("Automation", Value and "Prompt spam enabled!" or "Prompt spam disabled!")
+    end
+})
+
+AutomationTab:CreateSection("Tool Automation")
+
+AutomationTab:CreateButton({
+    Name = "Equip All Tools",
+    Callback = function()
+        local backpack = LocalPlayer:FindFirstChild("Backpack")
+        if backpack then
+            for _, tool in pairs(backpack:GetChildren()) do
+                if tool:IsA("Tool") then
+                    tool.Parent = getCharacter()
+                end
+            end
+            notify("Tools", "All tools equipped!")
+        end
+    end
+})
+
+-- MISC TAB
+MiscTab:CreateSection("Anti-AFK & Safety")
+
+MiscTab:CreateToggle({
+    Name = "Anti-AFK",
+    CurrentValue = true,
+    Flag = "AntiAFK",
+    Callback = function(Value)
+        antiAfkEnabled = Value
+        notify("Anti-AFK", Value and "Anti-AFK enabled!" or "Anti-AFK disabled!")
+    end
+})
+
+local VirtualUser = game:GetService("VirtualUser")
+LocalPlayer.Idled:Connect(function()
+    if antiAfkEnabled then
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton2(Vector2.new())
+    end
+end)
+
+MiscTab:CreateSection("Server Actions")
+
+MiscTab:CreateButton({
+    Name = "Rejoin Server",
+    Callback = function()
+        TeleportService:Teleport(game.PlaceId, LocalPlayer)
+    end
+})
+
+MiscTab:CreateButton({
+    Name = "Destroy UI",
+    Callback = function()
+        for _, conn in pairs(connections) do
+            if conn then conn:Disconnect() end
+        end
+        Window:Destroy()
+    end
+})
+
+-- Settings Tab with Default Settings
+local SettingsTab = Window:CreateDefaultSettingsTab({
+    TabName = "Settings",
+    TabIcon = "settings",
+    ShowThemeCustomization = true,
+    ShowUIScale = true,
+    ShowUISizePresets = true,
+    ShowNotifications = true,
+    ShowDataManagement = false,
+    ShowControls = false,
+    ShowInfo = true,
+    Version = "3.6.0",
+    AboutText = "Universal Script for Roblox games."
+})
+
+-- Character Respawn Handler
+LocalPlayer.CharacterAdded:Connect(function(char)
+    task.wait(0.5)
+    
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if humanoid and movementEnabled then
+        humanoid.WalkSpeed = walkSpeed
+        humanoid.JumpPower = jumpPower
+        humanoid.UseJumpPower = true
+    end
+end)
+
+notify("Universal Script", "Loaded! Press RightShift to toggle UI.", 5)</code></pre>
         </div>
       </section>
 
