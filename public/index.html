@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EliteUI v3.5 - Documentation</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">E</div>
+          <div class="logo-text">
+            <h1>EliteUI</h1>
+            <span class="version">v3.5.0</span>
+          </div>
+        </div>
+      </div>
+      
+      <nav class="sidebar-nav">
+        <a href="#about" class="nav-item active" data-section="about">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <span class="nav-text">About</span>
+        </a>
+        <a href="#installation" class="nav-item" data-section="installation">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span class="nav-text">Installation</span>
+        </a>
+        <a href="#components" class="nav-item" data-section="components">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm0 8a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zm12 0a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+          <span class="nav-text">Components</span>
+        </a>
+        <a href="#example" class="nav-item" data-section="example">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+          <span class="nav-text">Example</span>
+        </a>
+        <a href="#links" class="nav-item" data-section="links">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          <span class="nav-text">Links</span>
+        </a>
+      </nav>
+      
+      <div class="sidebar-footer">
+        <p>Built for Roblox Mobile</p>
+      </div>
+    </aside>
+    
+    <main class="main-content">
+      <section id="about" class="content-section active">
+        <div class="section-header">
+          <h2>About</h2>
+          <p>A mobile-optimized UI library for Roblox</p>
+        </div>
+        
+        <p class="intro-text">EliteUI is a modern UI library designed for Roblox mobile scripts. It provides a sharp purple theme, touch-friendly controls, and a simple API for building script hubs and tools.</p>
+        
+        <div class="features-list">
+          <div class="feature-item">
+            <div class="feature-bullet"></div>
+            <div>
+              <h4>Mobile Optimized</h4>
+              <p>Built from the ground up for mobile devices with touch-friendly controls and responsive layouts.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-bullet"></div>
+            <div>
+              <h4>Purple & Black Theme</h4>
+              <p>Modern dark theme with smooth animations and clean typography.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-bullet"></div>
+            <div>
+              <h4>Gesture Support</h4>
+              <p>Hold 3 fingers for 0.8 seconds to toggle UI visibility on mobile - designed to not trigger during gameplay.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-bullet"></div>
+            <div>
+              <h4>Simple API</h4>
+              <p>Intuitive methods for creating windows, tabs, buttons, toggles, sliders, and more.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="installation" class="content-section">
+        <div class="section-header">
+          <h2>Installation</h2>
+          <p>Load EliteUI in your Roblox script</p>
+        </div>
+        
+        <p class="intro-text">Use the following code to load the EliteUI library in your script:</p>
+        
+        <div class="code-block">
+          <div class="code-header">
+            <span>Lua</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code id="loader-code">local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/main/Loader"))()</code></pre>
+        </div>
+        
+        <div class="info-box">
+          <strong>Loader URL:</strong>
+          <span id="loader-url">Loading...</span>
+          <button class="copy-btn" onclick="copyLoaderUrl()">Copy</button>
+        </div>
+      </section>
+
+      <section id="components" class="content-section">
+        <div class="section-header">
+          <h2>Components</h2>
+          <p>Interactive UI elements with live previews and usage code</p>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Window</h3>
+            <p>The main container for your UI. Creates a draggable window with tabs. Supports optional Key System for access control and Snow Effect for a festive animated background.</p>
+          </div>
+          <div class="component-body">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>local Window = EliteUI:CreateWindow({
+    Name = "My Script Hub",
+    LoadingTitle = "Loading...",
+    Subtitle = "v1.0",
+    
+    -- Key System (optional)
+    KeySystem = {
+        Enabled = true,
+        URL = "https://pastebin.com/raw/YOURKEY",
+        Title = "Key Required",
+        Subtitle = "Enter your key to continue",
+        NoteName = "Get Key",
+        NoteURL = "https://yoursite.com/getkey",
+        SaveKey = true,
+        FileName = "key.txt"
+    },
+    
+    -- Snow Effect (optional)
+    SnowEffect = {
+        Enabled = true,
+        ParticleCount = 50,  -- Number of snowflakes (default: 50)
+        Speed = 1,           -- Fall speed multiplier (default: 1)
+        Glow = true          -- Enable glow effect on snowflakes (default: true)
+    }
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Tab</h3>
+            <p>Create navigation tabs to organize your UI elements.</p>
+          </div>
+          <div class="component-body">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>local MainTab = Window:CreateTab("Main", "home")
+local SettingsTab = Window:CreateTab("Settings", "settings")</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Sub-Tab</h3>
+            <p>Create sub-tabs within a main tab to further organize your UI elements into categories.</p>
+          </div>
+          <div class="component-body">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>-- Create a main tab
+local CombatTab = Window:CreateTab("Combat", "sword")
+
+-- Create sub-tabs within the main tab
+local SubTabs = CombatTab:CreateSubTab({"Aimlock", "Camlock", "Triggerbot"})
+
+-- Access each sub-tab by name and add components
+SubTabs["Aimlock"]:CreateSection("Aimlock Settings")
+SubTabs["Aimlock"]:CreateToggle({
+    Name = "Enable Aimlock",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Aimlock:", Value)
+    end
+})
+SubTabs["Aimlock"]:CreateSlider({
+    Name = "Smoothness",
+    Min = 0,
+    Max = 100,
+    CurrentValue = 50,
+    Callback = function(Value)
+        print("Smoothness:", Value)
+    end
+})
+
+SubTabs["Camlock"]:CreateSection("Camlock Settings")
+SubTabs["Camlock"]:CreateToggle({
+    Name = "Enable Camlock",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Camlock:", Value)
+    end
+})
+SubTabs["Camlock"]:CreateDropdown({
+    Name = "Target Part",
+    Options = {"Head", "Torso", "HumanoidRootPart"},
+    CurrentValue = "Head",
+    Callback = function(Option)
+        print("Target:", Option)
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Section</h3>
+            <p>Group related elements together with a section header.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-section">
+                <span>Welcome</span>
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>MainTab:CreateSection("Welcome")</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Button</h3>
+            <p>Clickable button that executes a callback function.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <button class="preview-eliteui-btn" onclick="this.style.transform='scale(0.95)'; setTimeout(() => this.style.transform='', 100)">Click Me</button>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>MainTab:CreateButton({
+    Name = "Click Me",
+    Callback = function()
+        print("Button clicked!")
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Toggle</h3>
+            <p>On/off switch that returns its state to a callback.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-toggle" onclick="this.querySelector('.toggle-switch').classList.toggle('active')">
+                <span>Enable Feature</span>
+                <div class="toggle-switch"></div>
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>MainTab:CreateToggle({
+    Name = "Enable Feature",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Toggle:", Value)
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Slider</h3>
+            <p>Value slider with configurable min/max range.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-slider">
+                <div class="preview-slider-header">
+                  <span>Speed</span>
+                  <span class="value">50</span>
+                </div>
+                <div class="slider-track" onclick="updateSlider(event, this)">
+                  <div class="slider-fill" style="width: 50%"></div>
+                  <div class="slider-thumb" style="left: 50%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>MainTab:CreateSlider({
+    Name = "Speed",
+    Min = 0,
+    Max = 100,
+    CurrentValue = 50,
+    Callback = function(Value)
+        print("Speed:", Value)
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Dropdown</h3>
+            <p>Selection menu with multiple options.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-dropdown">
+                <div class="dropdown-header" onclick="this.nextElementSibling.classList.toggle('show')">
+                  <span>Select Mode</span>
+                  <span class="dropdown-selected">Option 1</span>
+                </div>
+                <div class="dropdown-options">
+                  <div class="dropdown-option" onclick="selectOption(this, 'Option 1')">Option 1</div>
+                  <div class="dropdown-option" onclick="selectOption(this, 'Option 2')">Option 2</div>
+                  <div class="dropdown-option" onclick="selectOption(this, 'Option 3')">Option 3</div>
+                </div>
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>MainTab:CreateDropdown({
+    Name = "Select Mode",
+    Options = {"Option 1", "Option 2", "Option 3"},
+    CurrentValue = "Option 1",
+    Callback = function(Option)
+        print("Selected:", Option)
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>TextBox</h3>
+            <p>Text input field with placeholder text.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-textbox">
+                <span>Username</span>
+                <input type="text" placeholder="Enter text...">
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>MainTab:CreateTextBox({
+    Name = "Username",
+    Placeholder = "Enter text...",
+    CurrentValue = "",
+    Callback = function(Text, EnterPressed)
+        print("Input:", Text)
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Label</h3>
+            <p>Dynamic text label that can be updated programmatically.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-label-element">Hello World!</div>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>local MyLabel = MainTab:CreateLabel("Hello World!")
+MyLabel:SetText("Updated text!")</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Paragraph</h3>
+            <p>Title with description text block for information.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-paragraph">
+                <h5>Information</h5>
+                <p>This is a longer description text.</p>
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>MainTab:CreateParagraph({
+    Title = "Information",
+    Content = "This is a longer description text."
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Keybind</h3>
+            <p>Customizable keyboard shortcut picker.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-keybind">
+                <span>Toggle Feature</span>
+                <div class="keybind-key" onclick="this.textContent = this.textContent === 'E' ? 'Press...' : 'E'">E</div>
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>MainTab:CreateKeybind({
+    Name = "Toggle Feature",
+    CurrentKeybind = Enum.KeyCode.E,
+    Callback = function(NewKey)
+        print("New keybind:", NewKey.Name)
+    end,
+    HoldCallback = function()
+        print("Key pressed!")
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Color Picker</h3>
+            <p>Choose from preset colors by clicking to cycle through them.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-colorpicker">
+                <span>Accent Color</span>
+                <div class="color-swatch" onclick="cycleColor(this)"></div>
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>local MyColor = MainTab:CreateColorPicker({
+    Name = "Accent Color",
+    CurrentColor = Color3.fromRGB(59, 130, 246),
+    Callback = function(Color)
+        print("Color:", Color)
+    end
+})
+MyColor:SetColor(Color3.fromRGB(255, 0, 0))</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Notification</h3>
+            <p>Show toast notifications to the user.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-notification">
+                <div class="notification-icon">!</div>
+                <div class="notification-content">
+                  <h5>Success!</h5>
+                  <p>Operation completed successfully.</p>
+                </div>
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>Window:Notify({
+    Title = "Success!",
+    Content = "Operation completed successfully.",
+    Duration = 3
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Invisible Button</h3>
+            <p>A draggable button that can be used to toggle the UI. Completely invisible when UI is closed, visible when UI is open. Supports custom images.</p>
+          </div>
+          <div class="component-body">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua - Basic</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>local InvisibleBtn = Window:CreateInvisibleButton({
+    Size = 50,
+    TapCount = 3,
+    SavePosition = true
+})</code></pre>
+            </div>
+            <div class="code-block" style="margin-top: 12px;">
+              <div class="code-header">
+                <span>Lua - With Custom Image</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>local InvisibleBtn = Window:CreateInvisibleButton({
+    Size = 50,
+    TapCount = 3,
+    SavePosition = true,
+    Image = "rbxassetid://123456789",
+    Callback = function()
+        Window:Toggle()
+    end
+})
+
+-- Update image later
+InvisibleBtn:SetImage("star")
+
+-- Methods
+InvisibleBtn:SetSize(60)
+InvisibleBtn:SetPosition(0.5, 0.1)
+InvisibleBtn:SetTapCount(2)
+InvisibleBtn:Destroy()</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Default Settings Tab</h3>
+            <p>Automatically creates a complete settings tab with theme customization, UI scale, size presets, notifications, and more. This is optional but saves a lot of time!</p>
+          </div>
+          <div class="component-body">
+            <div class="code-block">
+              <div class="code-header">
+                <span>Lua - Quick One-Liner</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>-- Creates a complete settings tab with all options
+local SettingsTab = Window:CreateDefaultSettingsTab()</code></pre>
+            </div>
+            <div class="code-block" style="margin-top: 12px;">
+              <div class="code-header">
+                <span>Lua - With Custom Options</span>
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code>local SettingsTab = Window:CreateDefaultSettingsTab({
+    TabName = "Settings",           -- Tab name (default: "Settings")
+    TabIcon = "settings",           -- Tab icon
+    ShowThemeCustomization = true,  -- Color picker & theme presets
+    ShowUIScale = true,             -- UI scale slider
+    ShowUISizePresets = true,       -- Size preset dropdown
+    ShowNotifications = true,       -- Notification toggle & test
+    ShowDataManagement = false,     -- Clear settings button (disabled)
+    ShowControls = false,           -- Toggle key info (disabled)
+    ShowInfo = true,                -- Version & about
+    Version = "1.0.0",              -- Your script version
+    AboutText = "My custom script.",
+    CustomThemePresets = {          -- Optional: custom themes
+        ["Ocean"] = Color3.fromRGB(6, 182, 212),
+        ["Forest"] = Color3.fromRGB(34, 197, 94)
+    }
+})
+
+-- You can still add custom elements to the tab!
+SettingsTab:CreateSection("My Custom Settings")
+SettingsTab:CreateToggle({
+    Name = "Debug Mode",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Debug:", Value)
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="example" class="content-section">
+        <div class="section-header">
+          <h2>Example</h2>
+          <p>Complete example script using all components</p>
+        </div>
+        
+        <div class="code-block">
+          <div class="code-header">
+            <span>Complete Example Script</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code id="example-code">-- EliteUI v3.6.0 Universal Script
+-- Works for most Roblox games with common features
+
+local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/main/Loader"))()
+
+-- Services
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+local Mouse = LocalPlayer:GetMouse()
+
+-- Variables
+local movementEnabled = false
+local flyEnabled = false
+local noclipEnabled = false
+local espEnabled = false
+local espTracers = false
+local espDistance = true
+local antiAfkEnabled = true
+local infiniteJumpEnabled = false
+local fullbrightEnabled = false
+local clickTpEnabled = false
+local antiVoidEnabled = false
+local sprintEnabled = false
+
+local flySpeed = 50
+local walkSpeed = 16
+local jumpPower = 50
+local sprintMultiplier = 2
+
+local espBoxes = {}
+local connections = {}
+local lastSafePosition = nil
+local antiVoidDebounce = false
+
+-- Create Window
+local Window = EliteUI:CreateWindow({
+    Name = "Universal Script",
+    LoadingTitle = "Loading...",
+    Subtitle = "v3.6.0",
+
+    SnowEffect = {
+        Enabled = true,
+        ParticleCount = 30,
+        Speed = 1,
+        Glow = true
+    },
+
+    KeySystem = {
+        Enabled = false
+    },
+    
+    ToggleKey = Enum.KeyCode.RightShift,
+    
+    UIScale = {
+        PC = 1.0,
+        Mobile = 0.85,
+        Tablet = 0.9
+    },
+    
+    Theme = {
+        Primary = Color3.fromRGB(88, 101, 242),
+        Background = Color3.fromRGB(18, 18, 24),
+        Secondary = Color3.fromRGB(32, 34, 44),
+        Text = Color3.fromRGB(255, 255, 255),
+        TextSecondary = Color3.fromRGB(148, 155, 164),
+        Accent = Color3.fromRGB(114, 137, 218)
+    }
+})
+
+-- Combat Tab with Sub-Tabs (at top)
+local CombatTab = Window:CreateTab("Combat", "sword")
+local SubTabs = CombatTab:CreateSubTab({"Aimlock", "Camlock", "Triggerbot"})
+
+SubTabs["Aimlock"]:CreateSection("Aimlock Settings")
+SubTabs["Aimlock"]:CreateToggle({
+    Name = "Enable Aimlock",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Aimlock:", Value)
+    end
+})
+SubTabs["Aimlock"]:CreateSlider({
+    Name = "Smoothness",
+    Min = 0,
+    Max = 100,
+    CurrentValue = 50,
+    Callback = function(Value)
+        print("Smoothness:", Value)
+    end
+})
+
+SubTabs["Camlock"]:CreateSection("Camlock Settings")
+SubTabs["Camlock"]:CreateToggle({
+    Name = "Enable Camlock",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Camlock:", Value)
+    end
+})
+SubTabs["Camlock"]:CreateDropdown({
+    Name = "Target Part",
+    Options = {"Head", "Torso", "HumanoidRootPart"},
+    CurrentValue = "Head",
+    Callback = function(Option)
+        print("Target:", Option)
+    end
+})
+
+-- Create Other Tabs
+local PlayerTab = Window:CreateTab("Player", "player")
+local MovementTab = Window:CreateTab("Movement", "bolt")
+local VisualsTab = Window:CreateTab("Visuals", "eye")
+local TeleportTab = Window:CreateTab("Teleport", "globe")
+local AutomationTab = Window:CreateTab("Auto", "lightning")
+local MiscTab = Window:CreateTab("Misc", "wrench")
+
+-- Helper Functions
+local function getCharacter()
+    return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+end
+
+local function getHumanoid()
+    local char = getCharacter()
+    return char and char:FindFirstChildOfClass("Humanoid")
+end
+
+local function getRootPart()
+    local char = getCharacter()
+    return char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso"))
+end
+
+local function notify(title, content, duration)
+    Window:Notify({
+        Title = title,
+        Content = content,
+        Duration = duration or 3
+    })
+end
+
+-- PLAYER TAB
+PlayerTab:CreateSection("Character Stats")
+
+PlayerTab:CreateToggle({
+    Name = "Movement Activated",
+    CurrentValue = false,
+    Flag = "MovementActivated",
+    Callback = function(Value)
+        movementEnabled = Value
+        local humanoid = getHumanoid()
+        if humanoid then
+            if Value then
+                humanoid.WalkSpeed = walkSpeed
+                humanoid.JumpPower = jumpPower
+                humanoid.UseJumpPower = true
+                notify("Movement", "Speed and Jump activated!")
+            else
+                humanoid.WalkSpeed = 16
+                humanoid.JumpPower = 50
+                notify("Movement", "Speed and Jump reset to default!")
+            end
+        end
+    end
+})
+
+PlayerTab:CreateSlider({
+    Name = "Walk Speed",
+    Min = 16,
+    Max = 500,
+    CurrentValue = 16,
+    Flag = "WalkSpeed",
+    Callback = function(Value)
+        walkSpeed = Value
+        if movementEnabled then
+            local humanoid = getHumanoid()
+            if humanoid then
+                humanoid.WalkSpeed = Value
+            end
+        end
+    end
+})
+
+PlayerTab:CreateSlider({
+    Name = "Jump Power",
+    Min = 50,
+    Max = 500,
+    CurrentValue = 50,
+    Flag = "JumpPower",
+    Callback = function(Value)
+        jumpPower = Value
+        if movementEnabled then
+            local humanoid = getHumanoid()
+            if humanoid then
+                humanoid.JumpPower = Value
+                humanoid.UseJumpPower = true
+            end
+        end
+    end
+})
+
+PlayerTab:CreateSection("Character Actions")
+
+PlayerTab:CreateButton({
+    Name = "Reset Character",
+    Callback = function()
+        local humanoid = getHumanoid()
+        if humanoid then humanoid.Health = 0 end
+        notify("Character", "Character reset!")
+    end
+})
+
+PlayerTab:CreateButton({
+    Name = "Full Health (Client)",
+    Callback = function()
+        local humanoid = getHumanoid()
+        if humanoid then
+            humanoid.Health = humanoid.MaxHealth
+            notify("Character", "Health restored!")
+        end
+    end
+})
+
+-- MOVEMENT TAB
+MovementTab:CreateSection("Movement Features")
+
+MovementTab:CreateToggle({
+    Name = "Infinite Jump",
+    CurrentValue = false,
+    Flag = "InfiniteJump",
+    Callback = function(Value)
+        infiniteJumpEnabled = Value
+        notify("Movement", Value and "Infinite Jump enabled!" or "Infinite Jump disabled!")
+    end
+})
+
+UserInputService.JumpRequest:Connect(function()
+    if infiniteJumpEnabled then
+        local humanoid = getHumanoid()
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end
+    end
+end)
+
+MovementTab:CreateToggle({
+    Name = "Noclip",
+    CurrentValue = false,
+    Flag = "Noclip",
+    Callback = function(Value)
+        noclipEnabled = Value
+        notify("Movement", Value and "Noclip enabled!" or "Noclip disabled!")
+    end
+})
+
+RunService.Stepped:Connect(function()
+    if noclipEnabled then
+        local char = getCharacter()
+        if char then
+            for _, part in pairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.CanCollide = false
+                end
+            end
+        end
+    end
+end)
+
+MovementTab:CreateSection("Safety Features")
+
+MovementTab:CreateToggle({
+    Name = "Anti-Void (Auto TP Back)",
+    CurrentValue = false,
+    Flag = "AntiVoid",
+    Callback = function(Value)
+        antiVoidEnabled = Value
+        if Value then
+            local rootPart = getRootPart()
+            if rootPart and rootPart.Position.Y > -50 then
+                lastSafePosition = rootPart.CFrame
+            end
+        end
+        notify("Safety", Value and "Anti-Void enabled!" or "Anti-Void disabled!")
+    end
+})
+
+RunService.Heartbeat:Connect(function()
+    local rootPart = getRootPart()
+    if rootPart then
+        if rootPart.Position.Y > -50 then
+            lastSafePosition = rootPart.CFrame
+        elseif antiVoidEnabled and lastSafePosition and not antiVoidDebounce then
+            antiVoidDebounce = true
+            rootPart.CFrame = lastSafePosition
+            notify("Safety", "Saved from void!")
+            task.wait(1)
+            antiVoidDebounce = false
+        end
+    end
+end)
+
+MovementTab:CreateSection("Fly System")
+
+MovementTab:CreateToggle({
+    Name = "Fly",
+    CurrentValue = false,
+    Flag = "Fly",
+    Callback = function(Value)
+        flyEnabled = Value
+        local rootPart = getRootPart()
+        local humanoid = getHumanoid()
+        
+        if not rootPart or not humanoid then return end
+        
+        if Value then
+            local bodyGyro = Instance.new("BodyGyro")
+            bodyGyro.Name = "FlyGyro"
+            bodyGyro.P = 9e4
+            bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+            bodyGyro.CFrame = rootPart.CFrame
+            bodyGyro.Parent = rootPart
+            
+            local bodyVelocity = Instance.new("BodyVelocity")
+            bodyVelocity.Name = "FlyVelocity"
+            bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+            bodyVelocity.Parent = rootPart
+            
+            connections["fly"] = RunService.RenderStepped:Connect(function()
+                if not flyEnabled then return end
+                local rp = getRootPart()
+                if not rp then return end
+                
+                local bv = rp:FindFirstChild("FlyVelocity")
+                local bg = rp:FindFirstChild("FlyGyro")
+                if not bv or not bg then return end
+                
+                bg.CFrame = Camera.CFrame
+                
+                local moveDir = Vector3.new(0, 0, 0)
+                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
+                    moveDir = moveDir + Camera.CFrame.LookVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
+                    moveDir = moveDir - Camera.CFrame.LookVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
+                    moveDir = moveDir - Camera.CFrame.RightVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
+                    moveDir = moveDir + Camera.CFrame.RightVector
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
+                    moveDir = moveDir + Vector3.new(0, 1, 0)
+                end
+                if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
+                    moveDir = moveDir - Vector3.new(0, 1, 0)
+                end
+                
+                bv.Velocity = moveDir.Magnitude > 0 and moveDir.Unit * flySpeed or Vector3.new(0, 0, 0)
+            end)
+            
+            notify("Movement", "Fly enabled! WASD + Space/Ctrl to move.")
+        else
+            if connections["fly"] then
+                connections["fly"]:Disconnect()
+                connections["fly"] = nil
+            end
+            
+            if rootPart then
+                local bv = rootPart:FindFirstChild("FlyVelocity")
+                local bg = rootPart:FindFirstChild("FlyGyro")
+                if bv then bv:Destroy() end
+                if bg then bg:Destroy() end
+            end
+            
+            notify("Movement", "Fly disabled!")
+        end
+    end
+})
+
+MovementTab:CreateSlider({
+    Name = "Fly Speed",
+    Min = 10,
+    Max = 500,
+    CurrentValue = 50,
+    Flag = "FlySpeed",
+    Callback = function(Value)
+        flySpeed = Value
+    end
+})
+
+-- AUTOMATION TAB (Fixed)
+AutomationTab:CreateSection("Interaction Automation")
+
+AutomationTab:CreateToggle({
+    Name = "Auto Trigger Prompts",
+    CurrentValue = false,
+    Flag = "PromptSpam",
+    Callback = function(Value)
+        if connections["promptSpam"] then
+            connections["promptSpam"]:Disconnect()
+            connections["promptSpam"] = nil
+        end
+        
+        if Value then
+            connections["promptSpam"] = RunService.Heartbeat:Connect(function()
+                for _, v in pairs(Workspace:GetDescendants()) do
+                    if v:IsA("ProximityPrompt") then
+                        pcall(function()
+                            v:InputHoldBegin()
+                            v:InputHoldEnd()
+                        end)
+                    end
+                end
+            end)
+        end
+        notify("Automation", Value and "Prompt spam enabled!" or "Prompt spam disabled!")
+    end
+})
+
+AutomationTab:CreateSection("Tool Automation")
+
+AutomationTab:CreateButton({
+    Name = "Equip All Tools",
+    Callback = function()
+        local backpack = LocalPlayer:FindFirstChild("Backpack")
+        if backpack then
+            for _, tool in pairs(backpack:GetChildren()) do
+                if tool:IsA("Tool") then
+                    tool.Parent = getCharacter()
+                end
+            end
+            notify("Tools", "All tools equipped!")
+        end
+    end
+})
+
+-- MISC TAB
+MiscTab:CreateSection("Anti-AFK & Safety")
+
+MiscTab:CreateToggle({
+    Name = "Anti-AFK",
+    CurrentValue = true,
+    Flag = "AntiAFK",
+    Callback = function(Value)
+        antiAfkEnabled = Value
+        notify("Anti-AFK", Value and "Anti-AFK enabled!" or "Anti-AFK disabled!")
+    end
+})
+
+local VirtualUser = game:GetService("VirtualUser")
+LocalPlayer.Idled:Connect(function()
+    if antiAfkEnabled then
+        VirtualUser:CaptureController()
+        VirtualUser:ClickButton2(Vector2.new())
+    end
+end)
+
+MiscTab:CreateSection("Server Actions")
+
+MiscTab:CreateButton({
+    Name = "Rejoin Server",
+    Callback = function()
+        TeleportService:Teleport(game.PlaceId, LocalPlayer)
+    end
+})
+
+MiscTab:CreateButton({
+    Name = "Destroy UI",
+    Callback = function()
+        for _, conn in pairs(connections) do
+            if conn then conn:Disconnect() end
+        end
+        Window:Destroy()
+    end
+})
+
+-- Settings Tab with Default Settings
+local SettingsTab = Window:CreateDefaultSettingsTab({
+    TabName = "Settings",
+    TabIcon = "settings",
+    ShowThemeCustomization = true,
+    ShowUIScale = true,
+    ShowUISizePresets = true,
+    ShowNotifications = true,
+    ShowDataManagement = false,
+    ShowControls = false,
+    ShowInfo = true,
+    Version = "3.6.0",
+    AboutText = "Universal Script for Roblox games."
+})
+
+-- Character Respawn Handler
+LocalPlayer.CharacterAdded:Connect(function(char)
+    task.wait(0.5)
+    
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if humanoid and movementEnabled then
+        humanoid.WalkSpeed = walkSpeed
+        humanoid.JumpPower = jumpPower
+        humanoid.UseJumpPower = true
+    end
+end)
+
+notify("Universal Script", "Loaded! Press RightShift to toggle UI.", 5)</code></pre>
+        </div>
+      </section>
+
+      <section id="links" class="content-section">
+        <div class="section-header">
+          <h2>Quick Links</h2>
+          <p>Direct links to library files</p>
+        </div>
+        
+        <div class="links-list">
+          <a href="/Loader" class="link-item" target="_blank">
+            <div class="link-icon-box">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+            <div>
+              <h4>Loader</h4>
+              <p>Main EliteUI library source code</p>
+            </div>
+          </a>
+          <a href="/Example" class="link-item" target="_blank">
+            <div class="link-icon-box">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+            </div>
+            <div>
+              <h4>Example</h4>
+              <p>Sample usage script with all components</p>
+            </div>
+          </a>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    fetch('/api/loader-url')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('loader-url').textContent = data.url;
+        document.querySelectorAll('code').forEach(code => {
+          code.textContent = code.textContent.replace(/YOUR_URL/g, data.url.replace('/Loader', ''));
+        });
+      });
+
+    function copyCode(btn) {
+      const code = btn.parentElement.nextElementSibling.textContent;
+      navigator.clipboard.writeText(code);
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = 'Copy', 2000);
+    }
+
+    function copyLoaderUrl() {
+      const url = document.getElementById('loader-url').textContent;
+      navigator.clipboard.writeText(url);
+    }
+
+    function updateSlider(e, track) {
+      const rect = track.getBoundingClientRect();
+      const percent = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+      track.querySelector('.slider-fill').style.width = percent + '%';
+      track.querySelector('.slider-thumb').style.left = percent + '%';
+      track.parentElement.querySelector('.value').textContent = Math.round(percent);
+    }
+
+    function selectOption(el, value) {
+      const dropdown = el.closest('.preview-dropdown');
+      dropdown.querySelector('.dropdown-selected').textContent = value;
+      dropdown.querySelector('.dropdown-options').classList.remove('show');
+    }
+
+    const colors = ['#3b82f6', '#ef4444', '#22c55e', '#f59e0b', '#8b5cf6', '#ec4899'];
+    let colorIndex = 0;
+    function cycleColor(el) {
+      colorIndex = (colorIndex + 1) % colors.length;
+      el.style.background = colors[colorIndex];
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+        document.getElementById(this.getAttribute('data-section')).classList.add('active');
+      });
+    });
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.preview-dropdown')) {
+        document.querySelectorAll('.dropdown-options').forEach(d => d.classList.remove('show'));
+      }
+    });
+  </script>
+</body>
+</html>
