@@ -1895,6 +1895,7 @@ function EliteUI:CreateWindow(options)
             SubTabHeader.Size = UDim2.new(1, 0, 0, subTabHeight + 4)
             SubTabHeader.BackgroundColor3 = Config.Theme.Secondary
             SubTabHeader.BorderSizePixel = 0
+            SubTabHeader.LayoutOrder = 1
             SubTabHeader.Parent = SubTabContainer
             
             local HeaderCorner = Instance.new("UICorner")
@@ -1924,6 +1925,7 @@ function EliteUI:CreateWindow(options)
             SubTabContentContainer.Size = UDim2.new(1, 0, 0, 0)
             SubTabContentContainer.AutomaticSize = Enum.AutomaticSize.Y
             SubTabContentContainer.BackgroundTransparency = 1
+            SubTabContentContainer.LayoutOrder = 2
             SubTabContentContainer.Parent = SubTabContainer
             
             -- Create each sub-tab
