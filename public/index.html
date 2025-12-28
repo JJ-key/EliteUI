@@ -725,21 +725,72 @@ local Window = EliteUI:CreateWindow({
 local CombatTab = Window:CreateTab("Combat", "sword")
 local SubTabs = CombatTab:CreateSubTab({"Aimlock", "Camlock", "Triggerbot"})
 
+-- Aimbot Variables
+local aimlockEnabled = false
+local aimlockTarget = nil
+local aimlockSmoothness = 50
+local aimlockKey = Enum.UserInputType.MouseButton2
+
+-- Create Invisible Button for Aimbot
+local AimbotButton = Window:CreateInvisibleButton({
+    Size = 60,
+    TapCount = 1,
+    Image = "target",
+    Callback = function()
+        if aimlockEnabled then
+            if aimlockTarget then
+                aimlockTarget = nil
+                notify("Aimlock", "Target unlocked!")
+            else
+                aimlockTarget = getNearestPlayer()
+                if aimlockTarget then
+                    notify("Aimlock", "Target locked: " .. aimlockTarget.Name)
+                end
+            end
+        end
+    end
+})
+
 SubTabs["Aimlock"]:CreateSection("Aimlock Settings")
 SubTabs["Aimlock"]:CreateToggle({
     Name = "Enable Aimlock",
     CurrentValue = false,
+    Flag = "AimlockEnabled",
     Callback = function(Value)
-        print("Aimlock:", Value)
+        aimlockEnabled = Value
+        if Value then
+            notify("Aimlock", "Aimlock activated!")
+        else
+            notify("Aimlock", "Aimlock deactivated!")
+            aimlockTarget = nil
+        end
     end
 })
+
 SubTabs["Aimlock"]:CreateSlider({
     Name = "Smoothness",
     Min = 0,
     Max = 100,
     CurrentValue = 50,
     Callback = function(Value)
-        print("Smoothness:", Value)
+        aimlockSmoothness = Value
+        print("Aimlock Smoothness:", Value)
+    end
+})
+
+SubTabs["Aimlock"]:CreateDropdown({
+    Name = "Target Selection",
+    Options = {"Nearest", "Furthest", "Manual"},
+    CurrentValue = "Nearest",
+    Callback = function(Option)
+        print("Target Selection:", Option)
+    end
+})
+
+SubTabs["Aimlock"]:CreateButton({
+    Name = "Select Target (Click Player)",
+    Callback = function()
+        notify("Aimlock", "Click on a player to target them!")
     end
 })
 
@@ -762,10 +813,10 @@ SubTabs["Camlock"]:CreateDropdown({
 
 -- Create Other Tabs
 local PlayerTab = Window:CreateTab("Player", "player")
-local MovementTab = Window:CreateTab("Movement", "bolt")
+local MovementTab = Window:CreateTab("Movement", "gamepad")
 local VisualsTab = Window:CreateTab("Visuals", "eye")
 local TeleportTab = Window:CreateTab("Teleport", "globe")
-local AutomationTab = Window:CreateTab("Auto", "lightning")
+local AutomationTab = Window:CreateTab("Auto", "magic")
 local MiscTab = Window:CreateTab("Misc", "wrench")
 
 -- Helper Functions
