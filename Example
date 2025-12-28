@@ -1,14 +1,6 @@
 -- EliteUI v3.6.0 Universal Script
--- Works for most Roblox games with common features:
--- - Player modifications (Speed, Jump, Fly, Noclip)
--- - ESP (Player, Tracers, Distance, Objects)
--- - Teleportation utilities (Click TP, Player List, Waypoints)
--- - Anti-AFK, Anti-Void, Anti-Fall
--- - Automation (Auto-Collect, ProximityPrompt)
--- - Visual enhancements
--- - Performance options
+-- Works for most Roblox games with common features
 
--- Replace the URL below with your own hosted Loader URL
 local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/main/Loader"))()
 
 -- Services
@@ -17,9 +9,6 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
-local TweenService = game:GetService("TweenService")
-local StarterGui = game:GetService("StarterGui")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
 
@@ -27,7 +16,8 @@ local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 local Mouse = LocalPlayer:GetMouse()
 
--- Variables for features
+-- Variables
+local movementEnabled = false
 local flyEnabled = false
 local noclipEnabled = false
 local espEnabled = false
@@ -39,10 +29,6 @@ local fullbrightEnabled = false
 local clickTpEnabled = false
 local antiVoidEnabled = false
 local sprintEnabled = false
-local autoCollectEnabled = false
-local promptSpamEnabled = false
-local chatSpyEnabled = false
-local lowGraphicsEnabled = false
 
 local flySpeed = 50
 local walkSpeed = 16
@@ -52,13 +38,35 @@ local sprintMultiplier = 2
 local espBoxes = {}
 local connections = {}
 local lastSafePosition = nil
-local waypoints = {}
+local antiVoidDebounce = false
+
+-- Aimbot Tracking
+local aimlockConnection = nil
+local getNearestPlayer = function()
+    local nearest = nil
+    local distance = math.huge
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local char = player.Character
+            local humanoid = char:FindFirstChildOfClass("Humanoid")
+            local rootPart = char:FindFirstChild("HumanoidRootPart")
+            if humanoid and rootPart and humanoid.Health > 0 then
+                local dist = (rootPart.Position - Camera.CFrame.Position).Magnitude
+                if dist < distance then
+                    distance = dist
+                    nearest = player
+                end
+            end
+        end
+    end
+    return nearest
+end
 
 -- Create Window
 local Window = EliteUI:CreateWindow({
     Name = "Universal Script",
     LoadingTitle = "Loading...",
-    Subtitle = "v2.0 - Enhanced Edition",
+    Subtitle = "v3.6.0",
 
     SnowEffect = {
         Enabled = true,
@@ -73,18 +81,10 @@ local Window = EliteUI:CreateWindow({
     
     ToggleKey = Enum.KeyCode.RightShift,
     
-    SaveFolder = "UniversalScript",
-    SaveFile = "config.json",
-    
     UIScale = {
         PC = 1.0,
         Mobile = 0.85,
         Tablet = 0.9
-    },
-    
-    Animation = {
-        Enabled = true,
-        Duration = 0.3
     },
     
     Theme = {
@@ -97,36 +97,78 @@ local Window = EliteUI:CreateWindow({
     }
 })
 
--- Create Tabs
-local PlayerTab = Window:CreateTab("Player", "player")
-local MovementTab = Window:CreateTab("Movement", "bolt")
-local VisualsTab = Window:CreateTab("Visuals", "eye")
-local TeleportTab = Window:CreateTab("Teleport", "world")
-local AutomationTab = Window:CreateTab("Auto", "lightning")
-local MiscTab = Window:CreateTab("Misc", "wrench")
-
--- Create a main tab
+-- Combat Tab with Sub-Tabs (at top)
 local CombatTab = Window:CreateTab("Combat", "sword")
-
--- Create sub-tabs within the main tab
 local SubTabs = CombatTab:CreateSubTab({"Aimlock", "Camlock", "Triggerbot"})
 
--- Access each sub-tab by name and add components
+-- Aimbot Variables
+local aimlockEnabled = false
+local aimlockTarget = nil
+local aimlockSmoothness = 50
+local aimlockKey = Enum.UserInputType.MouseButton2 -- Default to Right Click
+
+-- Create Invisible Button for Aimbot (Mobile)
+local AimbotButton = Window:CreateInvisibleButton({
+    Size = 60,
+    TapCount = 1, -- Single tap to lock/unlock
+    Image = "target",
+    Callback = function()
+        if aimlockEnabled then
+            if aimlockTarget then
+                aimlockTarget = nil
+                notify("Aimlock", "Target unlocked!")
+            else
+                aimlockTarget = getNearestPlayer()
+                if aimlockTarget then
+                    notify("Aimlock", "Target locked: " .. aimlockTarget.Name)
+                else
+                    notify("Aimlock", "No target found!")
+                end
+            end
+        end
+    end
+})
+
 SubTabs["Aimlock"]:CreateSection("Aimlock Settings")
 SubTabs["Aimlock"]:CreateToggle({
     Name = "Enable Aimlock",
     CurrentValue = false,
+    Flag = "AimlockEnabled",
     Callback = function(Value)
-        print("Aimlock:", Value)
+        aimlockEnabled = Value
+        if Value then
+            notify("Aimlock", "Aimlock activated! (Use target button to lock)")
+        else
+            notify("Aimlock", "Aimlock deactivated!")
+            aimlockTarget = nil
+        end
     end
 })
+
 SubTabs["Aimlock"]:CreateSlider({
     Name = "Smoothness",
     Min = 0,
     Max = 100,
     CurrentValue = 50,
     Callback = function(Value)
-        print("Smoothness:", Value)
+        aimlockSmoothness = Value
+        print("Aimlock Smoothness:", Value)
+    end
+})
+
+SubTabs["Aimlock"]:CreateDropdown({
+    Name = "Target Selection",
+    Options = {"Nearest", "Furthest", "Manual"},
+    CurrentValue = "Nearest",
+    Callback = function(Option)
+        print("Target Selection:", Option)
+    end
+})
+
+SubTabs["Aimlock"]:CreateButton({
+    Name = "Select Target (Click Player)",
+    Callback = function()
+        notify("Aimlock", "Click on a player to target them!")
     end
 })
 
@@ -147,11 +189,15 @@ SubTabs["Camlock"]:CreateDropdown({
     end
 })
 
+-- Create Other Tabs
+local PlayerTab = Window:CreateTab("Player", "player")
+local MovementTab = Window:CreateTab("Movement", "gamepad")
+local VisualsTab = Window:CreateTab("Visuals", "eye")
+local TeleportTab = Window:CreateTab("Teleport", "globe")
+local AutomationTab = Window:CreateTab("Auto", "magic")
+local MiscTab = Window:CreateTab("Misc", "wrench")
 
--- ==========================================
--- HELPER FUNCTIONS
--- ==========================================
-
+-- Helper Functions
 local function getCharacter()
     return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 end
@@ -174,20 +220,30 @@ local function notify(title, content, duration)
     })
 end
 
-local function getPlayerList()
-    local list = {}
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer then
-            table.insert(list, player.Name)
+-- PLAYER TAB
+PlayerTab:CreateSection("Character Stats")
+
+PlayerTab:CreateToggle({
+    Name = "Movement Activated",
+    CurrentValue = false,
+    Flag = "MovementActivated",
+    Callback = function(Value)
+        movementEnabled = Value
+        local humanoid = getHumanoid()
+        if humanoid then
+            if Value then
+                humanoid.WalkSpeed = walkSpeed
+                humanoid.JumpPower = jumpPower
+                humanoid.UseJumpPower = true
+                notify("Movement", "Speed and Jump activated!")
+            else
+                humanoid.WalkSpeed = 16
+                humanoid.JumpPower = 50
+                notify("Movement", "Speed and Jump reset to default!")
+            end
         end
     end
-    return list
-end
-
--- ==========================================
--- PLAYER TAB
--- ==========================================
-PlayerTab:CreateSection("Character Stats", "player")
+})
 
 PlayerTab:CreateSlider({
     Name = "Walk Speed",
@@ -197,9 +253,11 @@ PlayerTab:CreateSlider({
     Flag = "WalkSpeed",
     Callback = function(Value)
         walkSpeed = Value
-        local humanoid = getHumanoid()
-        if humanoid then
-            humanoid.WalkSpeed = Value
+        if movementEnabled then
+            local humanoid = getHumanoid()
+            if humanoid then
+                humanoid.WalkSpeed = Value
+            end
         end
     end
 })
@@ -212,34 +270,23 @@ PlayerTab:CreateSlider({
     Flag = "JumpPower",
     Callback = function(Value)
         jumpPower = Value
-        local humanoid = getHumanoid()
-        if humanoid then
-            humanoid.JumpPower = Value
-            humanoid.UseJumpPower = true
+        if movementEnabled then
+            local humanoid = getHumanoid()
+            if humanoid then
+                humanoid.JumpPower = Value
+                humanoid.UseJumpPower = true
+            end
         end
     end
 })
 
-PlayerTab:CreateSlider({
-    Name = "Gravity",
-    Min = 0,
-    Max = 500,
-    CurrentValue = 196,
-    Flag = "Gravity",
-    Callback = function(Value)
-        Workspace.Gravity = Value
-    end
-})
-
-PlayerTab:CreateSection("Character Actions", "lightning")
+PlayerTab:CreateSection("Character Actions")
 
 PlayerTab:CreateButton({
     Name = "Reset Character",
     Callback = function()
         local humanoid = getHumanoid()
-        if humanoid then
-            humanoid.Health = 0
-        end
+        if humanoid then humanoid.Health = 0 end
         notify("Character", "Character reset!")
     end
 })
@@ -255,52 +302,8 @@ PlayerTab:CreateButton({
     end
 })
 
-PlayerTab:CreateButton({
-    Name = "Remove Accessories",
-    Callback = function()
-        local char = getCharacter()
-        if char then
-            for _, v in pairs(char:GetChildren()) do
-                if v:IsA("Accessory") then
-                    v:Destroy()
-                end
-            end
-            notify("Character", "Accessories removed!")
-        end
-    end
-})
-
-PlayerTab:CreateButton({
-    Name = "Freeze Character",
-    Callback = function()
-        local rootPart = getRootPart()
-        if rootPart then
-            rootPart.Anchored = not rootPart.Anchored
-            notify("Character", rootPart.Anchored and "Character frozen!" or "Character unfrozen!")
-        end
-    end
-})
-
-PlayerTab:CreateSection("Body Scale", "settings")
-
-PlayerTab:CreateSlider({
-    Name = "Head Size",
-    Min = 0.5,
-    Max = 5,
-    CurrentValue = 1,
-    Flag = "HeadSize",
-    Callback = function(Value)
-        local char = getCharacter()
-        if char and char:FindFirstChild("Head") then
-            char.Head.Size = Vector3.new(Value, Value, Value)
-        end
-    end
-})
-
--- ==========================================
 -- MOVEMENT TAB
--- ==========================================
-MovementTab:CreateSection("Movement Features", "bolt")
+MovementTab:CreateSection("Movement Features")
 
 MovementTab:CreateToggle({
     Name = "Infinite Jump",
@@ -312,7 +315,6 @@ MovementTab:CreateToggle({
     end
 })
 
--- Infinite Jump Logic
 UserInputService.JumpRequest:Connect(function()
     if infiniteJumpEnabled then
         local humanoid = getHumanoid()
@@ -332,7 +334,6 @@ MovementTab:CreateToggle({
     end
 })
 
--- Noclip Logic
 RunService.Stepped:Connect(function()
     if noclipEnabled then
         local char = getCharacter()
@@ -346,42 +347,7 @@ RunService.Stepped:Connect(function()
     end
 end)
 
-MovementTab:CreateToggle({
-    Name = "Sprint (Hold Shift)",
-    CurrentValue = false,
-    Flag = "Sprint",
-    Callback = function(Value)
-        sprintEnabled = Value
-        notify("Movement", Value and "Sprint enabled! Hold Shift to run faster." or "Sprint disabled!")
-    end
-})
-
-MovementTab:CreateSlider({
-    Name = "Sprint Multiplier",
-    Min = 1.5,
-    Max = 5,
-    CurrentValue = 2,
-    Flag = "SprintMultiplier",
-    Callback = function(Value)
-        sprintMultiplier = Value
-    end
-})
-
--- Sprint Logic
-RunService.RenderStepped:Connect(function()
-    if sprintEnabled then
-        local humanoid = getHumanoid()
-        if humanoid then
-            if UserInputService:IsKeyDown(Enum.KeyCode.LeftShift) then
-                humanoid.WalkSpeed = walkSpeed * sprintMultiplier
-            else
-                humanoid.WalkSpeed = walkSpeed
-            end
-        end
-    end
-end)
-
-MovementTab:CreateSection("Safety Features", "shield")
+MovementTab:CreateSection("Safety Features")
 
 MovementTab:CreateToggle({
     Name = "Anti-Void (Auto TP Back)",
@@ -389,24 +355,55 @@ MovementTab:CreateToggle({
     Flag = "AntiVoid",
     Callback = function(Value)
         antiVoidEnabled = Value
+        if Value then
+            local rootPart = getRootPart()
+            if rootPart and rootPart.Position.Y > -50 then
+                lastSafePosition = rootPart.CFrame
+            end
+        end
         notify("Safety", Value and "Anti-Void enabled!" or "Anti-Void disabled!")
     end
 })
 
--- Anti-Void Logic
 RunService.Heartbeat:Connect(function()
     local rootPart = getRootPart()
     if rootPart then
         if rootPart.Position.Y > -50 then
             lastSafePosition = rootPart.CFrame
-        elseif antiVoidEnabled and lastSafePosition then
+        elseif antiVoidEnabled and lastSafePosition and not antiVoidDebounce then
+            antiVoidDebounce = true
             rootPart.CFrame = lastSafePosition
             notify("Safety", "Saved from void!")
+            task.wait(1)
+            antiVoidDebounce = false
         end
+    end
+    
+    -- Aimlock Tracking Loop
+    if aimlockEnabled and not aimlockConnection then
+        aimlockConnection = RunService.RenderStepped:Connect(function()
+            if not aimlockEnabled then return end
+            if not aimlockTarget then
+                aimlockTarget = getNearestPlayer()
+            end
+            if aimlockTarget and aimlockTarget.Character then
+                local targetChar = aimlockTarget.Character
+                local targetHead = targetChar:FindFirstChild("Head")
+                if targetHead then
+                    local smoothFactor = (100 - aimlockSmoothness) / 100 + 0.05
+                    Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, targetHead.Position), smoothFactor)
+                end
+            else
+                aimlockTarget = nil
+            end
+        end)
+    elseif not aimlockEnabled and aimlockConnection then
+        aimlockConnection:Disconnect()
+        aimlockConnection = nil
     end
 end)
 
-MovementTab:CreateSection("Fly System", "lightning")
+MovementTab:CreateSection("Fly System")
 
 MovementTab:CreateToggle({
     Name = "Fly",
@@ -414,10 +411,8 @@ MovementTab:CreateToggle({
     Flag = "Fly",
     Callback = function(Value)
         flyEnabled = Value
-        
-        local char = getCharacter()
-        local humanoid = getHumanoid()
         local rootPart = getRootPart()
+        local humanoid = getHumanoid()
         
         if not rootPart or not humanoid then return end
         
@@ -437,11 +432,11 @@ MovementTab:CreateToggle({
             
             connections["fly"] = RunService.RenderStepped:Connect(function()
                 if not flyEnabled then return end
-                local rootPart = getRootPart()
-                if not rootPart then return end
+                local rp = getRootPart()
+                if not rp then return end
                 
-                local bv = rootPart:FindFirstChild("FlyVelocity")
-                local bg = rootPart:FindFirstChild("FlyGyro")
+                local bv = rp:FindFirstChild("FlyVelocity")
+                local bg = rp:FindFirstChild("FlyGyro")
                 if not bv or not bg then return end
                 
                 bg.CFrame = Camera.CFrame
@@ -466,11 +461,7 @@ MovementTab:CreateToggle({
                     moveDir = moveDir - Vector3.new(0, 1, 0)
                 end
                 
-                if moveDir.Magnitude > 0 then
-                    bv.Velocity = moveDir.Unit * flySpeed
-                else
-                    bv.Velocity = Vector3.new(0, 0, 0)
-                end
+                bv.Velocity = moveDir.Magnitude > 0 and moveDir.Unit * flySpeed or Vector3.new(0, 0, 0)
             end)
             
             notify("Movement", "Fly enabled! WASD + Space/Ctrl to move.")
@@ -503,549 +494,36 @@ MovementTab:CreateSlider({
     end
 })
 
--- ==========================================
--- VISUALS TAB
--- ==========================================
-VisualsTab:CreateSection("Player ESP", "eye")
-
-local function createESP(player)
-    if player == LocalPlayer then return end
-    
-    local function setupESP()
-        local char = player.Character
-        if not char then return end
-        
-        local humanoid = char:FindFirstChildOfClass("Humanoid")
-        local rootPart = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso")
-        
-        if not humanoid or not rootPart then return end
-        
-        -- Remove old ESP if exists
-        if espBoxes[player] then
-            for _, v in pairs(espBoxes[player]) do
-                if v and v.Parent then v:Destroy() end
-            end
-        end
-        espBoxes[player] = {}
-        
-        -- Box ESP
-        local box = Instance.new("BoxHandleAdornment")
-        box.Name = "ESP_Box"
-        box.Adornee = rootPart
-        box.AlwaysOnTop = true
-        box.ZIndex = 10
-        box.Size = Vector3.new(4, 5, 1)
-        box.Transparency = 0.6
-        box.Color3 = player.Team == LocalPlayer.Team and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-        box.Parent = rootPart
-        table.insert(espBoxes[player], box)
-        
-        -- Name ESP
-        local billboard = Instance.new("BillboardGui")
-        billboard.Name = "ESP_Name"
-        billboard.Adornee = rootPart
-        billboard.Size = UDim2.new(0, 100, 0, 50)
-        billboard.StudsOffset = Vector3.new(0, 3, 0)
-        billboard.AlwaysOnTop = true
-        billboard.Parent = rootPart
-        
-        local nameLabel = Instance.new("TextLabel")
-        nameLabel.Size = UDim2.new(1, 0, 0.33, 0)
-        nameLabel.BackgroundTransparency = 1
-        nameLabel.Text = player.Name
-        nameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-        nameLabel.TextStrokeTransparency = 0
-        nameLabel.TextScaled = true
-        nameLabel.Font = Enum.Font.GothamBold
-        nameLabel.Parent = billboard
-        
-        local healthLabel = Instance.new("TextLabel")
-        healthLabel.Size = UDim2.new(1, 0, 0.33, 0)
-        healthLabel.Position = UDim2.new(0, 0, 0.33, 0)
-        healthLabel.BackgroundTransparency = 1
-        healthLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
-        healthLabel.TextStrokeTransparency = 0
-        healthLabel.TextScaled = true
-        healthLabel.Font = Enum.Font.Gotham
-        healthLabel.Parent = billboard
-        
-        local distanceLabel = Instance.new("TextLabel")
-        distanceLabel.Name = "DistanceLabel"
-        distanceLabel.Size = UDim2.new(1, 0, 0.33, 0)
-        distanceLabel.Position = UDim2.new(0, 0, 0.66, 0)
-        distanceLabel.BackgroundTransparency = 1
-        distanceLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-        distanceLabel.TextStrokeTransparency = 0
-        distanceLabel.TextScaled = true
-        distanceLabel.Font = Enum.Font.Gotham
-        distanceLabel.Parent = billboard
-        
-        table.insert(espBoxes[player], billboard)
-        
-        -- Tracer
-        local tracerLine = Instance.new("Frame")
-        tracerLine.Name = "ESP_Tracer"
-        tracerLine.BackgroundColor3 = player.Team == LocalPlayer.Team and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
-        tracerLine.BorderSizePixel = 0
-        tracerLine.AnchorPoint = Vector2.new(0.5, 0)
-        tracerLine.Parent = LocalPlayer.PlayerGui:FindFirstChild("ESPTracerGui") or (function()
-            local gui = Instance.new("ScreenGui")
-            gui.Name = "ESPTracerGui"
-            gui.ResetOnSpawn = false
-            gui.Parent = LocalPlayer.PlayerGui
-            return gui
-        end)()
-        table.insert(espBoxes[player], tracerLine)
-        
-        -- Update loop
-        local updateConn
-        updateConn = RunService.RenderStepped:Connect(function()
-            if not espEnabled or not char.Parent or not humanoid.Parent then
-                updateConn:Disconnect()
-                return
-            end
-            
-            -- Update health
-            healthLabel.Text = math.floor(humanoid.Health) .. "/" .. math.floor(humanoid.MaxHealth)
-            
-            -- Update distance
-            if espDistance then
-                local myRoot = getRootPart()
-                if myRoot and rootPart then
-                    local dist = (myRoot.Position - rootPart.Position).Magnitude
-                    distanceLabel.Text = "[" .. math.floor(dist) .. " studs]"
-                    distanceLabel.Visible = true
-                end
-            else
-                distanceLabel.Visible = false
-            end
-            
-            -- Update tracer
-            if espTracers and tracerLine then
-                local screenPos, onScreen = Camera:WorldToScreenPoint(rootPart.Position)
-                if onScreen then
-                    local startPos = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
-                    local endPos = Vector2.new(screenPos.X, screenPos.Y)
-                    local distance = (endPos - startPos).Magnitude
-                    local angle = math.atan2(endPos.Y - startPos.Y, endPos.X - startPos.X)
-                    
-                    tracerLine.Size = UDim2.new(0, 2, 0, distance)
-                    tracerLine.Position = UDim2.new(0, startPos.X, 0, startPos.Y)
-                    tracerLine.Rotation = math.deg(angle) - 90
-                    tracerLine.Visible = true
-                else
-                    tracerLine.Visible = false
-                end
-            else
-                if tracerLine then tracerLine.Visible = false end
-            end
-        end)
-    end
-    
-    player.CharacterAdded:Connect(function()
-        if espEnabled then
-            task.wait(0.5)
-            setupESP()
-        end
-    end)
-    
-    if player.Character and espEnabled then
-        setupESP()
-    end
-end
-
-local function clearAllESP()
-    for player, items in pairs(espBoxes) do
-        for _, v in pairs(items) do
-            if v and v.Parent then v:Destroy() end
-        end
-    end
-    espBoxes = {}
-    
-    local tracerGui = LocalPlayer.PlayerGui:FindFirstChild("ESPTracerGui")
-    if tracerGui then tracerGui:ClearAllChildren() end
-end
-
-VisualsTab:CreateToggle({
-    Name = "Player ESP",
-    CurrentValue = false,
-    Flag = "PlayerESP",
-    Callback = function(Value)
-        espEnabled = Value
-        
-        if Value then
-            for _, player in pairs(Players:GetPlayers()) do
-                createESP(player)
-            end
-            
-            connections["espPlayerAdded"] = Players.PlayerAdded:Connect(function(player)
-                createESP(player)
-            end)
-            
-            connections["espPlayerRemoved"] = Players.PlayerRemoving:Connect(function(player)
-                if espBoxes[player] then
-                    for _, v in pairs(espBoxes[player]) do
-                        if v and v.Parent then v:Destroy() end
-                    end
-                    espBoxes[player] = nil
-                end
-            end)
-            
-            notify("Visuals", "Player ESP enabled!")
-        else
-            if connections["espPlayerAdded"] then
-                connections["espPlayerAdded"]:Disconnect()
-            end
-            if connections["espPlayerRemoved"] then
-                connections["espPlayerRemoved"]:Disconnect()
-            end
-            clearAllESP()
-            notify("Visuals", "Player ESP disabled!")
-        end
-    end
-})
-
-VisualsTab:CreateToggle({
-    Name = "Show Tracers",
-    CurrentValue = false,
-    Flag = "ESPTracers",
-    Callback = function(Value)
-        espTracers = Value
-    end
-})
-
-VisualsTab:CreateToggle({
-    Name = "Show Distance",
-    CurrentValue = true,
-    Flag = "ESPDistance",
-    Callback = function(Value)
-        espDistance = Value
-    end
-})
-
-VisualsTab:CreateSection("World Visuals", "world")
-
-VisualsTab:CreateToggle({
-    Name = "Fullbright",
-    CurrentValue = false,
-    Flag = "Fullbright",
-    Callback = function(Value)
-        fullbrightEnabled = Value
-        
-        if Value then
-            Lighting.Brightness = 2
-            Lighting.ClockTime = 14
-            Lighting.FogEnd = 100000
-            Lighting.GlobalShadows = false
-            Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128)
-            notify("Visuals", "Fullbright enabled!")
-        else
-            Lighting.Brightness = 1
-            Lighting.GlobalShadows = true
-            Lighting.OutdoorAmbient = Color3.fromRGB(127, 127, 127)
-            notify("Visuals", "Fullbright disabled!")
-        end
-    end
-})
-
-VisualsTab:CreateSlider({
-    Name = "Field of View",
-    Min = 70,
-    Max = 120,
-    CurrentValue = 70,
-    Flag = "FOV",
-    Callback = function(Value)
-        Camera.FieldOfView = Value
-    end
-})
-
-VisualsTab:CreateToggle({
-    Name = "Low Graphics Mode",
-    CurrentValue = false,
-    Flag = "LowGraphics",
-    Callback = function(Value)
-        lowGraphicsEnabled = Value
-        
-        if Value then
-            settings().Rendering.QualityLevel = 1
-            for _, v in pairs(Workspace:GetDescendants()) do
-                if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation") then
-                    v.Material = Enum.Material.SmoothPlastic
-                end
-                if v:IsA("Decal") or v:IsA("Texture") then
-                    v.Transparency = 1
-                end
-                if v:IsA("ParticleEmitter") or v:IsA("Trail") then
-                    v.Enabled = false
-                end
-            end
-            Lighting.GlobalShadows = false
-            Lighting.FogEnd = 9e9
-            notify("Performance", "Low graphics enabled!")
-        else
-            settings().Rendering.QualityLevel = 10
-            Lighting.GlobalShadows = true
-            notify("Performance", "Graphics restored!")
-        end
-    end
-})
-
-VisualsTab:CreateButton({
-    Name = "Remove Fog",
-    Callback = function()
-        Lighting.FogEnd = 100000
-        Lighting.FogStart = 0
-        
-        for _, v in pairs(Lighting:GetDescendants()) do
-            if v:IsA("Atmosphere") then
-                v.Density = 0
-            end
-        end
-        notify("Visuals", "Fog removed!")
-    end
-})
-
--- ==========================================
--- TELEPORT TAB
--- ==========================================
-TeleportTab:CreateSection("Click Teleport", "target")
-
-TeleportTab:CreateToggle({
-    Name = "Click to Teleport",
-    CurrentValue = false,
-    Flag = "ClickTP",
-    Callback = function(Value)
-        clickTpEnabled = Value
-        notify("Teleport", Value and "Click TP enabled! Click anywhere to teleport." or "Click TP disabled!")
-    end
-})
-
-TeleportTab:CreateSlider({
-    Name = "TP Height Offset",
-    Min = 0,
-    Max = 10,
-    CurrentValue = 3,
-    Flag = "TPHeightOffset",
-    Callback = function(Value)
-        -- Value stored in flag
-    end
-})
-
--- Click Teleport Logic
-Mouse.Button1Down:Connect(function()
-    if clickTpEnabled and not UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-        local rootPart = getRootPart()
-        if rootPart and Mouse.Target then
-            local heightOffset = 3 -- Default, can be enhanced with flag system
-            rootPart.CFrame = CFrame.new(Mouse.Hit.Position + Vector3.new(0, heightOffset, 0))
-        end
-    end
-end)
-
-TeleportTab:CreateSection("Player Teleport", "player")
-
-local selectedPlayer = nil
-
-TeleportTab:CreateDropdown({
-    Name = "Select Player",
-    Options = getPlayerList(),
-    CurrentValue = "",
-    Flag = "SelectedPlayer",
-    Callback = function(Option)
-        selectedPlayer = Option
-    end
-})
-
-TeleportTab:CreateButton({
-    Name = "Refresh Player List",
-    Callback = function()
-        -- Note: In real usage, you'd update the dropdown options
-        notify("Teleport", "Player list refreshed! (Reopen dropdown)")
-    end
-})
-
-TeleportTab:CreateButton({
-    Name = "Teleport to Selected Player",
-    Callback = function()
-        if selectedPlayer then
-            local target = Players:FindFirstChild(selectedPlayer)
-            if target and target.Character then
-                local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
-                local myRoot = getRootPart()
-                
-                if targetRoot and myRoot then
-                    myRoot.CFrame = targetRoot.CFrame * CFrame.new(0, 0, 3)
-                    notify("Teleport", "Teleported to " .. selectedPlayer)
-                end
-            else
-                notify("Teleport", "Player not found or has no character!")
-            end
-        else
-            notify("Teleport", "No player selected!")
-        end
-    end
-})
-
-TeleportTab:CreateButton({
-    Name = "Teleport All Players to You",
-    Callback = function()
-        local myRoot = getRootPart()
-        if myRoot then
-            local count = 0
-            for _, player in pairs(Players:GetPlayers()) do
-                if player ~= LocalPlayer and player.Character then
-                    local theirRoot = player.Character:FindFirstChild("HumanoidRootPart")
-                    if theirRoot then
-                        theirRoot.CFrame = myRoot.CFrame * CFrame.new(math.random(-5,5), 0, math.random(-5,5))
-                        count = count + 1
-                    end
-                end
-            end
-            notify("Teleport", "Attempted to teleport " .. count .. " players (client-side)")
-        end
-    end
-})
-
-TeleportTab:CreateSection("Saved Waypoints", "location")
-
-local savedPosition = nil
-
-TeleportTab:CreateButton({
-    Name = "Save Current Position",
-    Callback = function()
-        local rootPart = getRootPart()
-        if rootPart then
-            savedPosition = rootPart.CFrame
-            notify("Waypoint", "Position saved!")
-        end
-    end
-})
-
-TeleportTab:CreateButton({
-    Name = "Teleport to Saved Position",
-    Callback = function()
-        if savedPosition then
-            local rootPart = getRootPart()
-            if rootPart then
-                rootPart.CFrame = savedPosition
-                notify("Waypoint", "Teleported to saved position!")
-            end
-        else
-            notify("Waypoint", "No position saved!")
-        end
-    end
-})
-
-TeleportTab:CreateSection("Coordinate Teleport", "map")
-
-local teleportX, teleportY, teleportZ = 0, 100, 0
-
-TeleportTab:CreateTextBox({
-    Name = "X Coordinate",
-    Placeholder = "Enter X...",
-    CurrentValue = "0",
-    Callback = function(Text)
-        teleportX = tonumber(Text) or 0
-    end
-})
-
-TeleportTab:CreateTextBox({
-    Name = "Y Coordinate",
-    Placeholder = "Enter Y...",
-    CurrentValue = "100",
-    Callback = function(Text)
-        teleportY = tonumber(Text) or 100
-    end
-})
-
-TeleportTab:CreateTextBox({
-    Name = "Z Coordinate",
-    Placeholder = "Enter Z...",
-    CurrentValue = "0",
-    Callback = function(Text)
-        teleportZ = tonumber(Text) or 0
-    end
-})
-
-TeleportTab:CreateButton({
-    Name = "Teleport to Coordinates",
-    Callback = function()
-        local rootPart = getRootPart()
-        if rootPart then
-            rootPart.CFrame = CFrame.new(teleportX, teleportY, teleportZ)
-            notify("Teleport", string.format("Teleported to (%d, %d, %d)", teleportX, teleportY, teleportZ))
-        end
-    end
-})
-
--- ==========================================
--- AUTOMATION TAB
--- ==========================================
-AutomationTab:CreateSection("Interaction Automation", "lightning")
+-- AUTOMATION TAB (Fixed)
+AutomationTab:CreateSection("Interaction Automation")
 
 AutomationTab:CreateToggle({
     Name = "Auto Trigger Prompts",
     CurrentValue = false,
     Flag = "PromptSpam",
     Callback = function(Value)
-        promptSpamEnabled = Value
+        if connections["promptSpam"] then
+            connections["promptSpam"]:Disconnect()
+            connections["promptSpam"] = nil
+        end
+        
+        if Value then
+            connections["promptSpam"] = RunService.Heartbeat:Connect(function()
+                for _, v in pairs(Workspace:GetDescendants()) do
+                    if v:IsA("ProximityPrompt") then
+                        pcall(function()
+                            v:InputHoldBegin()
+                            v:InputHoldEnd()
+                        end)
+                    end
+                end
+            end)
+        end
         notify("Automation", Value and "Prompt spam enabled!" or "Prompt spam disabled!")
     end
 })
 
--- Prompt Spam Logic
-RunService.Heartbeat:Connect(function()
-    if promptSpamEnabled then
-        for _, v in pairs(Workspace:GetDescendants()) do
-            if v:IsA("ProximityPrompt") then
-                fireproximityprompt(v)
-            end
-        end
-    end
-end)
-
-AutomationTab:CreateToggle({
-    Name = "Auto Collect (Touch Parts)",
-    CurrentValue = false,
-    Flag = "AutoCollect",
-    Callback = function(Value)
-        autoCollectEnabled = Value
-        notify("Automation", Value and "Auto collect enabled!" or "Auto collect disabled!")
-    end
-})
-
-AutomationTab:CreateSlider({
-    Name = "Collect Range",
-    Min = 10,
-    Max = 100,
-    CurrentValue = 30,
-    Flag = "CollectRange",
-    Callback = function(Value)
-        -- Value stored in flag
-    end
-})
-
--- Auto Collect Logic
-local collectRange = 30
-RunService.Heartbeat:Connect(function()
-    if autoCollectEnabled then
-        local rootPart = getRootPart()
-        if not rootPart then return end
-        
-        for _, v in pairs(Workspace:GetDescendants()) do
-            if v:IsA("TouchTransmitter") and v.Parent and v.Parent:IsA("BasePart") then
-                local distance = (v.Parent.Position - rootPart.Position).Magnitude
-                if distance <= collectRange then
-                    firetouchinterest(rootPart, v.Parent, 0)
-                    task.wait()
-                    firetouchinterest(rootPart, v.Parent, 1)
-                end
-            end
-        end
-    end
-end)
-
-AutomationTab:CreateSection("Tool Automation", "tool")
+AutomationTab:CreateSection("Tool Automation")
 
 AutomationTab:CreateButton({
     Name = "Equip All Tools",
@@ -1062,45 +540,8 @@ AutomationTab:CreateButton({
     end
 })
 
-AutomationTab:CreateButton({
-    Name = "Drop All Tools",
-    Callback = function()
-        local char = getCharacter()
-        if char then
-            for _, tool in pairs(char:GetChildren()) do
-                if tool:IsA("Tool") then
-                    tool.Parent = Workspace
-                end
-            end
-            notify("Tools", "All tools dropped!")
-        end
-    end
-})
-
-AutomationTab:CreateButton({
-    Name = "Delete All Tools",
-    Callback = function()
-        local char = getCharacter()
-        local backpack = LocalPlayer:FindFirstChild("Backpack")
-        
-        if char then
-            for _, tool in pairs(char:GetChildren()) do
-                if tool:IsA("Tool") then tool:Destroy() end
-            end
-        end
-        if backpack then
-            for _, tool in pairs(backpack:GetChildren()) do
-                if tool:IsA("Tool") then tool:Destroy() end
-            end
-        end
-        notify("Tools", "All tools deleted!")
-    end
-})
-
--- ==========================================
 -- MISC TAB
--- ==========================================
-MiscTab:CreateSection("Anti-AFK & Safety", "shield")
+MiscTab:CreateSection("Anti-AFK & Safety")
 
 MiscTab:CreateToggle({
     Name = "Anti-AFK",
@@ -1112,7 +553,6 @@ MiscTab:CreateToggle({
     end
 })
 
--- Anti-AFK Logic
 local VirtualUser = game:GetService("VirtualUser")
 LocalPlayer.Idled:Connect(function()
     if antiAfkEnabled then
@@ -1121,62 +561,7 @@ LocalPlayer.Idled:Connect(function()
     end
 end)
 
-MiscTab:CreateToggle({
-    Name = "Chat Spy",
-    CurrentValue = false,
-    Flag = "ChatSpy",
-    Callback = function(Value)
-        chatSpyEnabled = Value
-        notify("Chat", Value and "Chat spy enabled!" or "Chat spy disabled!")
-    end
-})
-
--- Chat Spy Logic
-Players.PlayerAdded:Connect(function(player)
-    player.Chatted:Connect(function(msg)
-        if chatSpyEnabled and player ~= LocalPlayer then
-            print("[CHAT SPY] " .. player.Name .. ": " .. msg)
-            notify("Chat Spy", player.Name .. ": " .. msg, 5)
-        end
-    end)
-end)
-
-for _, player in pairs(Players:GetPlayers()) do
-    if player ~= LocalPlayer then
-        player.Chatted:Connect(function(msg)
-            if chatSpyEnabled then
-                print("[CHAT SPY] " .. player.Name .. ": " .. msg)
-                notify("Chat Spy", player.Name .. ": " .. msg, 5)
-            end
-        end)
-    end
-end
-
-MiscTab:CreateSection("Game Info", "info")
-
-local gameInfo = "Loading..."
-pcall(function()
-    gameInfo = "Game: " .. game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name .. 
-               "\nPlaceId: " .. game.PlaceId .. 
-               "\nJobId: " .. game.JobId:sub(1, 20) .. "..."
-end)
-
-MiscTab:CreateParagraph({
-    Title = "Game Information",
-    Content = gameInfo
-})
-
-MiscTab:CreateButton({
-    Name = "Copy Game Link",
-    Callback = function()
-        if setclipboard then
-            setclipboard("https://www.roblox.com/games/" .. game.PlaceId)
-            notify("Clipboard", "Game link copied!")
-        else
-            notify("Clipboard", "Clipboard not supported!")
-        end
-    end
-})
+MiscTab:CreateSection("Server Actions")
 
 MiscTab:CreateButton({
     Name = "Rejoin Server",
@@ -1186,114 +571,40 @@ MiscTab:CreateButton({
 })
 
 MiscTab:CreateButton({
-    Name = "Server Hop",
-    Callback = function()
-        local servers = {}
-        local success, req = pcall(function()
-            return game:HttpGet("https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100")
-        end)
-        
-        if success then
-            local data = HttpService:JSONDecode(req)
-            
-            if data and data.data then
-                for _, server in pairs(data.data) do
-                    if server.id ~= game.JobId and server.playing < server.maxPlayers then
-                        table.insert(servers, server.id)
-                    end
-                end
-            end
-            
-            if #servers > 0 then
-                TeleportService:TeleportToPlaceInstance(game.PlaceId, servers[math.random(1, #servers)], LocalPlayer)
-            else
-                notify("Server Hop", "No available servers found!")
-            end
-        else
-            notify("Server Hop", "Failed to fetch servers!")
-        end
-    end
-})
-
-MiscTab:CreateSection("Utilities", "tool")
-
-MiscTab:CreateButton({
-    Name = "Unlock FPS (if supported)",
-    Callback = function()
-        if setfpscap then
-            setfpscap(999)
-            notify("FPS", "FPS unlocked!")
-        else
-            notify("FPS", "FPS unlock not supported by executor!")
-        end
-    end
-})
-
-MiscTab:CreateButton({
-    Name = "Print Player Position",
-    Callback = function()
-        local rootPart = getRootPart()
-        if rootPart then
-            local pos = rootPart.Position
-            print(string.format("Position: X=%.2f, Y=%.2f, Z=%.2f", pos.X, pos.Y, pos.Z))
-            notify("Position", string.format("X=%.1f, Y=%.1f, Z=%.1f", pos.X, pos.Y, pos.Z))
-        end
-    end
-})
-
-MiscTab:CreateButton({
     Name = "Destroy UI",
     Callback = function()
-        -- Clean up connections
-        for name, conn in pairs(connections) do
+        for _, conn in pairs(connections) do
             if conn then conn:Disconnect() end
         end
-        clearAllESP()
         Window:Destroy()
     end
 })
 
--- ==========================================
--- CHARACTER RESPAWN HANDLER
--- ==========================================
+-- Settings Tab with Default Settings
+local SettingsTab = Window:CreateDefaultSettingsTab({
+    TabName = "Settings",
+    TabIcon = "settings",
+    ShowThemeCustomization = true,
+    ShowUIScale = true,
+    ShowUISizePresets = true,
+    ShowNotifications = true,
+    ShowDataManagement = false,
+    ShowControls = false,
+    ShowInfo = true,
+    Version = "3.6.0",
+    AboutText = "Universal Script for Roblox games."
+})
+
+-- Character Respawn Handler
 LocalPlayer.CharacterAdded:Connect(function(char)
     task.wait(0.5)
     
     local humanoid = char:FindFirstChildOfClass("Humanoid")
-    if humanoid then
+    if humanoid and movementEnabled then
         humanoid.WalkSpeed = walkSpeed
         humanoid.JumpPower = jumpPower
         humanoid.UseJumpPower = true
     end
-    
-    -- Re-enable features that need to be reapplied
-    if espEnabled then
-        task.wait(0.5)
-        for _, player in pairs(Players:GetPlayers()) do
-            if player ~= LocalPlayer and player.Character then
-                createESP(player)
-            end
-        end
-    end
 end)
 
--- ==========================================
--- KEYBINDS
--- ==========================================
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
-    
-    -- X to toggle noclip
-    if input.KeyCode == Enum.KeyCode.X then
-        noclipEnabled = not noclipEnabled
-        notify("Noclip", noclipEnabled and "Enabled" or "Disabled")
-    end
-    
-    -- F to toggle fly
-    if input.KeyCode == Enum.KeyCode.F then
-        -- Could add fly toggle here if desired
-    end
-end)
-
--- Initial notification
-notify("Universal Script", "Loaded! Press RightShift to toggle UI. X = Noclip", 5)
+notify("Universal Script", "Loaded! Press RightShift to toggle UI.", 5)
