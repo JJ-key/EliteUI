@@ -1,7 +1,7 @@
 --[[
     EliteUI Library for Roblox
-    Version 3.7.0
-    
+    Version 3.8.0
+
     Features:
     - Key System (optional, fetch keys from raw URL, saveable)
     - Responsive sizing (auto-adjusts for PC vs Mobile)
@@ -17,6 +17,11 @@
     - Invisible Button (draggable when UI open, completely invisible when closed)
     - Custom image support for invisible button (visible when UI is open)
     - Invisible button is properly destroyed when UI is destroyed
+    - Gradient header, active-tab indicator bar, section accent borders
+    - UIStroke on component frames, spinner loading screen
+    - Progress bar on notifications, CreateProgressBar component
+    - Tab-switch fade animation, toggle bounce, Back easing on open
+    - Mobile: larger touch targets, swipe-to-change-tabs, hidden scrollbar
 ]]
 
 local EliteUI = {}
@@ -26,6 +31,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
 -- Detect device type
 local function getDeviceType()
@@ -481,10 +487,11 @@ local function setupPCKeybind(gui, config, mainFrame, animConfig)
                     local targetPos = mainFrame:GetAttribute("TargetPosition")
                     mainFrame.Size = UDim2.new(0, 0, 0, 0)
                     mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+                    -- Back easing for overshoot bounce on open
                     animate(mainFrame, {
                         Size = targetSize,
                         Position = targetPos
-                    }, animConfig.Duration, animConfig.EasingStyle, animConfig.EasingDirection)
+                    }, animConfig.Duration, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
                 end
             end
         end
@@ -1138,19 +1145,48 @@ function EliteUI:CreateWindow(options)
     Header.BorderSizePixel = 0
     Header.Active = true
     Header.Parent = MainFrame
-    
+
     Window.Header = Header
-    
+
     local HeaderCorner = Instance.new("UICorner")
     HeaderCorner.CornerRadius = UDim.new(0, 10)
     HeaderCorner.Parent = Header
-    
+
+    -- Horizontal gradient: Primary -> Accent
+    local HeaderGradient = Instance.new("UIGradient")
+    HeaderGradient.Rotation = 0
+    HeaderGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Config.Theme.Primary),
+        ColorSequenceKeypoint.new(1, Config.Theme.Accent)
+    })
+    HeaderGradient.Parent = Header
+    Window.HeaderGradient = HeaderGradient
+
+    -- Bottom separator line
+    local HeaderSeparator = Instance.new("Frame")
+    HeaderSeparator.Name = "HeaderSeparator"
+    HeaderSeparator.Size = UDim2.new(1, 0, 0, 1)
+    HeaderSeparator.Position = UDim2.new(0, 0, 1, -1)
+    HeaderSeparator.BackgroundColor3 = Config.Theme.Accent
+    HeaderSeparator.BackgroundTransparency = 0.5
+    HeaderSeparator.BorderSizePixel = 0
+    HeaderSeparator.Parent = Header
+
     local HeaderFix = Instance.new("Frame")
     HeaderFix.Size = UDim2.new(1, 0, 0, 12)
     HeaderFix.Position = UDim2.new(0, 0, 1, -12)
     HeaderFix.BackgroundColor3 = Config.Theme.Primary
     HeaderFix.BorderSizePixel = 0
     HeaderFix.Parent = Header
+
+    -- Gradient on HeaderFix to match
+    local HeaderFixGradient = Instance.new("UIGradient")
+    HeaderFixGradient.Rotation = 0
+    HeaderFixGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Config.Theme.Primary),
+        ColorSequenceKeypoint.new(1, Config.Theme.Accent)
+    })
+    HeaderFixGradient.Parent = HeaderFix
     
     -- Logo Container
     local LogoContainer = Instance.new("Frame")
@@ -1223,15 +1259,18 @@ function EliteUI:CreateWindow(options)
     end
     
     -- Close/Minimize buttons
+    local closeBtnSize = DeviceType == "Mobile" and 32 or 24
+    local closeBtnText = DeviceType == "Mobile" and "✕" or "×"
+    local closeBtnTextSize = DeviceType == "Mobile" and 16 or 18
     local CloseBtn = Instance.new("TextButton")
-    CloseBtn.Size = UDim2.new(0, 24, 0, 24)
-    CloseBtn.Position = UDim2.new(1, -32, 0.5, -12)
+    CloseBtn.Size = UDim2.new(0, closeBtnSize, 0, closeBtnSize)
+    CloseBtn.Position = UDim2.new(1, -(closeBtnSize + 8), 0.5, -closeBtnSize/2)
     CloseBtn.BackgroundColor3 = Color3.fromRGB(239, 68, 68)
     CloseBtn.BackgroundTransparency = 0.3
     CloseBtn.BorderSizePixel = 0
-    CloseBtn.Text = "×"
+    CloseBtn.Text = closeBtnText
     CloseBtn.TextColor3 = Color3.new(1, 1, 1)
-    CloseBtn.TextSize = 18
+    CloseBtn.TextSize = closeBtnTextSize
     CloseBtn.Font = Enum.Font.GothamBold
     CloseBtn.Parent = Header
     
@@ -1280,7 +1319,8 @@ function EliteUI:CreateWindow(options)
     TabContainer.Position = UDim2.new(0, 5, 0, headerHeight + 5)
     TabContainer.BackgroundColor3 = Color3.fromRGB(22, 24, 29)
     TabContainer.BorderSizePixel = 0
-    TabContainer.ScrollBarThickness = 2
+    -- Hide scrollbar on mobile (still scrollable)
+    TabContainer.ScrollBarThickness = (DeviceType == "Mobile") and 0 or 2
     TabContainer.ScrollBarImageColor3 = Config.Theme.Primary
     TabContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
     TabContainer.AutomaticCanvasSize = Enum.AutomaticSize.Y
@@ -1383,41 +1423,91 @@ function EliteUI:CreateWindow(options)
     ContentContainer.BackgroundTransparency = 1
     ContentContainer.Parent = MainFrame
     
-    -- Opening animation
+    -- Opening animation with spinner loading screen
     if Config.Animation.Enabled and options.LoadingTitle then
         MainFrame.Size = UDim2.new(0, 0, 0, 0)
         MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-        
+
+        -- Spinner container
         local LoadingFrame = Instance.new("Frame")
-        LoadingFrame.Size = UDim2.new(0, 200, 0, 60)
-        LoadingFrame.Position = UDim2.new(0.5, -100, 0.5, -30)
+        LoadingFrame.Size = UDim2.new(0, 120, 0, 130)
+        LoadingFrame.Position = UDim2.new(0.5, -60, 0.5, -65)
         LoadingFrame.BackgroundColor3 = Config.Theme.Background
+        LoadingFrame.BackgroundTransparency = 0.15
         LoadingFrame.BorderSizePixel = 0
         LoadingFrame.Parent = ScreenGui
-        
+
         local LoadingCorner = Instance.new("UICorner")
-        LoadingCorner.CornerRadius = UDim.new(0, 10)
+        LoadingCorner.CornerRadius = UDim.new(0, 12)
         LoadingCorner.Parent = LoadingFrame
-        
+
+        -- Spinner outer ring (arc effect via UIGradient + rotation)
+        local SpinnerRing = Instance.new("Frame")
+        SpinnerRing.Name = "SpinnerRing"
+        SpinnerRing.Size = UDim2.new(0, 52, 0, 52)
+        SpinnerRing.Position = UDim2.new(0.5, -26, 0, 20)
+        SpinnerRing.BackgroundColor3 = Config.Theme.Primary
+        SpinnerRing.BackgroundTransparency = 0
+        SpinnerRing.BorderSizePixel = 0
+        SpinnerRing.Parent = LoadingFrame
+
+        local SpinnerCorner = Instance.new("UICorner")
+        SpinnerCorner.CornerRadius = UDim.new(1, 0)
+        SpinnerCorner.Parent = SpinnerRing
+
+        local SpinnerGradient = Instance.new("UIGradient")
+        SpinnerGradient.Rotation = 0
+        SpinnerGradient.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0, Config.Theme.Primary),
+            ColorSequenceKeypoint.new(0.5, Config.Theme.Accent),
+            ColorSequenceKeypoint.new(1, Config.Theme.Background)
+        })
+        SpinnerGradient.Parent = SpinnerRing
+
+        -- Inner mask to create arc appearance
+        local SpinnerInner = Instance.new("Frame")
+        SpinnerInner.Size = UDim2.new(0, 38, 0, 38)
+        SpinnerInner.Position = UDim2.new(0.5, -19, 0.5, -19)
+        SpinnerInner.BackgroundColor3 = Config.Theme.Background
+        SpinnerInner.BorderSizePixel = 0
+        SpinnerInner.ZIndex = 2
+        SpinnerInner.Parent = SpinnerRing
+
+        local SpinnerInnerCorner = Instance.new("UICorner")
+        SpinnerInnerCorner.CornerRadius = UDim.new(1, 0)
+        SpinnerInnerCorner.Parent = SpinnerInner
+
+        -- Loading title below spinner
         local LoadingText = Instance.new("TextLabel")
-        LoadingText.Size = UDim2.new(1, 0, 1, 0)
+        LoadingText.Size = UDim2.new(1, -10, 0, 30)
+        LoadingText.Position = UDim2.new(0, 5, 0, 82)
         LoadingText.BackgroundTransparency = 1
         LoadingText.Text = options.LoadingTitle
         LoadingText.TextColor3 = Config.Theme.Text
-        LoadingText.TextSize = 16
+        LoadingText.TextSize = 13
         LoadingText.Font = Enum.Font.GothamMedium
+        LoadingText.TextWrapped = true
         LoadingText.Parent = LoadingFrame
-        
-        task.delay(0.5, function()
+
+        -- Rotate spinner via Heartbeat for 0.8s
+        local spinAngle = 0
+        local spinConnection
+        spinConnection = RunService.Heartbeat:Connect(function(dt)
+            spinAngle = spinAngle + dt * 300
+            SpinnerGradient.Rotation = spinAngle % 360
+        end)
+
+        task.delay(0.8, function()
+            spinConnection:Disconnect()
             animate(LoadingFrame, {BackgroundTransparency = 1}, 0.3)
             animate(LoadingText, {TextTransparency = 1}, 0.3)
             task.wait(0.3)
             LoadingFrame:Destroy()
-            
+
             animate(MainFrame, {
                 Size = UDim2.new(0, windowWidth, 0, windowHeight),
                 Position = UDim2.new(0.5, -windowWidth/2, 0.5, -windowHeight/2)
-            }, Config.Animation.Duration * 1.5, Config.Animation.EasingStyle, Enum.EasingDirection.Out)
+            }, Config.Animation.Duration * 1.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         end)
     end
     
@@ -1426,22 +1516,33 @@ function EliteUI:CreateWindow(options)
         for k, v in pairs(newTheme) do
             Config.Theme[k] = v
         end
-        
+
         MainFrame.BackgroundColor3 = Config.Theme.Background
         Stroke.Color = Config.Theme.Primary
         Header.BackgroundColor3 = Config.Theme.Primary
-        HeaderFix.BackgroundColor3 = Config.Theme.Primary
+        -- Update header gradient
+        if Window.HeaderGradient then
+            Window.HeaderGradient.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, Config.Theme.Primary),
+                ColorSequenceKeypoint.new(1, Config.Theme.Accent)
+            })
+        end
         Title.TextColor3 = Config.Theme.Text
         TabContainer.ScrollBarImageColor3 = Config.Theme.Primary
-        
+
         for _, tab in ipairs(Window.Tabs) do
             if tab.Button then
-                if tab.Content.Visible then
-                    tab.Button.BackgroundColor3 = Config.Theme.Primary
-                    tab.Button.TextColor3 = Config.Theme.Text
+                if tab.Content and tab.Content.Visible then
+                    tab.Button.BackgroundColor3 = Color3.fromRGB(35, 28, 52)
+                    if tab.Label then tab.Label.TextColor3 = Config.Theme.Text end
+                    if tab.IndicatorBar then
+                        tab.IndicatorBar.BackgroundColor3 = Config.Theme.Primary
+                        tab.IndicatorBar.Visible = true
+                    end
                 else
                     tab.Button.BackgroundColor3 = Config.Theme.Secondary
-                    tab.Button.TextColor3 = Config.Theme.TextSecondary
+                    if tab.Label then tab.Label.TextColor3 = Config.Theme.TextSecondary end
+                    if tab.IndicatorBar then tab.IndicatorBar.Visible = false end
                 end
             end
         end
@@ -1551,10 +1652,11 @@ function EliteUI:CreateWindow(options)
                 ScreenGui.Enabled = true
                 MainFrame.Size = UDim2.new(0, 0, 0, 0)
                 MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+                -- Use Back easing for a slight overshoot bounce on open
                 animate(MainFrame, {
                     Size = UDim2.new(0, windowWidth, 0, windowHeight),
                     Position = UDim2.new(0.5, -windowWidth/2, 0.5, -windowHeight/2)
-                }, Config.Animation.Duration, Config.Animation.EasingStyle, Config.Animation.EasingDirection)
+                }, Config.Animation.Duration, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
             end
         else
             ScreenGui.Enabled = not ScreenGui.Enabled
@@ -1624,35 +1726,37 @@ function EliteUI:CreateWindow(options)
         if Window.NotificationsEnabled == false then
             return
         end
-        
+
         local notifWidth = DeviceType == "Mobile" and 260 or 300
+        local notifHeight = 80
         local NotifFrame = Instance.new("Frame")
-        NotifFrame.Size = UDim2.new(0, notifWidth, 0, 70)
-        NotifFrame.Position = UDim2.new(1, notifWidth + 10, 1, -80)
+        NotifFrame.Size = UDim2.new(0, notifWidth, 0, notifHeight)
+        NotifFrame.Position = UDim2.new(1, notifWidth + 10, 1, -(notifHeight + 10))
         NotifFrame.BackgroundColor3 = Config.Theme.Background
         NotifFrame.BorderSizePixel = 0
+        NotifFrame.ClipsDescendants = true
         NotifFrame.Parent = ScreenGui
-        
+
         local NotifCorner = Instance.new("UICorner")
         NotifCorner.CornerRadius = UDim.new(0, 8)
         NotifCorner.Parent = NotifFrame
-        
+
         local NotifStroke = Instance.new("UIStroke")
         NotifStroke.Color = Config.Theme.Primary
         NotifStroke.Transparency = 0.5
         NotifStroke.Parent = NotifFrame
-        
+
         local IconFrame = Instance.new("Frame")
         IconFrame.Size = UDim2.new(0, 36, 0, 36)
-        IconFrame.Position = UDim2.new(0, 12, 0.5, -18)
+        IconFrame.Position = UDim2.new(0, 12, 0, 12)
         IconFrame.BackgroundColor3 = Config.Theme.Primary
         IconFrame.BorderSizePixel = 0
         IconFrame.Parent = NotifFrame
-        
+
         local IconCorner = Instance.new("UICorner")
         IconCorner.CornerRadius = UDim.new(0, 8)
         IconCorner.Parent = IconFrame
-        
+
         local IconText = Instance.new("TextLabel")
         IconText.Size = UDim2.new(1, 0, 1, 0)
         IconText.BackgroundTransparency = 1
@@ -1661,10 +1765,10 @@ function EliteUI:CreateWindow(options)
         IconText.TextSize = 20
         IconText.Font = Enum.Font.GothamBold
         IconText.Parent = IconFrame
-        
+
         local NotifTitle = Instance.new("TextLabel")
         NotifTitle.Size = UDim2.new(1, -60, 0, 20)
-        NotifTitle.Position = UDim2.new(0, 56, 0, 14)
+        NotifTitle.Position = UDim2.new(0, 56, 0, 10)
         NotifTitle.BackgroundTransparency = 1
         NotifTitle.Text = options.Title or "Notification"
         NotifTitle.TextColor3 = Config.Theme.Text
@@ -1672,32 +1776,59 @@ function EliteUI:CreateWindow(options)
         NotifTitle.Font = Enum.Font.GothamBold
         NotifTitle.TextXAlignment = Enum.TextXAlignment.Left
         NotifTitle.Parent = NotifFrame
-        
+
         local NotifContent = Instance.new("TextLabel")
-        NotifContent.Size = UDim2.new(1, -60, 0, 20)
-        NotifContent.Position = UDim2.new(0, 56, 0, 36)
+        NotifContent.Size = UDim2.new(1, -60, 0, 28)
+        NotifContent.Position = UDim2.new(0, 56, 0, 32)
         NotifContent.BackgroundTransparency = 1
         NotifContent.Text = options.Content or ""
         NotifContent.TextColor3 = Config.Theme.TextSecondary
         NotifContent.TextSize = 12
         NotifContent.Font = Enum.Font.GothamMedium
         NotifContent.TextXAlignment = Enum.TextXAlignment.Left
-        NotifContent.TextTruncate = Enum.TextTruncate.AtEnd
+        NotifContent.TextWrapped = true
         NotifContent.Parent = NotifFrame
-        
+
+        -- Progress bar track at bottom
+        local ProgressTrack = Instance.new("Frame")
+        ProgressTrack.Name = "ProgressTrack"
+        ProgressTrack.Size = UDim2.new(1, 0, 0, 4)
+        ProgressTrack.Position = UDim2.new(0, 0, 1, -4)
+        ProgressTrack.BackgroundColor3 = Config.Theme.Secondary
+        ProgressTrack.BorderSizePixel = 0
+        ProgressTrack.Parent = NotifFrame
+
+        local ProgressFill = Instance.new("Frame")
+        ProgressFill.Name = "ProgressFill"
+        ProgressFill.Size = UDim2.new(1, 0, 1, 0)
+        ProgressFill.BackgroundColor3 = Config.Theme.Primary
+        ProgressFill.BorderSizePixel = 0
+        ProgressFill.Parent = ProgressTrack
+
+        local ProgressFillCorner = Instance.new("UICorner")
+        ProgressFillCorner.CornerRadius = UDim.new(0, 2)
+        ProgressFillCorner.Parent = ProgressFill
+
         if Config.Animation.Enabled then
-            animate(NotifFrame, {Position = UDim2.new(1, -(notifWidth + 10), 1, -80)}, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+            animate(NotifFrame, {Position = UDim2.new(1, -(notifWidth + 10), 1, -(notifHeight + 10))}, 0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         else
-            NotifFrame.Position = UDim2.new(1, -(notifWidth + 10), 1, -80)
+            NotifFrame.Position = UDim2.new(1, -(notifWidth + 10), 1, -(notifHeight + 10))
         end
-        
+
         local duration = options.Duration or 3
+        -- Animate progress bar depleting over the duration
+        if Config.Animation.Enabled then
+            animate(ProgressFill, {Size = UDim2.new(0, 0, 1, 0)}, duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+        end
+
         task.delay(duration, function()
             if Config.Animation.Enabled then
-                local tween = animate(NotifFrame, {Position = UDim2.new(1, notifWidth + 10, 1, -80)}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+                local tween = animate(NotifFrame, {Position = UDim2.new(1, notifWidth + 10, 1, -(notifHeight + 10))}, 0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
                 tween.Completed:Wait()
             end
-            NotifFrame:Destroy()
+            if NotifFrame and NotifFrame.Parent then
+                NotifFrame:Destroy()
+            end
         end)
     end
     
@@ -1706,11 +1837,12 @@ function EliteUI:CreateWindow(options)
         local Tab = {}
         Tab.Name = name
         Tab.Elements = {}
-        
-        local btnHeight = DeviceType == "Mobile" and 30 or 34
+
+        -- Mobile: larger touch targets
+        local btnHeight = DeviceType == "Mobile" and 38 or 34
         local iconSize = DeviceType == "Mobile" and 14 or 16
         local hasIcon = icon ~= nil and getIconImage(icon) ~= nil
-        
+
         local TabButton = Instance.new("TextButton")
         TabButton.Size = UDim2.new(1, 0, 0, btnHeight)
         TabButton.BackgroundColor3 = Config.Theme.Secondary
@@ -1720,11 +1852,27 @@ function EliteUI:CreateWindow(options)
         TabButton.TextSize = DeviceType == "Mobile" and 11 or 12
         TabButton.Font = Enum.Font.GothamMedium
         TabButton.Parent = TabContainer
-        
+
         local BtnCorner = Instance.new("UICorner")
         BtnCorner.CornerRadius = UDim.new(0, 6)
         BtnCorner.Parent = TabButton
-        
+
+        -- Left-side accent indicator bar (shown when tab is active)
+        local IndicatorBar = Instance.new("Frame")
+        IndicatorBar.Name = "IndicatorBar"
+        IndicatorBar.Size = UDim2.new(0, 3, 0.7, 0)
+        IndicatorBar.Position = UDim2.new(0, 0, 0.15, 0)
+        IndicatorBar.BackgroundColor3 = Config.Theme.Primary
+        IndicatorBar.BorderSizePixel = 0
+        IndicatorBar.Visible = false
+        IndicatorBar.Parent = TabButton
+
+        local IndicatorBarCorner = Instance.new("UICorner")
+        IndicatorBarCorner.CornerRadius = UDim.new(0, 2)
+        IndicatorBarCorner.Parent = IndicatorBar
+
+        Tab.IndicatorBar = IndicatorBar
+
         -- Tab icon (if provided)
         local TabIcon
         if hasIcon then
@@ -1738,7 +1886,7 @@ function EliteUI:CreateWindow(options)
             TabIcon.ScaleType = Enum.ScaleType.Fit
             TabIcon.Parent = TabButton
         end
-        
+
         -- Tab label
         local TabLabel = Instance.new("TextLabel")
         TabLabel.Name = "TabLabel"
@@ -1751,7 +1899,7 @@ function EliteUI:CreateWindow(options)
         TabLabel.Font = Enum.Font.GothamMedium
         TabLabel.TextXAlignment = Enum.TextXAlignment.Left
         TabLabel.Parent = TabButton
-        
+
         Tab.Icon = TabIcon
         Tab.Label = TabLabel
         
@@ -1775,36 +1923,69 @@ function EliteUI:CreateWindow(options)
         ContentPadding.PaddingBottom = UDim.new(0, 5)
         ContentPadding.Parent = TabContent
         
-        TabButton.MouseButton1Click:Connect(function()
+        -- Hover: lighten bg slightly when inactive
+        TabButton.MouseEnter:Connect(function()
+            local isActive = TabContent.Visible
+            if not isActive and Config.Animation.Enabled then
+                animate(TabButton, {BackgroundColor3 = Color3.fromRGB(38, 38, 52)}, 0.12)
+            end
+        end)
+        TabButton.MouseLeave:Connect(function()
+            local isActive = TabContent.Visible
+            if not isActive and Config.Animation.Enabled then
+                animate(TabButton, {BackgroundColor3 = Config.Theme.Secondary}, 0.12)
+            end
+        end)
+
+        local function activateTab(targetContent, targetButton, targetLabel, targetIcon, targetIndicator)
+            -- Fade out all tab contents, reset buttons
             for _, t in ipairs(Window.Tabs) do
-                t.Content.Visible = false
+                if t.Content and t.Content.Visible and t.Content ~= targetContent then
+                    if Config.Animation.Enabled then
+                        -- Brief fade out
+                        animate(t.Content, {}, 0.15)
+                    end
+                    t.Content.Visible = false
+                end
                 if t.Button and t.Button.Visible then
                     if Config.Animation.Enabled then
-                        animate(t.Button, {BackgroundColor3 = Config.Theme.Secondary}, 0.2)
+                        animate(t.Button, {BackgroundColor3 = Config.Theme.Secondary}, 0.15)
                     else
                         t.Button.BackgroundColor3 = Config.Theme.Secondary
                     end
                 end
-                if t.Label then
-                    t.Label.TextColor3 = Config.Theme.TextSecondary
-                end
-                if t.Icon then
-                    t.Icon.ImageColor3 = Config.Theme.TextSecondary
-                end
+                if t.Label then t.Label.TextColor3 = Config.Theme.TextSecondary end
+                if t.Icon then t.Icon.ImageColor3 = Config.Theme.TextSecondary end
+                if t.IndicatorBar then t.IndicatorBar.Visible = false end
             end
-            TabContent.Visible = true
+            -- Activate target
+            targetContent.Visible = true
             if Config.Animation.Enabled then
-                animate(TabButton, {BackgroundColor3 = Config.Theme.Primary}, 0.2)
+                -- Lighter bg tint for active tab
+                animate(targetButton, {BackgroundColor3 = Color3.fromRGB(35, 28, 52)}, 0.15)
             else
-                TabButton.BackgroundColor3 = Config.Theme.Primary
+                targetButton.BackgroundColor3 = Color3.fromRGB(35, 28, 52)
             end
-            if TabLabel then
-                TabLabel.TextColor3 = Config.Theme.Text
+            if targetLabel then targetLabel.TextColor3 = Config.Theme.Text end
+            if targetIcon then targetIcon.ImageColor3 = Config.Theme.Text end
+            if targetIndicator then
+                targetIndicator.BackgroundColor3 = Config.Theme.Primary
+                targetIndicator.Visible = true
             end
-            if TabIcon then
-                TabIcon.ImageColor3 = Config.Theme.Text
+        end
+
+        TabButton.MouseButton1Click:Connect(function()
+            -- Button click ripple: scale down to 97% then back
+            if Config.Animation.Enabled then
+                local origSize = TabButton.Size
+                animate(TabButton, {Size = UDim2.new(origSize.X.Scale, origSize.X.Offset, 0, btnHeight * 0.97)}, 0.08)
+                task.delay(0.08, function()
+                    animate(TabButton, {Size = origSize}, 0.1)
+                end)
             end
-            
+
+            activateTab(TabContent, TabButton, TabLabel, TabIcon, IndicatorBar)
+
             -- Reset user panel to inactive state when switching to a normal tab
             if Window._userPanel then
                 if Config.Animation.Enabled then
@@ -1814,9 +1995,11 @@ function EliteUI:CreateWindow(options)
                 end
             end
         end)
-        
+
         if #Window.Tabs == 0 then
-            TabButton.BackgroundColor3 = Config.Theme.Primary
+            TabButton.BackgroundColor3 = Color3.fromRGB(35, 28, 52)
+            IndicatorBar.BackgroundColor3 = Config.Theme.Primary
+            IndicatorBar.Visible = true
             if TabLabel then
                 TabLabel.TextColor3 = Config.Theme.Text
             end
@@ -1828,45 +2011,125 @@ function EliteUI:CreateWindow(options)
         Tab.Button = TabButton
         Tab.Content = TabContent
         table.insert(Window.Tabs, Tab)
-        
-        -- Component sizes based on device
-        local componentHeight = DeviceType == "Mobile" and 34 or 38
+
+        -- Component sizes based on device (larger touch targets on mobile)
+        local componentHeight = DeviceType == "Mobile" and 44 or 38
         local textSize = DeviceType == "Mobile" and 11 or 12
+
+        -- Swipe to change tabs (mobile/tablet)
+        if (DeviceType == "Mobile" or DeviceType == "Tablet") and #Window.Tabs == 1 then
+            -- Only set up once, on first tab creation
+            local swipeStartX = nil
+            local swipeStartY = nil
+            ContentContainer.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.Touch then
+                    swipeStartX = input.Position.X
+                    swipeStartY = input.Position.Y
+                end
+            end)
+            ContentContainer.InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.Touch and swipeStartX then
+                    local deltaX = input.Position.X - swipeStartX
+                    local deltaY = math.abs(input.Position.Y - swipeStartY)
+                    if math.abs(deltaX) > 60 and deltaY < 40 then
+                        -- Find current active tab index
+                        local currentIdx = 1
+                        for i, t in ipairs(Window.Tabs) do
+                            if t.Content and t.Content.Visible then
+                                currentIdx = i
+                                break
+                            end
+                        end
+                        local targetIdx = currentIdx
+                        if deltaX < 0 then
+                            -- Swipe left -> next tab
+                            targetIdx = currentIdx + 1
+                        else
+                            -- Swipe right -> previous tab
+                            targetIdx = currentIdx - 1
+                        end
+                        targetIdx = math.clamp(targetIdx, 1, #Window.Tabs)
+                        if targetIdx ~= currentIdx then
+                            local t = Window.Tabs[targetIdx]
+                            if t and t.Button and t.Button.Visible then
+                                -- Simulate tab click
+                                t.Button:GetPropertyChangedSignal("BackgroundColor3") -- no-op to reference t
+                                -- Deactivate all, activate target
+                                for _, ot in ipairs(Window.Tabs) do
+                                    if ot.Content then ot.Content.Visible = false end
+                                    if ot.Button and ot.Button.Visible then
+                                        ot.Button.BackgroundColor3 = Config.Theme.Secondary
+                                    end
+                                    if ot.Label then ot.Label.TextColor3 = Config.Theme.TextSecondary end
+                                    if ot.Icon then ot.Icon.ImageColor3 = Config.Theme.TextSecondary end
+                                    if ot.IndicatorBar then ot.IndicatorBar.Visible = false end
+                                end
+                                if t.Content then t.Content.Visible = true end
+                                if t.Button then
+                                    t.Button.BackgroundColor3 = Color3.fromRGB(35, 28, 52)
+                                end
+                                if t.Label then t.Label.TextColor3 = Config.Theme.Text end
+                                if t.Icon then t.Icon.ImageColor3 = Config.Theme.Text end
+                                if t.IndicatorBar then
+                                    t.IndicatorBar.BackgroundColor3 = Config.Theme.Primary
+                                    t.IndicatorBar.Visible = true
+                                end
+                            end
+                        end
+                    end
+                    swipeStartX = nil
+                    swipeStartY = nil
+                end
+            end)
+        end
         
         -- Create Section (with optional icon support)
         function Tab:CreateSection(name, icon)
             local sectionIconSize = DeviceType == "Mobile" and 12 or 14
             local hasIcon = icon ~= nil and getIconImage(icon) ~= nil
-            
+
             local Section = Instance.new("Frame")
-            Section.Size = UDim2.new(1, -10, 0, 22)
+            Section.Size = UDim2.new(1, -10, 0, 28)
             Section.BackgroundTransparency = 1
             Section.Parent = TabContent
-            
+
+            -- Left accent border (2px wide, primary color, full height)
+            local AccentBorder = Instance.new("Frame")
+            AccentBorder.Name = "AccentBorder"
+            AccentBorder.Size = UDim2.new(0, 2, 1, 0)
+            AccentBorder.Position = UDim2.new(0, 0, 0, 0)
+            AccentBorder.BackgroundColor3 = Config.Theme.Primary
+            AccentBorder.BorderSizePixel = 0
+            AccentBorder.Parent = Section
+
+            local AccentBorderCorner = Instance.new("UICorner")
+            AccentBorderCorner.CornerRadius = UDim.new(0, 1)
+            AccentBorderCorner.Parent = AccentBorder
+
             -- Section icon (if provided)
             if hasIcon then
                 local SectionIcon = Instance.new("ImageLabel")
                 SectionIcon.Name = "SectionIcon"
                 SectionIcon.Size = UDim2.new(0, sectionIconSize, 0, sectionIconSize)
-                SectionIcon.Position = UDim2.new(0, 0, 0.5, -sectionIconSize/2)
+                SectionIcon.Position = UDim2.new(0, 8, 0.5, -sectionIconSize/2)
                 SectionIcon.BackgroundTransparency = 1
                 SectionIcon.Image = getIconImage(icon)
                 SectionIcon.ImageColor3 = Config.Theme.Primary
                 SectionIcon.ScaleType = Enum.ScaleType.Fit
                 SectionIcon.Parent = Section
             end
-            
+
             local SectionLabel = Instance.new("TextLabel")
-            SectionLabel.Size = hasIcon and UDim2.new(1, -(sectionIconSize + 6), 1, 0) or UDim2.new(1, 0, 1, 0)
-            SectionLabel.Position = hasIcon and UDim2.new(0, sectionIconSize + 6, 0, 0) or UDim2.new(0, 0, 0, 0)
+            SectionLabel.Size = hasIcon and UDim2.new(1, -(sectionIconSize + 16), 1, 0) or UDim2.new(1, -12, 1, 0)
+            SectionLabel.Position = hasIcon and UDim2.new(0, sectionIconSize + 14, 0, 0) or UDim2.new(0, 8, 0, 0)
             SectionLabel.BackgroundTransparency = 1
-            SectionLabel.Text = name
+            SectionLabel.Text = string.upper(name)
             SectionLabel.TextColor3 = Config.Theme.TextSecondary
-            SectionLabel.TextSize = textSize - 1
-            SectionLabel.Font = Enum.Font.GothamMedium
+            SectionLabel.TextSize = textSize
+            SectionLabel.Font = Enum.Font.GothamBold
             SectionLabel.TextXAlignment = Enum.TextXAlignment.Left
             SectionLabel.Parent = Section
-            
+
             return Section
         end
         
@@ -2003,34 +2266,45 @@ function EliteUI:CreateWindow(options)
                 function SubTab:CreateSection(name, icon)
                     local sectionIconSize = DeviceType == "Mobile" and 12 or 14
                     local hasIcon = icon ~= nil and getIconImage(icon) ~= nil
-                    
+
                     local Section = Instance.new("Frame")
-                    Section.Size = UDim2.new(1, 0, 0, 22)
+                    Section.Size = UDim2.new(1, 0, 0, 28)
                     Section.BackgroundTransparency = 1
                     Section.Parent = SubTabContent
-                    
+
+                    -- Left accent border
+                    local AccentBorder = Instance.new("Frame")
+                    AccentBorder.Size = UDim2.new(0, 2, 1, 0)
+                    AccentBorder.Position = UDim2.new(0, 0, 0, 0)
+                    AccentBorder.BackgroundColor3 = Config.Theme.Primary
+                    AccentBorder.BorderSizePixel = 0
+                    AccentBorder.Parent = Section
+                    local ABCorner = Instance.new("UICorner")
+                    ABCorner.CornerRadius = UDim.new(0, 1)
+                    ABCorner.Parent = AccentBorder
+
                     if hasIcon then
                         local SectionIcon = Instance.new("ImageLabel")
                         SectionIcon.Size = UDim2.new(0, sectionIconSize, 0, sectionIconSize)
-                        SectionIcon.Position = UDim2.new(0, 0, 0.5, -sectionIconSize/2)
+                        SectionIcon.Position = UDim2.new(0, 8, 0.5, -sectionIconSize/2)
                         SectionIcon.BackgroundTransparency = 1
                         SectionIcon.Image = getIconImage(icon)
                         SectionIcon.ImageColor3 = Config.Theme.Primary
                         SectionIcon.ScaleType = Enum.ScaleType.Fit
                         SectionIcon.Parent = Section
                     end
-                    
+
                     local SectionLabel = Instance.new("TextLabel")
-                    SectionLabel.Size = hasIcon and UDim2.new(1, -(sectionIconSize + 6), 1, 0) or UDim2.new(1, 0, 1, 0)
-                    SectionLabel.Position = hasIcon and UDim2.new(0, sectionIconSize + 6, 0, 0) or UDim2.new(0, 0, 0, 0)
+                    SectionLabel.Size = hasIcon and UDim2.new(1, -(sectionIconSize + 16), 1, 0) or UDim2.new(1, -12, 1, 0)
+                    SectionLabel.Position = hasIcon and UDim2.new(0, sectionIconSize + 14, 0, 0) or UDim2.new(0, 8, 0, 0)
                     SectionLabel.BackgroundTransparency = 1
-                    SectionLabel.Text = name
+                    SectionLabel.Text = string.upper(name)
                     SectionLabel.TextColor3 = Config.Theme.TextSecondary
-                    SectionLabel.TextSize = subTextSize - 1
-                    SectionLabel.Font = Enum.Font.GothamMedium
+                    SectionLabel.TextSize = subTextSize
+                    SectionLabel.Font = Enum.Font.GothamBold
                     SectionLabel.TextXAlignment = Enum.TextXAlignment.Left
                     SectionLabel.Parent = Section
-                    
+
                     return Section
                 end
                 
@@ -2066,16 +2340,22 @@ function EliteUI:CreateWindow(options)
                 function SubTab:CreateToggle(options)
                     local settingKey = options.Flag or (Tab.Name .. "_" .. subTabName .. "_" .. options.Name)
                     local savedValue = Window:GetSetting(settingKey, options.CurrentValue)
-                    
+
                     local ToggleFrame = Instance.new("Frame")
                     ToggleFrame.Size = UDim2.new(1, 0, 0, subComponentHeight)
                     ToggleFrame.BackgroundColor3 = Config.Theme.Secondary
                     ToggleFrame.BorderSizePixel = 0
                     ToggleFrame.Parent = SubTabContent
-                    
+
                     local Corner = Instance.new("UICorner")
                     Corner.CornerRadius = UDim.new(0, 6)
                     Corner.Parent = ToggleFrame
+
+                    local STStroke = Instance.new("UIStroke")
+                    STStroke.Color = Config.Theme.Primary
+                    STStroke.Transparency = 0.85
+                    STStroke.Thickness = 1
+                    STStroke.Parent = ToggleFrame
                     
                     local Label = Instance.new("TextLabel")
                     Label.Size = UDim2.new(1, -60, 1, 0)
@@ -2160,16 +2440,22 @@ function EliteUI:CreateWindow(options)
                 function SubTab:CreateSlider(options)
                     local settingKey = options.Flag or (Tab.Name .. "_" .. subTabName .. "_" .. options.Name)
                     local savedValue = Window:GetSetting(settingKey, options.CurrentValue)
-                    
+
                     local SliderFrame = Instance.new("Frame")
                     SliderFrame.Size = UDim2.new(1, 0, 0, 50)
                     SliderFrame.BackgroundColor3 = Config.Theme.Secondary
                     SliderFrame.BorderSizePixel = 0
                     SliderFrame.Parent = SubTabContent
-                    
+
                     local Corner = Instance.new("UICorner")
                     Corner.CornerRadius = UDim.new(0, 6)
                     Corner.Parent = SliderFrame
+
+                    local SSStroke = Instance.new("UIStroke")
+                    SSStroke.Color = Config.Theme.Primary
+                    SSStroke.Transparency = 0.85
+                    SSStroke.Thickness = 1
+                    SSStroke.Parent = SliderFrame
                     
                     local Label = Instance.new("TextLabel")
                     Label.Size = UDim2.new(0.7, 0, 0, 20)
@@ -2287,17 +2573,23 @@ function EliteUI:CreateWindow(options)
                 function SubTab:CreateDropdown(options)
                     local settingKey = options.Flag or (Tab.Name .. "_" .. subTabName .. "_" .. options.Name)
                     local savedValue = Window:GetSetting(settingKey, options.CurrentValue)
-                    
+
                     local DropdownFrame = Instance.new("Frame")
                     DropdownFrame.Size = UDim2.new(1, 0, 0, subComponentHeight)
                     DropdownFrame.BackgroundColor3 = Config.Theme.Secondary
                     DropdownFrame.BorderSizePixel = 0
                     DropdownFrame.ClipsDescendants = true
                     DropdownFrame.Parent = SubTabContent
-                    
+
                     local Corner = Instance.new("UICorner")
                     Corner.CornerRadius = UDim.new(0, 6)
                     Corner.Parent = DropdownFrame
+
+                    local SDStroke = Instance.new("UIStroke")
+                    SDStroke.Color = Config.Theme.Primary
+                    SDStroke.Transparency = 0.85
+                    SDStroke.Thickness = 1
+                    SDStroke.Parent = DropdownFrame
                     
                     local Label = Instance.new("TextLabel")
                     Label.Size = UDim2.new(0.5, 0, 0, subComponentHeight)
@@ -2459,10 +2751,101 @@ function EliteUI:CreateWindow(options)
                     return LabelObj
                 end
                 
+                -- CreateProgressBar for SubTab
+                function SubTab:CreateProgressBar(options)
+                    local minVal = options.Min or 0
+                    local maxVal = options.Max or 100
+                    local currentVal = options.CurrentValue or minVal
+                    local suffix = options.Suffix or ""
+
+                    local ProgressFrame = Instance.new("Frame")
+                    ProgressFrame.Size = UDim2.new(1, 0, 0, 50)
+                    ProgressFrame.BackgroundColor3 = Config.Theme.Secondary
+                    ProgressFrame.BorderSizePixel = 0
+                    ProgressFrame.Parent = SubTabContent
+
+                    local ProgressCorner = Instance.new("UICorner")
+                    ProgressCorner.CornerRadius = UDim.new(0, 6)
+                    ProgressCorner.Parent = ProgressFrame
+
+                    local SPBStroke = Instance.new("UIStroke")
+                    SPBStroke.Color = Config.Theme.Primary
+                    SPBStroke.Transparency = 0.85
+                    SPBStroke.Thickness = 1
+                    SPBStroke.Parent = ProgressFrame
+
+                    local ProgressLabel = Instance.new("TextLabel")
+                    ProgressLabel.Size = UDim2.new(0.6, 0, 0, 20)
+                    ProgressLabel.Position = UDim2.new(0, 12, 0, 6)
+                    ProgressLabel.BackgroundTransparency = 1
+                    ProgressLabel.Text = options.Name or "Progress"
+                    ProgressLabel.TextColor3 = Config.Theme.Text
+                    ProgressLabel.TextSize = subTextSize
+                    ProgressLabel.Font = Enum.Font.GothamMedium
+                    ProgressLabel.TextXAlignment = Enum.TextXAlignment.Left
+                    ProgressLabel.Parent = ProgressFrame
+
+                    local ProgressValue = Instance.new("TextLabel")
+                    ProgressValue.Size = UDim2.new(0.4, -12, 0, 20)
+                    ProgressValue.Position = UDim2.new(0.6, 0, 0, 6)
+                    ProgressValue.BackgroundTransparency = 1
+                    ProgressValue.Text = tostring(currentVal) .. " " .. suffix
+                    ProgressValue.TextColor3 = Config.Theme.Primary
+                    ProgressValue.TextSize = subTextSize
+                    ProgressValue.Font = Enum.Font.GothamMedium
+                    ProgressValue.TextXAlignment = Enum.TextXAlignment.Right
+                    ProgressValue.Parent = ProgressFrame
+
+                    local TrackBg = Instance.new("Frame")
+                    TrackBg.Size = UDim2.new(1, -24, 0, 6)
+                    TrackBg.Position = UDim2.new(0, 12, 0, 34)
+                    TrackBg.BackgroundColor3 = Color3.fromRGB(75, 85, 99)
+                    TrackBg.BorderSizePixel = 0
+                    TrackBg.Parent = ProgressFrame
+
+                    local TrackCorner = Instance.new("UICorner")
+                    TrackCorner.CornerRadius = UDim.new(1, 0)
+                    TrackCorner.Parent = TrackBg
+
+                    local initialPercent = math.clamp((currentVal - minVal) / math.max(maxVal - minVal, 1), 0, 1)
+                    local TrackFill = Instance.new("Frame")
+                    TrackFill.Size = UDim2.new(initialPercent, 0, 1, 0)
+                    TrackFill.BackgroundColor3 = Config.Theme.Primary
+                    TrackFill.BorderSizePixel = 0
+                    TrackFill.Parent = TrackBg
+
+                    local FillCorner = Instance.new("UICorner")
+                    FillCorner.CornerRadius = UDim.new(1, 0)
+                    FillCorner.Parent = TrackFill
+
+                    local ProgressObj = {}
+
+                    function ProgressObj:SetValue(v)
+                        currentVal = math.clamp(v, minVal, maxVal)
+                        local pct = math.clamp((currentVal - minVal) / math.max(maxVal - minVal, 1), 0, 1)
+                        if Config.Animation.Enabled then
+                            animate(TrackFill, {Size = UDim2.new(pct, 0, 1, 0)}, 0.2)
+                        else
+                            TrackFill.Size = UDim2.new(pct, 0, 1, 0)
+                        end
+                        ProgressValue.Text = tostring(currentVal) .. " " .. suffix
+                    end
+
+                    function ProgressObj:GetValue()
+                        return currentVal
+                    end
+
+                    return ProgressObj
+                end
+
+                -- Aliases (SubTab does not implement CreateKeybind/CreateTextBox by default)
+                SubTab.CreateBind = function(self, opts) return {} end
+                SubTab.CreateInput = function(self, opts) return {} end
+
                 table.insert(subTabList, SubTab)
                 SubTabs[subTabName] = SubTab
             end
-            
+
             return SubTabs
         end
         
@@ -2535,16 +2918,23 @@ function EliteUI:CreateWindow(options)
         function Tab:CreateToggle(options)
             local settingKey = options.Flag or options.Name
             local savedValue = Window:GetSetting(settingKey, options.CurrentValue)
-            
+
             local ToggleFrame = Instance.new("Frame")
             ToggleFrame.Size = UDim2.new(1, -10, 0, componentHeight)
             ToggleFrame.BackgroundColor3 = Config.Theme.Secondary
             ToggleFrame.BorderSizePixel = 0
             ToggleFrame.Parent = TabContent
-            
+
             local Corner = Instance.new("UICorner")
             Corner.CornerRadius = UDim.new(0, 6)
             Corner.Parent = ToggleFrame
+
+            -- Faint purple border stroke
+            local FrameStroke = Instance.new("UIStroke")
+            FrameStroke.Color = Config.Theme.Primary
+            FrameStroke.Transparency = 0.85
+            FrameStroke.Thickness = 1
+            FrameStroke.Parent = ToggleFrame
             
             local Label = Instance.new("TextLabel")
             Label.Size = UDim2.new(1, -60, 1, 0)
@@ -2606,8 +2996,14 @@ function EliteUI:CreateWindow(options)
             local function updateVisual(value, animate_)
                 if animate_ and Config.Animation.Enabled then
                     animate(Toggle, {BackgroundColor3 = value and Config.Theme.Primary or Color3.fromRGB(75, 85, 99)}, 0.2)
-                    animate(Indicator, {Position = value and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)}, 0.2)
                     animate(ToggleGlow, {ImageTransparency = value and 0.7 or 1}, 0.2)
+                    -- Bounce: overshoot 2px past target, then settle
+                    local targetPos = value and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
+                    local overshootPos = value and UDim2.new(1, -16, 0.5, -8) or UDim2.new(0, 4, 0.5, -8)
+                    local t1 = animate(Indicator, {Position = overshootPos}, 0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+                    t1.Completed:Connect(function()
+                        animate(Indicator, {Position = targetPos}, 0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+                    end)
                 else
                     Toggle.BackgroundColor3 = value and Config.Theme.Primary or Color3.fromRGB(75, 85, 99)
                     Indicator.Position = value and UDim2.new(1, -18, 0.5, -8) or UDim2.new(0, 2, 0.5, -8)
@@ -2651,16 +3047,22 @@ function EliteUI:CreateWindow(options)
         function Tab:CreateSlider(options)
             local settingKey = options.Flag or options.Name
             local savedValue = Window:GetSetting(settingKey, options.CurrentValue)
-            
+
             local SliderFrame = Instance.new("Frame")
             SliderFrame.Size = UDim2.new(1, -10, 0, 50)
             SliderFrame.BackgroundColor3 = Config.Theme.Secondary
             SliderFrame.BorderSizePixel = 0
             SliderFrame.Parent = TabContent
-            
+
             local Corner = Instance.new("UICorner")
             Corner.CornerRadius = UDim.new(0, 6)
             Corner.Parent = SliderFrame
+
+            local SliderStroke = Instance.new("UIStroke")
+            SliderStroke.Color = Config.Theme.Primary
+            SliderStroke.Transparency = 0.85
+            SliderStroke.Thickness = 1
+            SliderStroke.Parent = SliderFrame
             
             local Label = Instance.new("TextLabel")
             Label.Size = UDim2.new(0.7, 0, 0, 20)
@@ -2787,17 +3189,23 @@ function EliteUI:CreateWindow(options)
         function Tab:CreateDropdown(options)
             local settingKey = options.Flag or options.Name
             local savedValue = Window:GetSetting(settingKey, options.CurrentValue)
-            
+
             local DropdownFrame = Instance.new("Frame")
             DropdownFrame.Size = UDim2.new(1, -10, 0, componentHeight)
             DropdownFrame.BackgroundColor3 = Config.Theme.Secondary
             DropdownFrame.BorderSizePixel = 0
             DropdownFrame.ClipsDescendants = true
             DropdownFrame.Parent = TabContent
-            
+
             local Corner = Instance.new("UICorner")
             Corner.CornerRadius = UDim.new(0, 6)
             Corner.Parent = DropdownFrame
+
+            local DropdownStroke = Instance.new("UIStroke")
+            DropdownStroke.Color = Config.Theme.Primary
+            DropdownStroke.Transparency = 0.85
+            DropdownStroke.Thickness = 1
+            DropdownStroke.Parent = DropdownFrame
             
             local Label = Instance.new("TextLabel")
             Label.Size = UDim2.new(0.5, -10, 0, componentHeight)
@@ -2959,18 +3367,24 @@ function EliteUI:CreateWindow(options)
             return DropdownObj
         end
         
-        -- Create TextBox
+        -- Create TextBox (with focus bottom-border highlight)
         function Tab:CreateTextBox(options)
             local TextBoxFrame = Instance.new("Frame")
             TextBoxFrame.Size = UDim2.new(1, -10, 0, componentHeight)
             TextBoxFrame.BackgroundColor3 = Config.Theme.Secondary
             TextBoxFrame.BorderSizePixel = 0
             TextBoxFrame.Parent = TabContent
-            
+
             local Corner = Instance.new("UICorner")
             Corner.CornerRadius = UDim.new(0, 6)
             Corner.Parent = TextBoxFrame
-            
+
+            local TBFrameStroke = Instance.new("UIStroke")
+            TBFrameStroke.Color = Config.Theme.Primary
+            TBFrameStroke.Transparency = 0.85
+            TBFrameStroke.Thickness = 1
+            TBFrameStroke.Parent = TextBoxFrame
+
             local Label = Instance.new("TextLabel")
             Label.Size = UDim2.new(0.4, 0, 1, 0)
             Label.Position = UDim2.new(0, 12, 0, 0)
@@ -2981,7 +3395,7 @@ function EliteUI:CreateWindow(options)
             Label.Font = Enum.Font.GothamMedium
             Label.TextXAlignment = Enum.TextXAlignment.Left
             Label.Parent = TextBoxFrame
-            
+
             local InputBox = Instance.new("TextBox")
             InputBox.Size = UDim2.new(0.55, -10, 0, componentHeight - 10)
             InputBox.Position = UDim2.new(0.4, 5, 0.5, -(componentHeight - 10)/2)
@@ -2995,51 +3409,163 @@ function EliteUI:CreateWindow(options)
             InputBox.Font = Enum.Font.GothamMedium
             InputBox.ClearTextOnFocus = false
             InputBox.Parent = TextBoxFrame
-            
+
             local InputCorner = Instance.new("UICorner")
             InputCorner.CornerRadius = UDim.new(0, 4)
             InputCorner.Parent = InputBox
-            
+
             local InputPadding = Instance.new("UIPadding")
             InputPadding.PaddingLeft = UDim.new(0, 8)
             InputPadding.PaddingRight = UDim.new(0, 8)
             InputPadding.Parent = InputBox
-            
+
+            -- Bottom border highlight (cursor line) - visible on focus
+            local FocusBorder = Instance.new("Frame")
+            FocusBorder.Name = "FocusBorder"
+            FocusBorder.Size = UDim2.new(1, 0, 0, 2)
+            FocusBorder.Position = UDim2.new(0, 0, 1, -2)
+            FocusBorder.BackgroundColor3 = Config.Theme.Primary
+            FocusBorder.BackgroundTransparency = 1
+            FocusBorder.BorderSizePixel = 0
+            FocusBorder.Parent = InputBox
+
             InputBox.Focused:Connect(function()
                 if Config.Animation.Enabled then
                     animate(InputBox, {BackgroundColor3 = Color3.fromRGB(40, 44, 54)}, 0.15)
+                    animate(FocusBorder, {BackgroundTransparency = 0}, 0.15)
+                else
+                    FocusBorder.BackgroundTransparency = 0
                 end
             end)
-            
+
             InputBox.FocusLost:Connect(function(enterPressed)
                 if Config.Animation.Enabled then
                     animate(InputBox, {BackgroundColor3 = Color3.fromRGB(30, 34, 42)}, 0.15)
+                    animate(FocusBorder, {BackgroundTransparency = 1}, 0.15)
+                else
+                    FocusBorder.BackgroundTransparency = 1
                 end
                 if options.Callback then
                     options.Callback(InputBox.Text, enterPressed)
                 end
             end)
-            
+
             local TextBoxObj = {}
-            
+
             function TextBoxObj:SetValue(text)
                 InputBox.Text = text
             end
-            
+
             function TextBoxObj:GetValue()
                 return InputBox.Text
             end
-            
+
+            -- Alias: CreateInput is the same as CreateTextBox
+            Tab.CreateInput = Tab.CreateTextBox
+
             return TextBoxObj
         end
+
+        -- CreateInput alias (points to CreateTextBox)
+        Tab.CreateInput = Tab.CreateTextBox
         
+        -- Create ProgressBar (read-only fill bar)
+        function Tab:CreateProgressBar(options)
+            local minVal = options.Min or 0
+            local maxVal = options.Max or 100
+            local currentVal = options.CurrentValue or minVal
+            local suffix = options.Suffix or ""
+
+            local ProgressFrame = Instance.new("Frame")
+            ProgressFrame.Size = UDim2.new(1, -10, 0, 50)
+            ProgressFrame.BackgroundColor3 = Config.Theme.Secondary
+            ProgressFrame.BorderSizePixel = 0
+            ProgressFrame.Parent = TabContent
+
+            local ProgressCorner = Instance.new("UICorner")
+            ProgressCorner.CornerRadius = UDim.new(0, 6)
+            ProgressCorner.Parent = ProgressFrame
+
+            local ProgressStroke = Instance.new("UIStroke")
+            ProgressStroke.Color = Config.Theme.Primary
+            ProgressStroke.Transparency = 0.85
+            ProgressStroke.Thickness = 1
+            ProgressStroke.Parent = ProgressFrame
+
+            -- Label top-left
+            local ProgressLabel = Instance.new("TextLabel")
+            ProgressLabel.Size = UDim2.new(0.6, 0, 0, 20)
+            ProgressLabel.Position = UDim2.new(0, 12, 0, 6)
+            ProgressLabel.BackgroundTransparency = 1
+            ProgressLabel.Text = options.Name or "Progress"
+            ProgressLabel.TextColor3 = Config.Theme.Text
+            ProgressLabel.TextSize = textSize
+            ProgressLabel.Font = Enum.Font.GothamMedium
+            ProgressLabel.TextXAlignment = Enum.TextXAlignment.Left
+            ProgressLabel.Parent = ProgressFrame
+
+            -- Value top-right (e.g. "75 HP")
+            local ProgressValue = Instance.new("TextLabel")
+            ProgressValue.Size = UDim2.new(0.4, -12, 0, 20)
+            ProgressValue.Position = UDim2.new(0.6, 0, 0, 6)
+            ProgressValue.BackgroundTransparency = 1
+            ProgressValue.Text = tostring(currentVal) .. " " .. suffix
+            ProgressValue.TextColor3 = Config.Theme.Primary
+            ProgressValue.TextSize = textSize
+            ProgressValue.Font = Enum.Font.GothamMedium
+            ProgressValue.TextXAlignment = Enum.TextXAlignment.Right
+            ProgressValue.Parent = ProgressFrame
+
+            -- Track bar
+            local TrackBg = Instance.new("Frame")
+            TrackBg.Size = UDim2.new(1, -24, 0, 6)
+            TrackBg.Position = UDim2.new(0, 12, 0, 34)
+            TrackBg.BackgroundColor3 = Color3.fromRGB(75, 85, 99)
+            TrackBg.BorderSizePixel = 0
+            TrackBg.Parent = ProgressFrame
+
+            local TrackCorner = Instance.new("UICorner")
+            TrackCorner.CornerRadius = UDim.new(1, 0)
+            TrackCorner.Parent = TrackBg
+
+            local initialPercent = math.clamp((currentVal - minVal) / math.max(maxVal - minVal, 1), 0, 1)
+            local TrackFill = Instance.new("Frame")
+            TrackFill.Size = UDim2.new(initialPercent, 0, 1, 0)
+            TrackFill.BackgroundColor3 = Config.Theme.Primary
+            TrackFill.BorderSizePixel = 0
+            TrackFill.Parent = TrackBg
+
+            local FillCorner = Instance.new("UICorner")
+            FillCorner.CornerRadius = UDim.new(1, 0)
+            FillCorner.Parent = TrackFill
+
+            local ProgressObj = {}
+
+            function ProgressObj:SetValue(v)
+                currentVal = math.clamp(v, minVal, maxVal)
+                local pct = math.clamp((currentVal - minVal) / math.max(maxVal - minVal, 1), 0, 1)
+                if Config.Animation.Enabled then
+                    animate(TrackFill, {Size = UDim2.new(pct, 0, 1, 0)}, 0.2)
+                else
+                    TrackFill.Size = UDim2.new(pct, 0, 1, 0)
+                end
+                ProgressValue.Text = tostring(currentVal) .. " " .. suffix
+            end
+
+            function ProgressObj:GetValue()
+                return currentVal
+            end
+
+            return ProgressObj
+        end
+
         -- Create Label
         function Tab:CreateLabel(text)
             local LabelFrame = Instance.new("Frame")
             LabelFrame.Size = UDim2.new(1, -10, 0, 24)
             LabelFrame.BackgroundTransparency = 1
             LabelFrame.Parent = TabContent
-            
+
             local LabelText = Instance.new("TextLabel")
             LabelText.Size = UDim2.new(1, 0, 1, 0)
             LabelText.BackgroundTransparency = 1
@@ -3049,13 +3575,13 @@ function EliteUI:CreateWindow(options)
             LabelText.Font = Enum.Font.GothamMedium
             LabelText.TextXAlignment = Enum.TextXAlignment.Left
             LabelText.Parent = LabelFrame
-            
+
             local LabelObj = {}
-            
+
             function LabelObj:SetText(newText)
                 LabelText.Text = newText
             end
-            
+
             return LabelObj
         end
         
@@ -3066,10 +3592,16 @@ function EliteUI:CreateWindow(options)
             ParagraphFrame.BackgroundColor3 = Config.Theme.Secondary
             ParagraphFrame.BorderSizePixel = 0
             ParagraphFrame.Parent = TabContent
-            
+
             local Corner = Instance.new("UICorner")
             Corner.CornerRadius = UDim.new(0, 6)
             Corner.Parent = ParagraphFrame
+
+            local ParaStroke = Instance.new("UIStroke")
+            ParaStroke.Color = Config.Theme.Primary
+            ParaStroke.Transparency = 0.85
+            ParaStroke.Thickness = 1
+            ParaStroke.Parent = ParagraphFrame
             
             local Title = Instance.new("TextLabel")
             Title.Size = UDim2.new(1, -20, 0, 20)
@@ -3107,21 +3639,27 @@ function EliteUI:CreateWindow(options)
             return ParagraphObj
         end
         
-        -- Create Keybind
+        -- Create Keybind (alias: CreateBind)
         function Tab:CreateKeybind(options)
             local settingKey = options.Flag or options.Name
             local savedKeyName = Window:GetSetting(settingKey)
             local currentKey = savedKeyName and Enum.KeyCode[savedKeyName] or options.CurrentKeybind
-            
+
             local KeybindFrame = Instance.new("Frame")
             KeybindFrame.Size = UDim2.new(1, -10, 0, componentHeight)
             KeybindFrame.BackgroundColor3 = Config.Theme.Secondary
             KeybindFrame.BorderSizePixel = 0
             KeybindFrame.Parent = TabContent
-            
+
             local Corner = Instance.new("UICorner")
             Corner.CornerRadius = UDim.new(0, 6)
             Corner.Parent = KeybindFrame
+
+            local KBStroke = Instance.new("UIStroke")
+            KBStroke.Color = Config.Theme.Primary
+            KBStroke.Transparency = 0.85
+            KBStroke.Thickness = 1
+            KBStroke.Parent = KeybindFrame
             
             local Label = Instance.new("TextLabel")
             Label.Size = UDim2.new(1, -80, 1, 0)
@@ -3190,20 +3728,23 @@ function EliteUI:CreateWindow(options)
                 currentKey = key
                 KeyButton.Text = key.Name
             end
-            
+
             function KeybindObj:GetKeybind()
                 return currentKey
             end
-            
+
             return KeybindObj
         end
-        
+
+        -- CreateBind is an alias for CreateKeybind
+        Tab.CreateBind = Tab.CreateKeybind
+
         -- Create ColorPicker
         function Tab:CreateColorPicker(options)
             local settingKey = options.Flag or options.Name
             local savedColor = Window:GetSetting(settingKey)
             local currentColor = savedColor and Color3.new(savedColor.R, savedColor.G, savedColor.B) or options.CurrentColor or Config.Theme.Primary
-            
+
             local colors = {
                 Color3.fromRGB(139, 92, 246),
                 Color3.fromRGB(168, 85, 247),
@@ -3216,26 +3757,32 @@ function EliteUI:CreateWindow(options)
                 Color3.fromRGB(20, 184, 166),
                 Color3.fromRGB(6, 182, 212),
             }
-            
+
             local colorIndex = 1
             for i, c in ipairs(colors) do
-                if math.abs(c.R - currentColor.R) < 0.01 and 
-                   math.abs(c.G - currentColor.G) < 0.01 and 
+                if math.abs(c.R - currentColor.R) < 0.01 and
+                   math.abs(c.G - currentColor.G) < 0.01 and
                    math.abs(c.B - currentColor.B) < 0.01 then
                     colorIndex = i
                     break
                 end
             end
-            
+
             local ColorFrame = Instance.new("Frame")
             ColorFrame.Size = UDim2.new(1, -10, 0, componentHeight)
             ColorFrame.BackgroundColor3 = Config.Theme.Secondary
             ColorFrame.BorderSizePixel = 0
             ColorFrame.Parent = TabContent
-            
+
             local Corner = Instance.new("UICorner")
             Corner.CornerRadius = UDim.new(0, 6)
             Corner.Parent = ColorFrame
+
+            local CPStroke = Instance.new("UIStroke")
+            CPStroke.Color = Config.Theme.Primary
+            CPStroke.Transparency = 0.85
+            CPStroke.Thickness = 1
+            CPStroke.Parent = ColorFrame
             
             local Label = Instance.new("TextLabel")
             Label.Size = UDim2.new(1, -50, 1, 0)
@@ -3302,9 +3849,13 @@ function EliteUI:CreateWindow(options)
             return ColorObj
         end
         
+        -- Ensure aliases are set on Tab
+        Tab.CreateBind = Tab.CreateKeybind
+        Tab.CreateInput = Tab.CreateTextBox
+
         return Tab
     end
-    
+
     -- Create Invisible Button
     function Window:CreateInvisibleButton(options)
         local invisibleButton = {}
@@ -3555,14 +4106,17 @@ function EliteUI:CreateWindow(options)
                     if tab.Icon then
                         tab.Icon.ImageColor3 = Config.Theme.TextSecondary
                     end
+                    if tab.IndicatorBar then
+                        tab.IndicatorBar.Visible = false
+                    end
                 end
             end
-            
+
             -- Show Settings tab content
             if SettingsTab.Content then
                 SettingsTab.Content.Visible = true
             end
-            
+
             -- Animate user panel to show it's active
             if Config.Animation.Enabled then
                 animate(Window._userPanel, {BackgroundColor3 = Config.Theme.Primary}, 0.15)
