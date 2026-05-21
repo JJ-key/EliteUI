@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f1117">
+  <title>EliteUI v3.7 — Documentation</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Top bar: visible on tablet / mobile -->
+  <div class="top-bar">
+    <div class="logo">
+      <div class="logo-icon">E</div>
+      <div class="logo-text">
+        <h1>EliteUI</h1>
+      </div>
+    </div>
+    <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <!-- Backdrop overlay for mobile sidebar -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">E</div>
+          <div class="logo-text">
+            <h1>EliteUI</h1>
+            <span class="version">v3.7.0</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="#about" class="nav-item active" data-section="about">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+          <span class="nav-text">About</span>
+        </a>
+        <a href="#installation" class="nav-item" data-section="installation">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          <span class="nav-text">Installation</span>
+        </a>
+        <a href="#components" class="nav-item" data-section="components">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm0 8a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zm12 0a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+          <span class="nav-text">Components</span>
+        </a>
+        <a href="#example" class="nav-item" data-section="example">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+          <span class="nav-text">Example</span>
+        </a>
+        <a href="#links" class="nav-item" data-section="links">
+          <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          <span class="nav-text">Links</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <p>Roblox UI Library</p>
+        <div class="platform-badges">
+          <span class="platform-badge">PC</span>
+          <span class="platform-badge">Mobile</span>
+          <span class="platform-badge">Tablet</span>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+
+      <!-- ── About ── -->
+      <section id="about" class="content-section active">
+        <div class="section-header">
+          <h2>About</h2>
+          <p>A cross-platform UI library for Roblox — PC, Mobile &amp; Tablet</p>
+        </div>
+
+        <p class="intro-text">EliteUI is a modern UI library built for Roblox scripts. It features a sharp purple theme, smooth animations, and a simple API that works seamlessly on PC keyboards, mobile touchscreens, and tablets.</p>
+
+        <div class="features-grid">
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+              <h4>PC Support</h4>
+              <p>Full keyboard navigation. RightShift toggles the UI. Drag-to-move window.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+            </div>
+            <div>
+              <h4>Mobile &amp; Touch</h4>
+              <p>Hold 3 fingers for 0.8 s to toggle. Touch-friendly 44 px tap targets throughout.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+            </div>
+            <div>
+              <h4>Purple &amp; Black Theme</h4>
+              <p>Sleek dark design with a customisable accent colour and smooth tweened animations.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+            <div>
+              <h4>Settings Persistence</h4>
+              <p>JSON-based settings saving and a built-in Default Settings Tab. No extra setup.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+            </div>
+            <div>
+              <h4>Tabs &amp; Sub-tabs</h4>
+              <p>Organise your features with nested tabs and auto-generated section headers.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3l14 9-14 9V3z"/></svg>
+            </div>
+            <div>
+              <h4>Simple API</h4>
+              <p>One-line loadstring loader. Methods for buttons, toggles, sliders, dropdowns, and more.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Installation ── -->
+      <section id="installation" class="content-section">
+        <div class="section-header">
+          <h2>Installation</h2>
+          <p>Load EliteUI in your Roblox script</p>
+        </div>
+
+        <p class="intro-text">Paste the following line at the top of your script. Works on PC executors and mobile injectors.</p>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span>Lua</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code id="loader-code">local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/main/Loader"))()</code></pre>
+        </div>
+
+        <div class="info-box">
+          <strong>Loader URL:</strong>
+          <span id="loader-url">Loading...</span>
+          <button class="copy-btn" onclick="copyLoaderUrl()">Copy</button>
+        </div>
+      </section>
+
+      <!-- ── Components ── -->
+      <section id="components" class="content-section">
+        <div class="section-header">
+          <h2>Components</h2>
+          <p>Interactive UI elements with live previews and copy-ready Lua code</p>
+        </div>
+
+        <!-- Window -->
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Window</h3>
+            <p>The main container. Creates a draggable window with tabs. Supports an optional Key System, Snow Effect, and per-device UI scaling.</p>
+          </div>
+          <div class="component-body">
+            <div class="code-block">
+              <div class="code-header"><span>Lua</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>local Window = EliteUI:CreateWindow({
+    Name = "My Script Hub",
+    LoadingTitle = "Loading...",
+    Subtitle = "v1.0",
+    ToggleKey = Enum.KeyCode.RightShift,  -- PC toggle key
+
+    -- Per-device scaling
+    UIScale = {
+        PC = 1.0,
+        Mobile = 0.85,
+        Tablet = 0.9
+    },
+
+    -- Key System (optional)
+    KeySystem = {
+        Enabled = true,
+        URL = "https://pastebin.com/raw/YOURKEY",
+        Title = "Key Required",
+        Subtitle = "Enter your key to continue",
+        NoteName = "Get Key",
+        NoteURL = "https://yoursite.com/getkey",
+        SaveKey = true,
+        FileName = "key.txt"
+    },
+
+    -- Snow Effect (optional)
+    SnowEffect = {
+        Enabled = true,
+        ParticleCount = 50,
+        Speed = 1,
+        Glow = true
+    }
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab -->
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Tab</h3>
+            <p>Top-level navigation tabs. Pass an icon name from the built-in Lucide icon set.</p>
+          </div>
+          <div class="component-body">
+            <div class="code-block">
+              <div class="code-header"><span>Lua</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>local MainTab     = Window:CreateTab("Main",     "home")
+local SettingsTab = Window:CreateTab("Settings", "settings")</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub-Tab -->
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Sub-Tab</h3>
+            <p>Nested tabs within a main tab for deeper organisation.</p>
+          </div>
+          <div class="component-body">
+            <div class="code-block">
+              <div class="code-header"><span>Lua</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>local CombatTab = Window:CreateTab("Combat", "sword")
+local SubTabs   = CombatTab:CreateSubTab({"Aimlock", "Camlock", "Triggerbot"})
+
+SubTabs["Aimlock"]:CreateSection("Aimlock Settings")
+SubTabs["Aimlock"]:CreateToggle({
+    Name = "Enable Aimlock",
+    CurrentValue = false,
+    Callback = function(Value)
+        print("Aimlock:", Value)
+    end
+})
+
+SubTabs["Camlock"]:CreateSection("Camlock Settings")
+SubTabs["Camlock"]:CreateDropdown({
+    Name = "Target Part",
+    Options = {"Head", "Torso", "HumanoidRootPart"},
+    CurrentValue = "Head",
+    Callback = function(Option)
+        print("Target:", Option)
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section -->
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Section</h3>
+            <p>A labelled divider to group related elements.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-section"><span>Welcome</span></div>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Lua</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>MainTab:CreateSection("Welcome")</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Button -->
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Button</h3>
+            <p>Clickable / tappable button that fires a callback.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <button class="preview-eliteui-btn" onclick="this.textContent='Clicked!';setTimeout(()=>this.textContent='Click Me',800)">Click Me</button>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Lua</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>MainTab:CreateButton({
+    Name = "Click Me",
+    Callback = function()
+        print("Button clicked!")
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Toggle -->
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Toggle</h3>
+            <p>On / off switch. Returns its state to a callback.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-toggle" onclick="this.querySelector('.toggle-switch').classList.toggle('active')">
+                <span>Enable Feature</span>
+                <div class="toggle-switch"></div>
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Lua</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>MainTab:CreateToggle({
+    Name = "Enable Feature",
+    CurrentValue = false,
+    Flag = "FeatureEnabled",  -- optional: for settings persistence
+    Callback = function(Value)
+        print("Toggle:", Value)
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slider -->
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Slider</h3>
+            <p>Value picker with configurable min / max. Drag with mouse or finger.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-slider">
+                <div class="preview-slider-header">
+                  <span>Speed</span>
+                  <span class="value">50</span>
+                </div>
+                <div class="slider-track" id="demoSlider">
+                  <div class="slider-fill" style="width:50%"></div>
+                  <div class="slider-thumb" style="left:50%"></div>
+                </div>
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Lua</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>MainTab:CreateSlider({
+    Name = "Speed",
+    Min = 0,
+    Max = 100,
+    CurrentValue = 50,
+    Callback = function(Value)
+        print("Speed:", Value)
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dropdown -->
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Dropdown</h3>
+            <p>Selection menu with multiple options.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-dropdown">
+                <div class="dropdown-header" onclick="this.nextElementSibling.classList.toggle('show')">
+                  <span>Select Mode</span>
+                  <span class="dropdown-selected">Option 1</span>
+                </div>
+                <div class="dropdown-options">
+                  <div class="dropdown-option" onclick="selectOption(this,'Option 1')">Option 1</div>
+                  <div class="dropdown-option" onclick="selectOption(this,'Option 2')">Option 2</div>
+                  <div class="dropdown-option" onclick="selectOption(this,'Option 3')">Option 3</div>
+                </div>
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Lua</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>MainTab:CreateDropdown({
+    Name = "Select Mode",
+    Options = {"Option 1", "Option 2", "Option 3"},
+    CurrentValue = "Option 1",
+    Callback = function(Option)
+        print("Selected:", Option)
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- TextBox -->
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>TextBox</h3>
+            <p>Text input field. Fires callback on change and optionally on Enter.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-textbox">
+                <span>Username</span>
+                <input type="text" placeholder="Enter text...">
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Lua</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>MainTab:CreateTextBox({
+    Name = "Username",
+    Placeholder = "Enter text...",
+    CurrentValue = "",
+    Callback = function(Text, EnterPressed)
+        print("Input:", Text)
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Label -->
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Label</h3>
+            <p>Dynamic text that can be updated programmatically.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-label-element">Hello World!</div>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Lua</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>local MyLabel = MainTab:CreateLabel("Hello World!")
+MyLabel:SetText("Updated text!")</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paragraph -->
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Paragraph</h3>
+            <p>Title + description block for informational text.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-paragraph">
+                <h5>Information</h5>
+                <p>This is a longer description text.</p>
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Lua</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>MainTab:CreateParagraph({
+    Title = "Information",
+    Content = "This is a longer description text."
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Keybind -->
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Keybind</h3>
+            <p>Customisable keyboard shortcut picker. (PC only)</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-keybind">
+                <span>Toggle Feature</span>
+                <div class="keybind-key" onclick="this.textContent = this.textContent==='E' ? 'Press…' : 'E'">E</div>
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Lua</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>MainTab:CreateKeybind({
+    Name = "Toggle Feature",
+    CurrentKeybind = Enum.KeyCode.E,
+    Callback = function(NewKey)
+        print("New keybind:", NewKey.Name)
+    end,
+    HoldCallback = function()
+        print("Key held!")
+    end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Color Picker -->
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Color Picker</h3>
+            <p>Cycle through preset colours. Tap or click the swatch.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-colorpicker">
+                <span>Accent Color</span>
+                <div class="color-swatch" onclick="cycleColor(this)"></div>
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Lua</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>local MyColor = MainTab:CreateColorPicker({
+    Name = "Accent Color",
+    CurrentColor = Color3.fromRGB(139, 92, 246),
+    Callback = function(Color)
+        print("Color:", Color)
+    end
+})
+MyColor:SetColor(Color3.fromRGB(255, 0, 0))</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notification -->
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Notification</h3>
+            <p>Toast notification. Appears in-game for the specified duration.</p>
+          </div>
+          <div class="component-body">
+            <div class="preview-box">
+              <div class="preview-notification">
+                <div class="notification-icon">!</div>
+                <div class="notification-content">
+                  <h5>Success!</h5>
+                  <p>Operation completed successfully.</p>
+                </div>
+              </div>
+            </div>
+            <div class="code-block">
+              <div class="code-header"><span>Lua</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>Window:Notify({
+    Title = "Success!",
+    Content = "Operation completed successfully.",
+    Duration = 3
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Invisible Button -->
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Invisible Button</h3>
+            <p>A draggable floating button — ideal for mobile actions. Invisible when UI is closed, visible when open. Supports custom images.</p>
+          </div>
+          <div class="component-body">
+            <div class="code-block">
+              <div class="code-header"><span>Lua — Basic</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>local InvisibleBtn = Window:CreateInvisibleButton({
+    Size = 50,
+    TapCount = 3,
+    SavePosition = true
+})</code></pre>
+            </div>
+            <div class="code-block" style="margin-top:12px">
+              <div class="code-header"><span>Lua — With Image &amp; Callback</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>local InvisibleBtn = Window:CreateInvisibleButton({
+    Size = 50,
+    TapCount = 3,
+    SavePosition = true,
+    Image = "rbxassetid://123456789",
+    Callback = function()
+        Window:Toggle()
+    end
+})
+
+InvisibleBtn:SetImage("star")     -- update icon
+InvisibleBtn:SetSize(60)
+InvisibleBtn:SetPosition(0.5, 0.1)
+InvisibleBtn:SetTapCount(2)
+InvisibleBtn:Destroy()</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Default Settings Tab -->
+        <div class="component-combined">
+          <div class="component-header">
+            <h3>Default Settings Tab</h3>
+            <p>Auto-generates a complete Settings tab — theme picker, scale slider, size presets, notifications, and version info.</p>
+          </div>
+          <div class="component-body">
+            <div class="code-block">
+              <div class="code-header"><span>Lua — One-liner</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>local SettingsTab = Window:CreateDefaultSettingsTab()</code></pre>
+            </div>
+            <div class="code-block" style="margin-top:12px">
+              <div class="code-header"><span>Lua — Custom Options</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+              <pre><code>local SettingsTab = Window:CreateDefaultSettingsTab({
+    TabName = "Settings",
+    TabIcon = "settings",
+    ShowThemeCustomization = true,
+    ShowUIScale = true,
+    ShowUISizePresets = true,
+    ShowNotifications = true,
+    ShowDataManagement = false,
+    ShowControls = true,
+    ShowInfo = true,
+    Version = "1.0.0",
+    AboutText = "My custom script.",
+    CustomThemePresets = {
+        ["Ocean"] = Color3.fromRGB(6, 182, 212),
+        ["Forest"] = Color3.fromRGB(34, 197, 94)
+    }
+})
+
+-- Add custom elements to the generated tab
+SettingsTab:CreateSection("My Settings")
+SettingsTab:CreateToggle({
+    Name = "Debug Mode",
+    CurrentValue = false,
+    Callback = function(Value) print("Debug:", Value) end
+})</code></pre>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── Example ── -->
+      <section id="example" class="content-section">
+        <div class="section-header">
+          <h2>Example Script</h2>
+          <p>Full universal script — PC &amp; Mobile compatible</p>
+        </div>
+
+        <div class="code-block">
+          <div class="code-header">
+            <span>EliteUI v3.7.0 — Universal Script</span>
+            <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+          </div>
+          <pre><code id="example-code">-- EliteUI v3.7.0 Universal Script
+-- PC &amp; Mobile compatible
+
+local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/main/Loader"))()
+
+-- Services
+local Players          = game:GetService("Players")
+local RunService       = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace        = game:GetService("Workspace")
+local Lighting         = game:GetService("Lighting")
+local TeleportService  = game:GetService("TeleportService")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera      = Workspace.CurrentCamera
+
+-- Helper functions defined before use
+local function getCharacter()
+    return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+end
+
+local function getHumanoid()
+    local char = getCharacter()
+    return char and char:FindFirstChildOfClass("Humanoid")
+end
+
+local function getRootPart()
+    local char = getCharacter()
+    return char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso"))
+end
+
+-- See full script at:
+-- https://raw.githubusercontent.com/JJ-key/EliteUI/main/Example</code></pre>
+        </div>
+
+        <p style="margin-top:16px;color:#9ca3af;font-size:14px">
+          The full 1300-line script (Combat, Player, Movement, Visuals, Teleport, Automation, Misc tabs) is available at the link below.
+        </p>
+      </section>
+
+      <!-- ── Links ── -->
+      <section id="links" class="content-section">
+        <div class="section-header">
+          <h2>Quick Links</h2>
+          <p>Direct access to the library files</p>
+        </div>
+
+        <div class="links-list">
+          <a href="https://raw.githubusercontent.com/JJ-key/EliteUI/main/Loader" class="link-item" target="_blank">
+            <div class="link-icon-box">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </div>
+            <div>
+              <h4>Loader</h4>
+              <p>Main EliteUI library source (raw Lua)</p>
+            </div>
+          </a>
+          <a href="https://raw.githubusercontent.com/JJ-key/EliteUI/main/Example" class="link-item" target="_blank">
+            <div class="link-icon-box">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+            </div>
+            <div>
+              <h4>Example Script</h4>
+              <p>Universal example with all components (PC &amp; Mobile)</p>
+            </div>
+          </a>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const sidebar      = document.getElementById('sidebar');
+    const overlay      = document.getElementById('sidebarOverlay');
+
+    function openSidebar()  { sidebar.classList.add('open');    overlay.classList.add('show');    hamburgerBtn.classList.add('active');    document.body.style.overflow = 'hidden'; }
+    function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('show'); hamburgerBtn.classList.remove('active'); document.body.style.overflow = ''; }
+
+    hamburgerBtn.addEventListener('click', () => sidebar.classList.contains('open') ? closeSidebar() : openSidebar());
+    overlay.addEventListener('click', closeSidebar);
+
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+        document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+        document.getElementById(this.getAttribute('data-section')).classList.add('active');
+        if (window.innerWidth < 900) closeSidebar();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+    });
+
+    document.getElementById('loader-url').textContent = 'https://raw.githubusercontent.com/JJ-key/EliteUI/main/Loader';
+
+    function copyCode(btn) {
+      const pre = btn.closest('.code-block').querySelector('pre');
+      navigator.clipboard.writeText(pre.textContent).then(() => {
+        btn.textContent = 'Copied!'; btn.style.background = '#1a7f37';
+        setTimeout(() => { btn.textContent = 'Copy'; btn.style.background = ''; }, 2000);
+      });
+    }
+    function copyLoaderUrl() {
+      const text = document.getElementById('loader-url').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.info-box .copy-btn');
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = 'Copy', 2000);
+      });
+    }
+
+    (function() {
+      const track = document.getElementById('demoSlider');
+      if (!track) return;
+      function applyPercent(pct) {
+        pct = Math.max(0, Math.min(100, pct));
+        track.querySelector('.slider-fill').style.width = pct + '%';
+        track.querySelector('.slider-thumb').style.left = pct + '%';
+        track.closest('.preview-slider').querySelector('.value').textContent = Math.round(pct);
+      }
+      function percentFromEvent(e) {
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const rect = track.getBoundingClientRect();
+        return ((clientX - rect.left) / rect.width) * 100;
+      }
+      let dragging = false;
+      track.addEventListener('mousedown',  e => { dragging = true; applyPercent(percentFromEvent(e)); });
+      track.addEventListener('touchstart', e => { dragging = true; applyPercent(percentFromEvent(e)); }, { passive: true });
+      document.addEventListener('mousemove',  e => { if (dragging) applyPercent(percentFromEvent(e)); });
+      document.addEventListener('touchmove',  e => { if (dragging) applyPercent(percentFromEvent(e)); }, { passive: true });
+      document.addEventListener('mouseup',  () => dragging = false);
+      document.addEventListener('touchend', () => dragging = false);
+      track.addEventListener('click', e => applyPercent(percentFromEvent(e)));
+    })();
+
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.preview-dropdown'))
+        document.querySelectorAll('.dropdown-options').forEach(d => d.classList.remove('show'));
+    });
+
+    const colors = ['#8b5cf6','#3b82f6','#ef4444','#22c55e','#f59e0b','#ec4899','#06b6d4'];
+    let colorIndex = 0;
+    function cycleColor(el) { colorIndex = (colorIndex + 1) % colors.length; el.style.background = colors[colorIndex]; }
+  </script>
+</body>
+</html>
