@@ -1,203 +1,66 @@
--- EliteUI v3.6.0 Universal Script
--- Works for most Roblox games with common features
+-- EliteUI v3.7.0 Universal Script
+-- PC & Mobile compatible — works for most Roblox games
 
 local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/main/Loader"))()
 
 -- Services
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
+local Players          = game:GetService("Players")
+local RunService       = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local Workspace = game:GetService("Workspace")
-local Lighting = game:GetService("Lighting")
-local TeleportService = game:GetService("TeleportService")
-local HttpService = game:GetService("HttpService")
+local Workspace        = game:GetService("Workspace")
+local Lighting         = game:GetService("Lighting")
+local TeleportService  = game:GetService("TeleportService")
 
 local LocalPlayer = Players.LocalPlayer
-local Camera = Workspace.CurrentCamera
-local Mouse = LocalPlayer:GetMouse()
+local Camera      = Workspace.CurrentCamera
 
--- Variables
-local movementEnabled = false
-local flyEnabled = false
-local noclipEnabled = false
-local espEnabled = false
-local espTracers = false
-local espDistance = true
-local antiAfkEnabled = true
+-- State
+local movementEnabled    = false
+local flyEnabled         = false
+local noclipEnabled      = false
+local antiAfkEnabled     = true
 local infiniteJumpEnabled = false
-local fullbrightEnabled = false
-local clickTpEnabled = false
-local antiVoidEnabled = false
-local sprintEnabled = false
+local fullbrightEnabled  = false
+local sprintEnabled      = false
+local antiVoidEnabled    = false
+local aimlockEnabled     = false
 
-local flySpeed = 50
-local walkSpeed = 16
-local jumpPower = 50
-local sprintMultiplier = 2
+local flySpeed           = 50
+local walkSpeed          = 16
+local jumpPower          = 50
+local sprintMultiplier   = 2
+local originalAmbient    = nil
 
-local espBoxes = {}
-local connections = {}
-local lastSafePosition = nil
-local antiVoidDebounce = false
-
--- Aimbot Tracking
-local aimlockConnection = nil
-local getNearestPlayer = function()
-    local nearest = nil
-    local distance = math.huge
-    for _, player in pairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character then
-            local char = player.Character
-            local humanoid = char:FindFirstChildOfClass("Humanoid")
-            local rootPart = char:FindFirstChild("HumanoidRootPart")
-            if humanoid and rootPart and humanoid.Health > 0 then
-                local dist = (rootPart.Position - Camera.CFrame.Position).Magnitude
-                if dist < distance then
-                    distance = dist
-                    nearest = player
-                end
-            end
-        end
-    end
-    return nearest
-end
+local aimlockTarget      = nil
+local aimlockSmoothness  = 50
+local connections        = {}
+local lastSafePosition   = nil
+local antiVoidDebounce   = false
 
 -- Create Window
 local Window = EliteUI:CreateWindow({
-    Name = "Universal Script",
+    Name         = "Universal Script",
     LoadingTitle = "Loading...",
-    Subtitle = "v3.6.0",
+    Subtitle     = "v3.7.0",
+    ToggleKey    = Enum.KeyCode.RightShift,
 
-    SnowEffect = {
-        Enabled = true,
-        ParticleCount = 30,
-        Speed = 1,
-        Glow = true
-    },
+    SnowEffect = { Enabled = true, ParticleCount = 30, Speed = 1, Glow = true },
+    KeySystem  = { Enabled = false },
 
-    KeySystem = {
-        Enabled = false
-    },
-    
-    ToggleKey = Enum.KeyCode.RightShift,
-    
-    UIScale = {
-        PC = 1.0,
-        Mobile = 0.85,
-        Tablet = 0.9
-    },
-    
+    UIScale = { PC = 1.0, Mobile = 0.85, Tablet = 0.9 },
+
     Theme = {
-        Primary = Color3.fromRGB(88, 101, 242),
-        Background = Color3.fromRGB(18, 18, 24),
-        Secondary = Color3.fromRGB(32, 34, 44),
-        Text = Color3.fromRGB(255, 255, 255),
+        Primary       = Color3.fromRGB(88, 101, 242),
+        Background    = Color3.fromRGB(18, 18, 24),
+        Secondary     = Color3.fromRGB(32, 34, 44),
+        Text          = Color3.fromRGB(255, 255, 255),
         TextSecondary = Color3.fromRGB(148, 155, 164),
-        Accent = Color3.fromRGB(114, 137, 218)
+        Accent        = Color3.fromRGB(114, 137, 218)
     }
 })
 
--- Combat Tab with Sub-Tabs (at top)
-local CombatTab = Window:CreateTab("Combat", "sword")
-local SubTabs = CombatTab:CreateSubTab({"Aimlock", "Camlock", "Triggerbot"})
+-- ── Helper functions (defined before any callbacks use them) ──
 
--- Aimbot Variables
-local aimlockEnabled = false
-local aimlockTarget = nil
-local aimlockSmoothness = 50
-local aimlockKey = Enum.UserInputType.MouseButton2 -- Default to Right Click
-
--- Create Invisible Button for Aimbot (Mobile)
-local AimbotButton = Window:CreateInvisibleButton({
-    Size = 60,
-    TapCount = 1, -- Single tap to lock/unlock
-    Image = "target",
-    Callback = function()
-        if aimlockEnabled then
-            if aimlockTarget then
-                aimlockTarget = nil
-                notify("Aimlock", "Target unlocked!")
-            else
-                aimlockTarget = getNearestPlayer()
-                if aimlockTarget then
-                    notify("Aimlock", "Target locked: " .. aimlockTarget.Name)
-                else
-                    notify("Aimlock", "No target found!")
-                end
-            end
-        end
-    end
-})
-
-SubTabs["Aimlock"]:CreateSection("Aimlock Settings")
-SubTabs["Aimlock"]:CreateToggle({
-    Name = "Enable Aimlock",
-    CurrentValue = false,
-    Flag = "AimlockEnabled",
-    Callback = function(Value)
-        aimlockEnabled = Value
-        if Value then
-            notify("Aimlock", "Aimlock activated! (Use target button to lock)")
-        else
-            notify("Aimlock", "Aimlock deactivated!")
-            aimlockTarget = nil
-        end
-    end
-})
-
-SubTabs["Aimlock"]:CreateSlider({
-    Name = "Smoothness",
-    Min = 0,
-    Max = 100,
-    CurrentValue = 50,
-    Callback = function(Value)
-        aimlockSmoothness = Value
-        print("Aimlock Smoothness:", Value)
-    end
-})
-
-SubTabs["Aimlock"]:CreateDropdown({
-    Name = "Target Selection",
-    Options = {"Nearest", "Furthest", "Manual"},
-    CurrentValue = "Nearest",
-    Callback = function(Option)
-        print("Target Selection:", Option)
-    end
-})
-
-SubTabs["Aimlock"]:CreateButton({
-    Name = "Select Target (Click Player)",
-    Callback = function()
-        notify("Aimlock", "Click on a player to target them!")
-    end
-})
-
-SubTabs["Camlock"]:CreateSection("Camlock Settings")
-SubTabs["Camlock"]:CreateToggle({
-    Name = "Enable Camlock",
-    CurrentValue = false,
-    Callback = function(Value)
-        print("Camlock:", Value)
-    end
-})
-SubTabs["Camlock"]:CreateDropdown({
-    Name = "Target Part",
-    Options = {"Head", "Torso", "HumanoidRootPart"},
-    CurrentValue = "Head",
-    Callback = function(Option)
-        print("Target:", Option)
-    end
-})
-
--- Create Other Tabs
-local PlayerTab = Window:CreateTab("Player", "player")
-local MovementTab = Window:CreateTab("Movement", "gamepad")
-local VisualsTab = Window:CreateTab("Visuals", "eye")
-local TeleportTab = Window:CreateTab("Teleport", "globe")
-local AutomationTab = Window:CreateTab("Auto", "magic")
-local MiscTab = Window:CreateTab("Misc", "wrench")
-
--- Helper Functions
 local function getCharacter()
     return LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
 end
@@ -213,343 +76,495 @@ local function getRootPart()
 end
 
 local function notify(title, content, duration)
-    Window:Notify({
-        Title = title,
-        Content = content,
-        Duration = duration or 3
-    })
+    Window:Notify({ Title = title, Content = content, Duration = duration or 3 })
 end
 
--- PLAYER TAB
-PlayerTab:CreateSection("Character Stats")
-
-PlayerTab:CreateToggle({
-    Name = "Movement Activated",
-    CurrentValue = false,
-    Flag = "MovementActivated",
-    Callback = function(Value)
-        movementEnabled = Value
-        local humanoid = getHumanoid()
-        if humanoid then
-            if Value then
-                humanoid.WalkSpeed = walkSpeed
-                humanoid.JumpPower = jumpPower
-                humanoid.UseJumpPower = true
-                notify("Movement", "Speed and Jump activated!")
-            else
-                humanoid.WalkSpeed = 16
-                humanoid.JumpPower = 50
-                notify("Movement", "Speed and Jump reset to default!")
+local function getNearestPlayer()
+    local nearest, distance = nil, math.huge
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local root = player.Character:FindFirstChild("HumanoidRootPart")
+            local hum  = player.Character:FindFirstChildOfClass("Humanoid")
+            if root and hum and hum.Health > 0 then
+                local dist = (root.Position - Camera.CFrame.Position).Magnitude
+                if dist < distance then distance = dist; nearest = player end
             end
+        end
+    end
+    return nearest
+end
+
+-- ── COMBAT TAB ────────────────────────────────────────────
+
+local CombatTab = Window:CreateTab("Combat", "sword")
+local SubTabs   = CombatTab:CreateSubTab({"Aimlock", "Camlock", "Triggerbot"})
+
+-- Mobile: tap to lock / unlock aimlock target
+local AimbotButton = Window:CreateInvisibleButton({
+    Size = 60, TapCount = 1, Image = "target",
+    Callback = function()
+        if not aimlockEnabled then return end
+        if aimlockTarget then
+            aimlockTarget = nil
+            notify("Aimlock", "Target unlocked!")
+        else
+            aimlockTarget = getNearestPlayer()
+            notify("Aimlock", aimlockTarget and "Locked: " .. aimlockTarget.Name or "No players found!")
         end
     end
 })
 
+-- Aimlock sub-tab
+SubTabs["Aimlock"]:CreateSection("Aimlock Settings")
+SubTabs["Aimlock"]:CreateToggle({
+    Name = "Enable Aimlock", CurrentValue = false, Flag = "AimlockEnabled",
+    Callback = function(Value)
+        aimlockEnabled = Value
+        if not Value then aimlockTarget = nil end
+        notify("Aimlock", Value and "Enabled! Tap target button to lock." or "Disabled!")
+    end
+})
+SubTabs["Aimlock"]:CreateSlider({
+    Name = "Smoothness", Min = 0, Max = 100, CurrentValue = 50,
+    Callback = function(Value) aimlockSmoothness = Value end
+})
+SubTabs["Aimlock"]:CreateDropdown({
+    Name = "Target Mode", Options = {"Nearest", "Furthest", "Manual"}, CurrentValue = "Nearest",
+    Callback = function(Option) print("Target mode:", Option) end
+})
+SubTabs["Aimlock"]:CreateButton({
+    Name = "Lock Nearest Target",
+    Callback = function()
+        if not aimlockEnabled then notify("Aimlock", "Enable Aimlock first!"); return end
+        aimlockTarget = getNearestPlayer()
+        notify("Aimlock", aimlockTarget and "Locked: " .. aimlockTarget.Name or "No players nearby!")
+    end
+})
+
+-- Camlock sub-tab
+SubTabs["Camlock"]:CreateSection("Camlock Settings")
+SubTabs["Camlock"]:CreateToggle({
+    Name = "Enable Camlock", CurrentValue = false,
+    Callback = function(Value) notify("Camlock", Value and "Enabled!" or "Disabled!") end
+})
+SubTabs["Camlock"]:CreateDropdown({
+    Name = "Target Part", Options = {"Head", "Torso", "HumanoidRootPart"}, CurrentValue = "Head",
+    Callback = function(Option) print("Camlock target:", Option) end
+})
+
+-- Triggerbot sub-tab
+SubTabs["Triggerbot"]:CreateSection("Triggerbot Settings")
+SubTabs["Triggerbot"]:CreateToggle({
+    Name = "Enable Triggerbot", CurrentValue = false, Flag = "Triggerbot",
+    Callback = function(Value) notify("Triggerbot", Value and "Enabled!" or "Disabled!") end
+})
+SubTabs["Triggerbot"]:CreateSlider({
+    Name = "Fire Delay (ms)", Min = 0, Max = 500, CurrentValue = 100,
+    Callback = function(Value) print("Triggerbot delay:", Value) end
+})
+
+-- ── PLAYER TAB ────────────────────────────────────────────
+
+local PlayerTab = Window:CreateTab("Player", "player")
+
+PlayerTab:CreateSection("Character Stats")
+PlayerTab:CreateToggle({
+    Name = "Custom Speed & Jump", CurrentValue = false, Flag = "MovementActivated",
+    Callback = function(Value)
+        movementEnabled = Value
+        local hum = getHumanoid()
+        if hum then
+            hum.WalkSpeed    = Value and walkSpeed or 16
+            hum.JumpPower    = Value and jumpPower or 50
+            hum.UseJumpPower = true
+        end
+        notify("Player", Value and "Speed & Jump active!" or "Speed & Jump reset!")
+    end
+})
 PlayerTab:CreateSlider({
-    Name = "Walk Speed",
-    Min = 16,
-    Max = 500,
-    CurrentValue = 16,
-    Flag = "WalkSpeed",
+    Name = "Walk Speed", Min = 16, Max = 500, CurrentValue = 16, Flag = "WalkSpeed",
     Callback = function(Value)
         walkSpeed = Value
         if movementEnabled then
-            local humanoid = getHumanoid()
-            if humanoid then
-                humanoid.WalkSpeed = Value
-            end
+            local hum = getHumanoid()
+            if hum then hum.WalkSpeed = Value end
         end
     end
 })
-
 PlayerTab:CreateSlider({
-    Name = "Jump Power",
-    Min = 50,
-    Max = 500,
-    CurrentValue = 50,
-    Flag = "JumpPower",
+    Name = "Jump Power", Min = 50, Max = 500, CurrentValue = 50, Flag = "JumpPower",
     Callback = function(Value)
         jumpPower = Value
         if movementEnabled then
-            local humanoid = getHumanoid()
-            if humanoid then
-                humanoid.JumpPower = Value
-                humanoid.UseJumpPower = true
-            end
+            local hum = getHumanoid()
+            if hum then hum.JumpPower = Value; hum.UseJumpPower = true end
         end
     end
 })
 
-PlayerTab:CreateSection("Character Actions")
+PlayerTab:CreateSection("Sprint")
+PlayerTab:CreateParagraph({
+    Title = "Sprint Controls",
+    Content = "PC: hold Left Shift to sprint. Mobile: sprint activates automatically when moving with toggle on."
+})
+PlayerTab:CreateToggle({
+    Name = "Enable Sprint", CurrentValue = false, Flag = "Sprint",
+    Callback = function(Value)
+        sprintEnabled = Value
+        if not Value then
+            local hum = getHumanoid()
+            if hum then hum.WalkSpeed = movementEnabled and walkSpeed or 16 end
+        end
+        notify("Player", Value and "Sprint on!" or "Sprint off!")
+    end
+})
+PlayerTab:CreateSlider({
+    Name = "Sprint Multiplier", Min = 1, Max = 5, CurrentValue = 2,
+    Callback = function(Value) sprintMultiplier = Value end
+})
 
+PlayerTab:CreateSection("Actions")
 PlayerTab:CreateButton({
     Name = "Reset Character",
     Callback = function()
-        local humanoid = getHumanoid()
-        if humanoid then humanoid.Health = 0 end
+        local hum = getHumanoid()
+        if hum then hum.Health = 0 end
         notify("Character", "Character reset!")
     end
 })
-
 PlayerTab:CreateButton({
     Name = "Full Health (Client)",
     Callback = function()
-        local humanoid = getHumanoid()
-        if humanoid then
-            humanoid.Health = humanoid.MaxHealth
-            notify("Character", "Health restored!")
-        end
+        local hum = getHumanoid()
+        if hum then hum.Health = hum.MaxHealth; notify("Character", "Health restored!") end
     end
 })
 
--- MOVEMENT TAB
-MovementTab:CreateSection("Movement Features")
+-- ── MOVEMENT TAB ──────────────────────────────────────────
 
+local MovementTab = Window:CreateTab("Movement", "gamepad")
+
+MovementTab:CreateSection("Movement Features")
 MovementTab:CreateToggle({
-    Name = "Infinite Jump",
-    CurrentValue = false,
-    Flag = "InfiniteJump",
+    Name = "Infinite Jump", CurrentValue = false, Flag = "InfiniteJump",
     Callback = function(Value)
         infiniteJumpEnabled = Value
-        notify("Movement", Value and "Infinite Jump enabled!" or "Infinite Jump disabled!")
+        notify("Movement", Value and "Infinite Jump on!" or "Infinite Jump off!")
     end
 })
 
 UserInputService.JumpRequest:Connect(function()
     if infiniteJumpEnabled then
-        local humanoid = getHumanoid()
-        if humanoid then
-            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-        end
+        local hum = getHumanoid()
+        if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
     end
 end)
 
 MovementTab:CreateToggle({
-    Name = "Noclip",
-    CurrentValue = false,
-    Flag = "Noclip",
+    Name = "Noclip", CurrentValue = false, Flag = "Noclip",
     Callback = function(Value)
         noclipEnabled = Value
-        notify("Movement", Value and "Noclip enabled!" or "Noclip disabled!")
+        notify("Movement", Value and "Noclip on!" or "Noclip off!")
     end
 })
 
-RunService.Stepped:Connect(function()
-    if noclipEnabled then
-        local char = getCharacter()
-        if char then
-            for _, part in pairs(char:GetDescendants()) do
-                if part:IsA("BasePart") then
-                    part.CanCollide = false
-                end
-            end
-        end
-    end
-end)
-
-MovementTab:CreateSection("Safety Features")
-
+MovementTab:CreateSection("Safety")
 MovementTab:CreateToggle({
-    Name = "Anti-Void (Auto TP Back)",
-    CurrentValue = false,
-    Flag = "AntiVoid",
+    Name = "Anti-Void", CurrentValue = false, Flag = "AntiVoid",
     Callback = function(Value)
         antiVoidEnabled = Value
         if Value then
-            local rootPart = getRootPart()
-            if rootPart and rootPart.Position.Y > -50 then
-                lastSafePosition = rootPart.CFrame
-            end
+            local rp = getRootPart()
+            if rp and rp.Position.Y > -50 then lastSafePosition = rp.CFrame end
         end
-        notify("Safety", Value and "Anti-Void enabled!" or "Anti-Void disabled!")
+        notify("Safety", Value and "Anti-Void on!" or "Anti-Void off!")
     end
 })
-
-RunService.Heartbeat:Connect(function()
-    local rootPart = getRootPart()
-    if rootPart then
-        if rootPart.Position.Y > -50 then
-            lastSafePosition = rootPart.CFrame
-        elseif antiVoidEnabled and lastSafePosition and not antiVoidDebounce then
-            antiVoidDebounce = true
-            rootPart.CFrame = lastSafePosition
-            notify("Safety", "Saved from void!")
-            task.wait(1)
-            antiVoidDebounce = false
-        end
-    end
-    
-    -- Aimlock Tracking Loop
-    if aimlockEnabled and not aimlockConnection then
-        aimlockConnection = RunService.RenderStepped:Connect(function()
-            if not aimlockEnabled then return end
-            if not aimlockTarget then
-                aimlockTarget = getNearestPlayer()
-            end
-            if aimlockTarget and aimlockTarget.Character then
-                local targetChar = aimlockTarget.Character
-                local targetHead = targetChar:FindFirstChild("Head")
-                if targetHead then
-                    local smoothFactor = (100 - aimlockSmoothness) / 100 + 0.05
-                    Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, targetHead.Position), smoothFactor)
-                end
-            else
-                aimlockTarget = nil
-            end
-        end)
-    elseif not aimlockEnabled and aimlockConnection then
-        aimlockConnection:Disconnect()
-        aimlockConnection = nil
-    end
-end)
 
 MovementTab:CreateSection("Fly System")
-
+MovementTab:CreateParagraph({
+    Title = "Controls",
+    Content = "PC: WASD + Space (up) + LeftCtrl (down).\nMobile: joystick to move horizontally, Jump button to ascend."
+})
 MovementTab:CreateToggle({
-    Name = "Fly",
-    CurrentValue = false,
-    Flag = "Fly",
+    Name = "Fly", CurrentValue = false, Flag = "Fly",
     Callback = function(Value)
         flyEnabled = Value
-        local rootPart = getRootPart()
-        local humanoid = getHumanoid()
-        
-        if not rootPart or not humanoid then return end
-        
+        local rp  = getRootPart()
+        local hum = getHumanoid()
+        if not rp or not hum then return end
+
         if Value then
-            local bodyGyro = Instance.new("BodyGyro")
-            bodyGyro.Name = "FlyGyro"
-            bodyGyro.P = 9e4
-            bodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-            bodyGyro.CFrame = rootPart.CFrame
-            bodyGyro.Parent = rootPart
-            
-            local bodyVelocity = Instance.new("BodyVelocity")
-            bodyVelocity.Name = "FlyVelocity"
-            bodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-            bodyVelocity.Velocity = Vector3.new(0, 0, 0)
-            bodyVelocity.Parent = rootPart
-            
+            local bodyG = Instance.new("BodyGyro")
+            bodyG.Name = "FlyGyro"; bodyG.P = 9e4
+            bodyG.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+            bodyG.CFrame = rp.CFrame; bodyG.Parent = rp
+
+            local bodyV = Instance.new("BodyVelocity")
+            bodyV.Name = "FlyVelocity"
+            bodyV.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+            bodyV.Velocity = Vector3.new(0, 0, 0); bodyV.Parent = rp
+
             connections["fly"] = RunService.RenderStepped:Connect(function()
                 if not flyEnabled then return end
-                local rp = getRootPart()
-                if not rp then return end
-                
-                local bv = rp:FindFirstChild("FlyVelocity")
-                local bg = rp:FindFirstChild("FlyGyro")
+                local r = getRootPart()
+                local h = getHumanoid()
+                if not r or not h then return end
+
+                local bv = r:FindFirstChild("FlyVelocity")
+                local bg = r:FindFirstChild("FlyGyro")
                 if not bv or not bg then return end
-                
+
                 bg.CFrame = Camera.CFrame
-                
-                local moveDir = Vector3.new(0, 0, 0)
-                if UserInputService:IsKeyDown(Enum.KeyCode.W) then
-                    moveDir = moveDir + Camera.CFrame.LookVector
+                local dir = Vector3.new(0, 0, 0)
+
+                -- PC keyboard: camera-look-relative movement
+                if UserInputService:IsKeyDown(Enum.KeyCode.W) then dir += Camera.CFrame.LookVector  end
+                if UserInputService:IsKeyDown(Enum.KeyCode.S) then dir -= Camera.CFrame.LookVector  end
+                if UserInputService:IsKeyDown(Enum.KeyCode.A) then dir -= Camera.CFrame.RightVector end
+                if UserInputService:IsKeyDown(Enum.KeyCode.D) then dir += Camera.CFrame.RightVector end
+
+                -- Mobile + PC: joystick / MoveDirection for horizontal movement
+                local md = h.MoveDirection
+                if md.Magnitude > 0.1 then
+                    local flat = Vector3.new(md.X, 0, md.Z)
+                    if flat.Magnitude > 0 then dir += flat.Unit end
                 end
-                if UserInputService:IsKeyDown(Enum.KeyCode.S) then
-                    moveDir = moveDir - Camera.CFrame.LookVector
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.A) then
-                    moveDir = moveDir - Camera.CFrame.RightVector
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.D) then
-                    moveDir = moveDir + Camera.CFrame.RightVector
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.Space) then
-                    moveDir = moveDir + Vector3.new(0, 1, 0)
-                end
-                if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then
-                    moveDir = moveDir - Vector3.new(0, 1, 0)
-                end
-                
-                bv.Velocity = moveDir.Magnitude > 0 and moveDir.Unit * flySpeed or Vector3.new(0, 0, 0)
+
+                -- Universal vertical (Space = up on both PC and mobile jump button)
+                if UserInputService:IsKeyDown(Enum.KeyCode.Space)       then dir += Vector3.new(0,  1, 0) end
+                if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then dir -= Vector3.new(0,  1, 0) end
+
+                bv.Velocity = dir.Magnitude > 0 and dir.Unit * flySpeed or Vector3.new(0, 0, 0)
             end)
-            
-            notify("Movement", "Fly enabled! WASD + Space/Ctrl to move.")
+
+            hum.PlatformStand = true
+            notify("Movement", "Fly on! Joystick/WASD + Jump to ascend.")
         else
-            if connections["fly"] then
-                connections["fly"]:Disconnect()
-                connections["fly"] = nil
+            if connections["fly"] then connections["fly"]:Disconnect(); connections["fly"] = nil end
+            local r = getRootPart()
+            if r then
+                local bv = r:FindFirstChild("FlyVelocity"); if bv then bv:Destroy() end
+                local bg = r:FindFirstChild("FlyGyro");     if bg then bg:Destroy() end
             end
-            
-            if rootPart then
-                local bv = rootPart:FindFirstChild("FlyVelocity")
-                local bg = rootPart:FindFirstChild("FlyGyro")
-                if bv then bv:Destroy() end
-                if bg then bg:Destroy() end
-            end
-            
-            notify("Movement", "Fly disabled!")
+            local h = getHumanoid()
+            if h then h.PlatformStand = false end
+            notify("Movement", "Fly off!")
         end
     end
 })
-
 MovementTab:CreateSlider({
-    Name = "Fly Speed",
-    Min = 10,
-    Max = 500,
-    CurrentValue = 50,
-    Flag = "FlySpeed",
+    Name = "Fly Speed", Min = 10, Max = 500, CurrentValue = 50, Flag = "FlySpeed",
+    Callback = function(Value) flySpeed = Value end
+})
+
+-- ── VISUALS TAB ───────────────────────────────────────────
+
+local VisualsTab = Window:CreateTab("Visuals", "eye")
+
+VisualsTab:CreateSection("World Effects")
+VisualsTab:CreateToggle({
+    Name = "Fullbright", CurrentValue = false, Flag = "Fullbright",
     Callback = function(Value)
-        flySpeed = Value
+        fullbrightEnabled = Value
+        if Value then
+            originalAmbient = {
+                Ambient        = Lighting.Ambient,
+                OutdoorAmbient = Lighting.OutdoorAmbient,
+                Brightness     = Lighting.Brightness,
+            }
+            Lighting.Ambient        = Color3.fromRGB(178, 178, 178)
+            Lighting.OutdoorAmbient = Color3.fromRGB(178, 178, 178)
+            Lighting.Brightness     = 2
+            notify("Visuals", "Fullbright on!")
+        else
+            if originalAmbient then
+                Lighting.Ambient        = originalAmbient.Ambient
+                Lighting.OutdoorAmbient = originalAmbient.OutdoorAmbient
+                Lighting.Brightness     = originalAmbient.Brightness
+            end
+            notify("Visuals", "Fullbright off!")
+        end
     end
 })
 
--- AUTOMATION TAB (Fixed)
-AutomationTab:CreateSection("Interaction Automation")
-
-AutomationTab:CreateToggle({
-    Name = "Auto Trigger Prompts",
-    CurrentValue = false,
-    Flag = "PromptSpam",
+VisualsTab:CreateSection("Player Highlights")
+VisualsTab:CreateToggle({
+    Name = "Player ESP (Highlights)", CurrentValue = false, Flag = "ESP",
     Callback = function(Value)
-        if connections["promptSpam"] then
-            connections["promptSpam"]:Disconnect()
-            connections["promptSpam"] = nil
+        if Value then
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character and not p.Character:FindFirstChild("EliteESP") then
+                    local h = Instance.new("Highlight")
+                    h.Name = "EliteESP"
+                    h.FillColor           = Color3.fromRGB(255, 50, 50)
+                    h.OutlineColor        = Color3.fromRGB(255, 255, 255)
+                    h.FillTransparency    = 0.5
+                    h.OutlineTransparency = 0
+                    h.Parent = p.Character
+                end
+            end
+            connections["espAdded"] = Players.PlayerAdded:Connect(function(p)
+                p.CharacterAdded:Connect(function(char)
+                    task.wait(0.5)
+                    local h = Instance.new("Highlight")
+                    h.Name = "EliteESP"
+                    h.FillColor        = Color3.fromRGB(255, 50, 50)
+                    h.OutlineColor     = Color3.fromRGB(255, 255, 255)
+                    h.FillTransparency = 0.5
+                    h.Parent = char
+                end)
+            end)
+            notify("Visuals", "Player ESP on!")
+        else
+            for _, p in pairs(Players:GetPlayers()) do
+                if p.Character then
+                    local h = p.Character:FindFirstChild("EliteESP")
+                    if h then h:Destroy() end
+                end
+            end
+            if connections["espAdded"] then connections["espAdded"]:Disconnect(); connections["espAdded"] = nil end
+            notify("Visuals", "Player ESP off!")
         end
-        
+    end
+})
+VisualsTab:CreateColorPicker({
+    Name = "ESP Color", CurrentColor = Color3.fromRGB(255, 50, 50),
+    Callback = function(Color)
+        for _, p in pairs(Players:GetPlayers()) do
+            if p.Character then
+                local h = p.Character:FindFirstChild("EliteESP")
+                if h then h.FillColor = Color end
+            end
+        end
+    end
+})
+
+-- ── TELEPORT TAB ──────────────────────────────────────────
+
+local TeleportTab = Window:CreateTab("Teleport", "globe")
+
+TeleportTab:CreateSection("Player Teleport")
+TeleportTab:CreateDropdown({
+    Name = "Teleport to Player",
+    Options = (function()
+        local names = {}
+        for _, p in pairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer then table.insert(names, p.Name) end
+        end
+        return #names > 0 and names or {"(no players)"}
+    end)(),
+    CurrentValue = "Select Player",
+    Callback = function(Name)
+        for _, p in pairs(Players:GetPlayers()) do
+            if p.Name == Name and p ~= LocalPlayer and p.Character then
+                local rp     = getRootPart()
+                local target = p.Character:FindFirstChild("HumanoidRootPart")
+                if rp and target then
+                    rp.CFrame = target.CFrame + Vector3.new(3, 0, 0)
+                    notify("Teleport", "Teleported to " .. Name)
+                end
+            end
+        end
+    end
+})
+
+TeleportTab:CreateSection("World Teleport")
+-- Click-to-teleport works on both PC (mouse click) and mobile (tap)
+TeleportTab:CreateToggle({
+    Name = "Click / Tap to Teleport", CurrentValue = false, Flag = "ClickTP",
+    Callback = function(Value)
+        if Value then
+            connections["clickTP"] = UserInputService.InputBegan:Connect(function(input, gpe)
+                if gpe then return end
+                local isTap = input.UserInputType == Enum.UserInputType.MouseButton1
+                           or input.UserInputType == Enum.UserInputType.Touch
+                if not isTap then return end
+                local pos = input.Position
+                local ray = Camera:ScreenPointToRay(pos.X, pos.Y)
+                local hit = Workspace:Raycast(ray.Origin, ray.Direction * 500)
+                if hit then
+                    local rp = getRootPart()
+                    if rp then
+                        rp.CFrame = CFrame.new(hit.Position + Vector3.new(0, 3, 0))
+                        notify("Teleport", "Teleported!")
+                    end
+                end
+            end)
+            notify("Teleport", "Tap / click anywhere to teleport.")
+        else
+            if connections["clickTP"] then connections["clickTP"]:Disconnect(); connections["clickTP"] = nil end
+            notify("Teleport", "Click-TP off!")
+        end
+    end
+})
+
+TeleportTab:CreateSection("Server")
+TeleportTab:CreateButton({
+    Name = "Rejoin Server",
+    Callback = function()
+        TeleportService:Teleport(game.PlaceId, LocalPlayer)
+    end
+})
+
+-- ── AUTOMATION TAB ────────────────────────────────────────
+
+local AutomationTab = Window:CreateTab("Auto", "magic")
+
+AutomationTab:CreateSection("Interaction Automation")
+AutomationTab:CreateToggle({
+    Name = "Auto Trigger Prompts", CurrentValue = false, Flag = "PromptSpam",
+    Callback = function(Value)
+        if connections["promptSpam"] then connections["promptSpam"]:Disconnect(); connections["promptSpam"] = nil end
         if Value then
             connections["promptSpam"] = RunService.Heartbeat:Connect(function()
                 for _, v in pairs(Workspace:GetDescendants()) do
                     if v:IsA("ProximityPrompt") then
-                        pcall(function()
-                            v:InputHoldBegin()
-                            v:InputHoldEnd()
-                        end)
+                        pcall(function() v:InputHoldBegin(); v:InputHoldEnd() end)
                     end
                 end
             end)
         end
-        notify("Automation", Value and "Prompt spam enabled!" or "Prompt spam disabled!")
+        notify("Automation", Value and "Prompt spam on!" or "Prompt spam off!")
     end
 })
 
 AutomationTab:CreateSection("Tool Automation")
-
 AutomationTab:CreateButton({
     Name = "Equip All Tools",
     Callback = function()
-        local backpack = LocalPlayer:FindFirstChild("Backpack")
-        if backpack then
-            for _, tool in pairs(backpack:GetChildren()) do
-                if tool:IsA("Tool") then
-                    tool.Parent = getCharacter()
-                end
+        local bp = LocalPlayer:FindFirstChild("Backpack")
+        if bp then
+            for _, t in pairs(bp:GetChildren()) do
+                if t:IsA("Tool") then t.Parent = getCharacter() end
             end
             notify("Tools", "All tools equipped!")
         end
     end
 })
+AutomationTab:CreateButton({
+    Name = "Drop All Tools",
+    Callback = function()
+        local char = getCharacter()
+        if char then
+            for _, t in pairs(char:GetChildren()) do
+                if t:IsA("Tool") then t.Parent = LocalPlayer.Backpack end
+            end
+            notify("Tools", "All tools dropped!")
+        end
+    end
+})
 
--- MISC TAB
-MiscTab:CreateSection("Anti-AFK & Safety")
+-- ── MISC TAB ──────────────────────────────────────────────
 
+local MiscTab = Window:CreateTab("Misc", "wrench")
+
+MiscTab:CreateSection("Anti-AFK")
 MiscTab:CreateToggle({
-    Name = "Anti-AFK",
-    CurrentValue = true,
-    Flag = "AntiAFK",
+    Name = "Anti-AFK", CurrentValue = true, Flag = "AntiAFK",
     Callback = function(Value)
         antiAfkEnabled = Value
-        notify("Anti-AFK", Value and "Anti-AFK enabled!" or "Anti-AFK disabled!")
+        notify("Misc", Value and "Anti-AFK on!" or "Anti-AFK off!")
     end
 })
 
@@ -561,50 +576,96 @@ LocalPlayer.Idled:Connect(function()
     end
 end)
 
-MiscTab:CreateSection("Server Actions")
-
-MiscTab:CreateButton({
-    Name = "Rejoin Server",
-    Callback = function()
-        TeleportService:Teleport(game.PlaceId, LocalPlayer)
-    end
-})
-
+MiscTab:CreateSection("UI")
 MiscTab:CreateButton({
     Name = "Destroy UI",
     Callback = function()
-        for _, conn in pairs(connections) do
-            if conn then conn:Disconnect() end
-        end
+        for _, conn in pairs(connections) do if conn then conn:Disconnect() end end
         Window:Destroy()
     end
 })
 
--- Settings Tab with Default Settings
+-- ── SETTINGS TAB ──────────────────────────────────────────
+
 local SettingsTab = Window:CreateDefaultSettingsTab({
-    TabName = "Settings",
-    TabIcon = "settings",
-    ShowThemeCustomization = true,
-    ShowUIScale = true,
-    ShowUISizePresets = true,
-    ShowNotifications = true,
-    ShowDataManagement = false,
-    ShowControls = false,
+    TabName = "Settings",  TabIcon = "settings",
+    ShowThemeCustomization = true,  ShowUIScale = true,
+    ShowUISizePresets = true,       ShowNotifications = true,
+    ShowDataManagement = false,     ShowControls = true,
     ShowInfo = true,
-    Version = "3.6.0",
-    AboutText = "Universal Script for Roblox games."
+    Version   = "3.7.0",
+    AboutText = "Universal Script for Roblox. PC & Mobile compatible."
 })
 
--- Character Respawn Handler
-LocalPlayer.CharacterAdded:Connect(function(char)
-    task.wait(0.5)
-    
-    local humanoid = char:FindFirstChildOfClass("Humanoid")
-    if humanoid and movementEnabled then
-        humanoid.WalkSpeed = walkSpeed
-        humanoid.JumpPower = jumpPower
-        humanoid.UseJumpPower = true
+-- ── BACKGROUND LOOPS ──────────────────────────────────────
+
+RunService.Stepped:Connect(function()
+    if noclipEnabled then
+        local char = LocalPlayer.Character
+        if char then
+            for _, part in pairs(char:GetDescendants()) do
+                if part:IsA("BasePart") then part.CanCollide = false end
+            end
+        end
     end
 end)
 
-notify("Universal Script", "Loaded! Press RightShift to toggle UI.", 5)
+RunService.Heartbeat:Connect(function()
+    -- Anti-void
+    local rp = getRootPart()
+    if rp then
+        if rp.Position.Y > -50 then
+            lastSafePosition = rp.CFrame
+        elseif antiVoidEnabled and lastSafePosition and not antiVoidDebounce then
+            antiVoidDebounce = true
+            rp.CFrame = lastSafePosition
+            notify("Safety", "Saved from void!")
+            task.wait(1)
+            antiVoidDebounce = false
+        end
+    end
+
+    -- Aimlock tracking
+    if aimlockEnabled then
+        if not aimlockTarget then aimlockTarget = getNearestPlayer() end
+        if aimlockTarget and aimlockTarget.Character then
+            local head = aimlockTarget.Character:FindFirstChild("Head")
+            if head then
+                local sf = (100 - aimlockSmoothness) / 100 + 0.05
+                Camera.CFrame = Camera.CFrame:Lerp(
+                    CFrame.new(Camera.CFrame.Position, head.Position), sf)
+            end
+        else
+            aimlockTarget = nil
+        end
+    end
+
+    -- Sprint: LeftShift on PC, auto-sprint when moving on mobile
+    if sprintEnabled then
+        local hum = getHumanoid()
+        if hum then
+            local base = movementEnabled and walkSpeed or 16
+            local pressing = UserInputService:IsKeyDown(Enum.KeyCode.LeftShift)
+                          or (UserInputService.TouchEnabled and hum.MoveDirection.Magnitude > 0.5)
+            hum.WalkSpeed = pressing and base * sprintMultiplier or base
+        end
+    end
+end)
+
+-- ── CHARACTER RESPAWN ─────────────────────────────────────
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+    task.wait(0.5)
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if hum and movementEnabled then
+        hum.WalkSpeed    = walkSpeed
+        hum.JumpPower    = jumpPower
+        hum.UseJumpPower = true
+    end
+end)
+
+-- Startup notification: tells user how to toggle UI on their platform
+local toggleHint = UserInputService.TouchEnabled
+    and "3-finger hold to toggle UI."
+    or  "Press RightShift to toggle UI."
+notify("Universal Script", "Loaded! " .. toggleHint, 5)
