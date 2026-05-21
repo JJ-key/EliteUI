@@ -1,5 +1,11 @@
 {
-  "outputDirectory": ".",
-  "buildCommand": null,
-  "cleanUrls": true
+  "version": 2,
+  "builds": [
+    { "src": "index.html", "use": "@vercel/static" },
+    { "src": "styles.css", "use": "@vercel/static" }
+  ],
+  "routes": [
+    { "src": "/styles.css", "dest": "/styles.css" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
 }
