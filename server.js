@@ -32,6 +32,10 @@ app.get('/api/loader-url', (req, res) => {
   res.json({ url: protocol + '://' + host + '/Loader' });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log('EliteUI server running on port ' + PORT);
-});
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log('EliteUI server running on port ' + PORT);
+  });
+}
+
+module.exports = app;
