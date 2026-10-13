@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>EliteUI HTML Template</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="eliteui.css">
+<style>
+  /* Demo page: a top bar over a full-height "game viewport" stage that hosts the window.
+     Single dark look on purpose; EliteUI is a dark overlay UI. */
+  :root {
+    color-scheme: dark;
+    --page-bg: #0a0a0f;
+    --page-grid: rgba(139, 92, 246, 0.09);
+    --page-bar: #111118;
+    --page-line: #23232f;
+    --page-text: #e5e7eb;
+    --page-muted: #9ca3af;
+  }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--page-bg);
+    color: var(--page-text);
+    font: 13px/1.4 "Montserrat", "Segoe UI", system-ui, sans-serif;
+  }
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    padding: 10px 16px;
+    background: var(--page-bar);
+    border-bottom: 1px solid var(--page-line);
+  }
+  .brand { display: flex; align-items: baseline; gap: 8px; margin-right: auto; }
+  .brand strong { font-size: 15px; font-weight: 700; letter-spacing: 0.01em; }
+  .brand span { color: var(--page-muted); font-size: 12px; }
+  .hint { color: var(--page-muted); font-size: 12px; display: flex; align-items: center; gap: 6px; }
+  kbd {
+    font: 500 11px "JetBrains Mono", ui-monospace, monospace;
+    padding: 2px 6px;
+    border: 1px solid var(--page-line);
+    border-bottom-width: 2px;
+    border-radius: 4px;
+    color: var(--page-text);
+    background: var(--page-bg);
+  }
+  .bar button {
+    font: 500 12px "Montserrat", system-ui, sans-serif;
+    color: var(--page-text);
+    background: transparent;
+    border: 1px solid var(--page-line);
+    border-radius: 6px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  .bar button:hover { border-color: #8b5cf6; }
+  .bar button:focus-visible { outline: 2px solid #a855f7; outline-offset: 2px; }
+  .stage {
+    position: relative;
+    flex: 1;
+    min-height: 420px;
+    background:
+      radial-gradient(circle at 50% 45%, rgba(139, 92, 246, 0.10), transparent 60%),
+      radial-gradient(var(--page-grid) 1px, transparent 1px) 0 0 / 22px 22px,
+      var(--page-bg);
+    overflow: hidden;
+  }
+  @media (max-width: 520px) { .hint-key { display: none; } }
+</style>
+</head>
+<body>
+  <header class="bar">
+    <div class="brand"><strong>EliteUI</strong><span>HTML template 0.1</span></div>
+    <div class="hint hint-key"><kbd>Right Shift</kbd> toggles the window</div>
+    <button type="button" id="reopen">Show window</button>
+  </header>
+  <main class="stage" id="stage" aria-label="Preview"></main>
+
+  <script src="eliteui.js"></script>
+  <script>
+    // Same shape as roblox/Example: CreateWindow -> CreateTab -> components.
+    const Window = EliteUI.CreateWindow({
+      Name: "EliteUI Showcase",
+      Subtitle: "v0.1",
+      LoadingTitle: "Loading EliteUI...",
+      Parent: document.getElementById("stage"),
+      ToggleKey: "RightShift",
+      User: { Name: "Guest" },
+      SnowEffect: { Enabled: true, ParticleCount: 40, Speed: 1, Glow: true },
+      Theme: {
+        Primary: EliteUI.Color3.fromRGB(139, 92, 246),
+        Background: EliteUI.Color3.fromRGB(15, 15, 20),
+        Secondary: EliteUI.Color3.fromRGB(30, 30, 40),
+        Text: "#ffffff",
+        TextSecondary: "#9ca3af",
+        Accent: EliteUI.Color3.fromRGB(168, 85, 247)
+      }
+    });
+
+    // ---- Home
+    const Home = Window.CreateTab("Home", "home");
+    Home.CreateSection("Welcome", "star");
+    Home.CreateParagraph({
+      Title: "One API, every platform",
+      Content: "This window is built with the same calls as the Roblox library: CreateWindow, CreateTab, CreateToggle and the rest. Use it as the reference look for new ports."
+    });
+    const status = Home.CreateLabel("Last action: none yet");
+    Home.CreateButton({
+      Name: "Send a notification",
+      Callback: () => {
+        Window.Notify({ Title: "Hello from EliteUI", Content: "Notifications slide in from the bottom right.", Duration: 3, Icon: "bell" });
+        status.SetText("Last action: sent a notification");
+      }
+    });
+    Home.CreateSection("Shortcuts", "zap");
+    Home.CreateParagraph({
+      Title: "Open and close",
+      Content: "Press Right Shift on a keyboard. On touch screens, hold three fingers for 0.8 seconds or tap the round button."
+    });
+
+    // ---- Components
+    const Comp = Window.CreateTab("Components", "layers");
+    Comp.CreateSection("Inputs", "wrench");
+    Comp.CreateToggle({
+      Name: "Auto-save progress", CurrentValue: true, Flag: "AutoSave",
+      Callback: (v) => status.SetText("Last action: auto-save " + (v ? "on" : "off"))
+    });
+    Comp.CreateSlider({
+      Name: "Master Volume", Min: 0, Max: 100, Increment: 1, Suffix: "%", CurrentValue: 70, Flag: "Volume",
+      Callback: (v) => status.SetText("Last action: volume " + v + "%")
+    });
+    Comp.CreateSlider({ Name: "Field of View", Min: 70, Max: 120, Increment: 5, CurrentValue: 90, Flag: "FOV" });
+    Comp.CreateDropdown({
+      Name: "Graphics Quality", Options: ["Low", "Medium", "High", "Ultra"], CurrentValue: "High", Flag: "Quality",
+      Callback: (q) => status.SetText("Last action: quality set to " + q)
+    });
+    Comp.CreateTextBox({
+      Name: "Display Name", Placeholder: "Type and press Enter",
+      Callback: (t) => status.SetText("Last action: name set to " + (t || "(empty)"))
+    });
+    Comp.CreateSection("Bindings & color", "key");
+    Comp.CreateKeybind({
+      Name: "Quick Menu", CurrentKeybind: "F", Flag: "QuickMenuKey",
+      HoldCallback: () => Window.Notify({ Title: "Quick Menu", Content: "You pressed the bound key.", Duration: 2, Icon: "key" })
+    });
+    Comp.CreateColorPicker({
+      Name: "Highlight Color", CurrentColor: "#22c55e", Flag: "Highlight",
+      Callback: (c) => status.SetText("Last action: highlight " + c)
+    });
+
+    // ---- Sub-tabs
+    const Sub = Window.CreateTab("Sub-tabs", "folder");
+    const Pages = Sub.CreateSubTab(["Graphics", "Audio", "Interface"]);
+    Pages["Graphics"].CreateSection("Display");
+    Pages["Graphics"].CreateToggle({ Name: "V-Sync", CurrentValue: true, Flag: "VSync" });
+    Pages["Graphics"].CreateDropdown({ Name: "Frame Cap", Options: ["30", "60", "120", "Unlimited"], CurrentValue: "60", Flag: "FrameCap" });
+    Pages["Audio"].CreateSection("Mix");
+    Pages["Audio"].CreateSlider({ Name: "Music", Min: 0, Max: 100, Suffix: "%", CurrentValue: 40, Flag: "Music" });
+    Pages["Audio"].CreateSlider({ Name: "Effects", Min: 0, Max: 100, Suffix: "%", CurrentValue: 80, Flag: "Effects" });
+    Pages["Interface"].CreateSection("Layout");
+    Pages["Interface"].CreateToggle({ Name: "Compact Lists", CurrentValue: false, Flag: "Compact" });
+    Pages["Interface"].CreateLabel("Sub-tabs take every component a tab does.");
+
+    // ---- Theme
+    const Theme = Window.CreateTab("Theme", "palette");
+    Theme.CreateSection("Presets", "palette");
+    const presets = { "Violet (default)": "#8b5cf6", "Blurple": "#5865f2", "Emerald": "#10b981", "Rose": "#f43f5e", "Amber": "#f59e0b" };
+    Object.keys(presets).forEach((name) => {
+      Theme.CreateButton({ Name: name, Callback: () => Window.SetTheme({ Primary: presets[name] }) });
+    });
+    Theme.CreateParagraph({
+      Title: "More in Settings",
+      Content: "Click the user panel at the bottom of the sidebar for accent color, UI scale, size presets and saved configs."
+    });
+
+    // Floating toggle button (Roblox: CreateInvisibleButton). Hidden while the window is closed.
+    const toggleButton = Window.CreateInvisibleButton({ Size: 44, TapCount: 1, Image: "menu" });
+    if (Window.GetSetting("InvisibleButton_X") == null) toggleButton.SetPosition(0.92, 0.1);
+
+    document.getElementById("reopen").addEventListener("click", () => Window.Show());
+  </script>
+</body>
+</html>

@@ -6,8 +6,14 @@ EliteUI is a modern, mobile-optimized UI library for Roblox. This project hosts 
 ## Project Structure
 ```
 ├── server.js          # Express server that hosts the library
-├── Loader             # Main EliteUI library code (Lua)
-├── Example            # Example usage script (Lua)
+├── Loader             # Compatibility stub -> roblox/Loader (keeps old URLs working)
+├── roblox/
+│   ├── Loader         # Main EliteUI library code (Lua)
+│   └── Example        # Example usage script (Lua)
+├── html/
+│   ├── index.html     # HTML mockup/template demo (served at /html/)
+│   ├── eliteui.css    # Look of the window, driven by --eui-* theme tokens
+│   └── eliteui.js     # Browser port of the Lua API (CreateWindow, CreateTab, ...)
 ├── public/
 │   ├── index.html     # Documentation website
 │   └── styles.css     # Website styles
@@ -39,6 +45,7 @@ The server runs on port 5000 and is accessible via the Replit webview.
 - `GET /` - Documentation website
 - `GET /Loader` - Main library source code
 - `GET /Example` - Example usage script
+- `GET /html/` - HTML template demo
 - `GET /api/loader-url` - Returns the full loader URL as JSON
 
 ## Technical Details

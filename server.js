@@ -15,15 +15,16 @@ app.use((req, res, next) => {
 });
 
 app.use(express.static('public'));
+app.use('/html', express.static('html'));
 
 app.get('/Loader', (req, res) => {
   res.setHeader('Content-Type', 'text/plain');
-  res.sendFile(path.join(__dirname, 'Loader'));
+  res.sendFile(path.join(__dirname, 'roblox', 'Loader'));
 });
 
 app.get('/Example', (req, res) => {
   res.setHeader('Content-Type', 'text/plain');
-  res.sendFile(path.join(__dirname, 'Example'));
+  res.sendFile(path.join(__dirname, 'roblox', 'Example'));
 });
 
 app.get('/api/loader-url', (req, res) => {

@@ -115,7 +115,7 @@
         <p class="intro-text">Paste the following line at the top of your script. Works on PC executors and mobile injectors.</p>
         <div class="code-block">
           <div class="code-header"><span>Lua</span><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
-          <pre><code id="loader-code">local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/main/Loader"))()</code></pre>
+          <pre><code id="loader-code">local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/main/roblox/Loader"))()</code></pre>
         </div>
         <div class="info-box">
           <strong>Loader URL:</strong>
@@ -391,7 +391,7 @@ Btn:SetImage("star"); Btn:SetSize(60); Btn:SetTapCount(2)</code></pre></div>
           <pre><code>-- EliteUI v3.7.0 Universal Script
 -- PC &amp; Mobile compatible
 
-local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/main/Loader"))()
+local EliteUI = loadstring(game:HttpGet("https://raw.githubusercontent.com/JJ-key/EliteUI/main/roblox/Loader"))()
 
 local Players          = game:GetService("Players")
 local RunService       = game:GetService("RunService")
@@ -442,7 +442,7 @@ local function getNearestPlayer()
     return nearest
 end
 
--- See the full example at: https://raw.githubusercontent.com/JJ-key/EliteUI/main/Example</code></pre>
+-- See the full example at: https://raw.githubusercontent.com/JJ-key/EliteUI/main/roblox/Example</code></pre>
         </div>
         <div class="info-box" style="margin-top:16px">
           <strong>Full Script:</strong>
@@ -457,11 +457,11 @@ end
           <p>Direct access to the library files</p>
         </div>
         <div class="links-list">
-          <a href="https://raw.githubusercontent.com/JJ-key/EliteUI/main/Loader" class="link-item" target="_blank">
+          <a href="https://raw.githubusercontent.com/JJ-key/EliteUI/main/roblox/Loader" class="link-item" target="_blank">
             <div class="link-icon-box"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>
             <div><h4>Loader</h4><p>Main EliteUI library source (raw Lua)</p></div>
           </a>
-          <a href="https://raw.githubusercontent.com/JJ-key/EliteUI/main/Example" class="link-item" target="_blank">
+          <a href="https://raw.githubusercontent.com/JJ-key/EliteUI/main/roblox/Example" class="link-item" target="_blank">
             <div class="link-icon-box"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg></div>
             <div><h4>Example Script</h4><p>Universal example with all components (PC &amp; Mobile)</p></div>
           </a>
@@ -494,7 +494,7 @@ end
       });
     });
 
-    document.getElementById('loader-url').textContent = 'https://raw.githubusercontent.com/JJ-key/EliteUI/main/Loader';
+    document.getElementById('loader-url').textContent = 'https://raw.githubusercontent.com/JJ-key/EliteUI/main/roblox/Loader';
 
     function copyCode(btn) {
       const pre = btn.closest('.code-block').querySelector('pre');
