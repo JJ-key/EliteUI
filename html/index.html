@@ -6,19 +6,18 @@
 <title>EliteUI HTML Template</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="eliteui.css">
 <style>
-  /* Demo page: a top bar over a full-height "game viewport" stage that hosts the window.
-     Single dark look on purpose; EliteUI is a dark overlay UI. */
+  /* Demo page: a thin top bar over a full-height stage that stands in for a game viewport.
+     Deliberately single-theme dark: EliteUI is an overlay that sits on top of a game. */
   :root {
     color-scheme: dark;
-    --page-bg: #0a0a0f;
-    --page-grid: rgba(139, 92, 246, 0.09);
-    --page-bar: #111118;
-    --page-line: #23232f;
-    --page-text: #e5e7eb;
-    --page-muted: #9ca3af;
+    --page-bg: #07060b;
+    --page-bar: #0e0c14;
+    --page-line: #1f1c2a;
+    --page-text: #ece9f5;
+    --page-muted: #9a96ab;
   }
   html, body { height: 100%; }
   body {
@@ -27,37 +26,37 @@
     flex-direction: column;
     background: var(--page-bg);
     color: var(--page-text);
-    font: 13px/1.4 "Montserrat", "Segoe UI", system-ui, sans-serif;
+    font: 13px/1.4 "Geist", "Segoe UI", system-ui, sans-serif;
   }
   .bar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 8px 16px;
+    gap: 8px 18px;
     padding: 10px 16px;
     background: var(--page-bar);
     border-bottom: 1px solid var(--page-line);
   }
   .brand { display: flex; align-items: baseline; gap: 8px; margin-right: auto; }
-  .brand strong { font-size: 15px; font-weight: 700; letter-spacing: 0.01em; }
-  .brand span { color: var(--page-muted); font-size: 12px; }
-  .hint { color: var(--page-muted); font-size: 12px; display: flex; align-items: center; gap: 6px; }
+  .brand strong { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+  .brand span { color: var(--page-muted); font: 500 11.5px "Geist Mono", ui-monospace, monospace; }
+  .hint { display: flex; align-items: center; gap: 6px; color: var(--page-muted); font-size: 12px; }
   kbd {
-    font: 500 11px "JetBrains Mono", ui-monospace, monospace;
     padding: 2px 6px;
     border: 1px solid var(--page-line);
     border-bottom-width: 2px;
-    border-radius: 4px;
-    color: var(--page-text);
+    border-radius: 5px;
     background: var(--page-bg);
+    color: var(--page-text);
+    font: 500 11px "Geist Mono", ui-monospace, monospace;
   }
   .bar button {
-    font: 500 12px "Montserrat", system-ui, sans-serif;
-    color: var(--page-text);
-    background: transparent;
+    padding: 6px 11px;
     border: 1px solid var(--page-line);
-    border-radius: 6px;
-    padding: 6px 10px;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--page-text);
+    font: 500 12px "Geist", system-ui, sans-serif;
     cursor: pointer;
   }
   .bar button:hover { border-color: #8b5cf6; }
@@ -65,21 +64,24 @@
   .stage {
     position: relative;
     flex: 1;
-    min-height: 420px;
-    background:
-      radial-gradient(circle at 50% 45%, rgba(139, 92, 246, 0.10), transparent 60%),
-      radial-gradient(var(--page-grid) 1px, transparent 1px) 0 0 / 22px 22px,
-      var(--page-bg);
+    min-height: 460px;
     overflow: hidden;
+    background:
+      radial-gradient(60% 50% at 20% 80%, rgba(56, 189, 248, 0.08), transparent 70%),
+      radial-gradient(50% 60% at 85% 20%, rgba(236, 72, 153, 0.07), transparent 70%),
+      radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px) 0 0 / 24px 24px,
+      var(--page-bg);
   }
-  @media (max-width: 520px) { .hint-key { display: none; } }
+  @media (max-width: 640px) { .hint { display: none; } }
 </style>
 </head>
 <body>
   <header class="bar">
-    <div class="brand"><strong>EliteUI</strong><span>HTML template 0.1</span></div>
-    <div class="hint hint-key"><kbd>Right Shift</kbd> toggles the window</div>
-    <button type="button" id="reopen">Show window</button>
+    <div class="brand"><strong>EliteUI</strong><span>HTML template 0.2</span></div>
+    <div class="hint"><kbd>Right Shift</kbd> open or close</div>
+    <div class="hint"><kbd>Ctrl K</kbd> search</div>
+    <div class="hint">Right-click any setting for more</div>
+    <button type="button" id="reopen">Show menu</button>
   </header>
   <main class="stage" id="stage" aria-label="Preview"></main>
 
@@ -88,101 +90,139 @@
     // Same shape as roblox/Example: CreateWindow -> CreateTab -> components.
     const Window = EliteUI.CreateWindow({
       Name: "EliteUI Showcase",
-      Subtitle: "v0.1",
-      LoadingTitle: "Loading EliteUI...",
+      Subtitle: "v0.2",
+      LoadingTitle: "Loading EliteUI",
       Parent: document.getElementById("stage"),
       ToggleKey: "RightShift",
       User: { Name: "Guest" },
-      SnowEffect: { Enabled: true, ParticleCount: 40, Speed: 1, Glow: true },
-      Theme: {
-        Primary: EliteUI.Color3.fromRGB(139, 92, 246),
-        Background: EliteUI.Color3.fromRGB(15, 15, 20),
-        Secondary: EliteUI.Color3.fromRGB(30, 30, 40),
-        Text: "#ffffff",
-        TextSecondary: "#9ca3af",
-        Accent: EliteUI.Color3.fromRGB(168, 85, 247)
-      }
+      Layout: "Sidebar",          // "Sidebar" | "Tabs" | "Panels"
+      Palette: "Violet",          // any name in EliteUI.Palettes
+      Backdrop: "Aurora",
+      Particles: "Embers",
+      ParticleCount: 36,
+      HUD: { Watermark: true, ActiveList: true }
     });
 
-    // ---- Home
-    const Home = Window.CreateTab("Home", "home");
-    Home.CreateSection("Welcome", "star");
-    Home.CreateParagraph({
-      Title: "One API, every platform",
-      Content: "This window is built with the same calls as the Roblox library: CreateWindow, CreateTab, CreateToggle and the rest. Use it as the reference look for new ports."
+    // Tour progress: fills as the visitor tries each kind of control.
+    const tried = new Set();
+    const KINDS = ["toggle", "module", "slider", "segmented", "dropdown", "color", "keybind", "textbox"];
+    let tour = null;
+    const touch = (kind) => {
+      tried.add(kind);
+      if (tour) tour.SetValue((tried.size / KINDS.length) * 100);
+    };
+
+    // ---- Overview
+    const Home = Window.CreateTab("Overview", "home", "Live stats and quick actions");
+    Home.CreateSection("Performance", "activity");
+    const fpsGraph = Home.CreateGraph({ Name: "Frame rate", Description: "Measured from this page's render loop", Suffix: "fps" });
+    setInterval(() => fpsGraph.Push(Window.GetFPS()), 300);
+    tour = Home.CreateProgress({
+      Name: "Tour", Description: "Try each kind of control to fill this bar",
+      Text: () => tried.size + " of " + KINDS.length
     });
-    const status = Home.CreateLabel("Last action: none yet");
+
+    Home.CreateSection("Quick actions", "zap");
+    Home.CreateButton({ Name: "Search everything", Style: "Primary", Icon: "search", Callback: () => Window.OpenSearch() });
     Home.CreateButton({
-      Name: "Send a notification",
+      Name: "Switch layout", Description: "Sidebar, Tabs, or Panels like a ClickGUI", Icon: "grid",
       Callback: () => {
-        Window.Notify({ Title: "Hello from EliteUI", Content: "Notifications slide in from the bottom right.", Duration: 3, Icon: "bell" });
-        status.SetText("Last action: sent a notification");
+        const order = EliteUI.Layouts;
+        const next = order[(order.indexOf(Window.GetLayout()) + 1) % order.length];
+        Window.SetLayout(next);
+        Window.Notify({ Title: "Layout: " + next, Content: "Change it any time in Settings, Interface.", Icon: "grid" });
       }
     });
-    Home.CreateSection("Shortcuts", "zap");
+    const types = ["info", "success", "warning", "error"];
+    let typeIndex = 0;
+    Home.CreateButton({
+      Name: "Send a notification", Description: "Cycles through info, success, warning and error", Icon: "bell",
+      Callback: () => {
+        const type = types[typeIndex++ % types.length];
+        Window.Notify({
+          Title: type.charAt(0).toUpperCase() + type.slice(1),
+          Content: "Hover to pause the timer. This one is a " + type + " notification.",
+          Type: type,
+          Actions: type === "info" ? [{ Name: "Open settings", Callback: () => Window.SelectTab("Settings") }] : null
+        });
+      }
+    });
+    Home.CreateButton({
+      Name: "Show a dialog", Icon: "info",
+      Callback: () => Window.Dialog({
+        Title: "Leave this match?",
+        Content: "Dialogs block the menu until you choose. Press Esc or click outside to cancel.",
+        Buttons: [{ Name: "Stay" }, { Name: "Leave", Style: "Danger", Callback: () => Window.Notify({ Title: "You picked Leave", Type: "warning" }) }]
+      })
+    });
     Home.CreateParagraph({
-      Title: "Open and close",
-      Content: "Press Right Shift on a keyboard. On touch screens, hold three fingers for 0.8 seconds or tap the round button."
+      Icon: "sparkles",
+      Title: "Make it yours",
+      Content: "Open Settings from your profile card to pick one of 12 palettes, turn on Chroma, or switch to the Panels layout."
     });
 
-    // ---- Components
-    const Comp = Window.CreateTab("Components", "layers");
-    Comp.CreateSection("Inputs", "wrench");
-    Comp.CreateToggle({
-      Name: "Auto-save progress", CurrentValue: true, Flag: "AutoSave",
-      Callback: (v) => status.SetText("Last action: auto-save " + (v ? "on" : "off"))
+    // ---- Modules: toggles with their own settings (Meteor-style)
+    const Game = Window.CreateTab("Modules", "gamepad", "Toggles that carry their own settings");
+    Game.CreateSection("Movement", "zap");
+    const sprint = Game.CreateModule({
+      Name: "Auto sprint", Description: "Keeps sprint held while you move", Flag: "AutoSprint", CurrentValue: true,
+      Callback: () => touch("module")
     });
-    Comp.CreateSlider({
-      Name: "Master Volume", Min: 0, Max: 100, Increment: 1, Suffix: "%", CurrentValue: 70, Flag: "Volume",
-      Callback: (v) => status.SetText("Last action: volume " + v + "%")
+    sprint.CreateSlider({ Name: "Speed", Min: 1, Max: 3, Increment: 0.1, Suffix: "×", CurrentValue: 1.4, Flag: "SprintSpeed", Callback: () => touch("slider") });
+    sprint.CreateToggle({ Name: "Only on the ground", CurrentValue: true, Flag: "SprintGround", Callback: () => touch("toggle") });
+    const jump = Game.CreateModule({ Name: "Double jump", Description: "Jump again in mid-air", Flag: "DoubleJump", Callback: () => touch("module") });
+    jump.CreateSlider({ Name: "Extra jumps", Min: 1, Max: 3, CurrentValue: 1, Flag: "ExtraJumps" });
+
+    Game.CreateSection("Display", "eye");
+    const dmg = Game.CreateModule({ Name: "Damage numbers", Description: "Floating numbers when you land a hit", Flag: "DamageNumbers", CurrentValue: true, Callback: () => touch("module") });
+    dmg.CreateSegmented({ Name: "Style", Options: ["Classic", "Compact", "Bold"], CurrentValue: "Classic", Flag: "DamageStyle", Callback: () => touch("segmented") });
+    dmg.CreateColorPicker({ Name: "Critical hit color", CurrentColor: "#f59e0b", Flag: "CritColor", Callback: () => touch("color") });
+    Game.CreateToggle({ Name: "Show FPS counter", Flag: "ShowFps", Callback: () => touch("toggle") });
+    Game.CreateToggle({ Name: "Mute when unfocused", Flag: "MuteUnfocused", CurrentValue: true, Callback: () => touch("toggle") });
+
+    // ---- Controls
+    const Controls = Window.CreateTab("Controls", "sliders", "Every input EliteUI ships with");
+    Controls.SetBadge("New");
+    Controls.CreateSection("Values", "sliders");
+    Controls.CreateSlider({ Name: "Master volume", Min: 0, Max: 100, Suffix: "%", CurrentValue: 70, Flag: "Volume", Callback: () => touch("slider") });
+    Controls.CreateSlider({ Name: "Field of view", Description: "Click the number to type an exact value", Min: 70, Max: 120, Increment: 5, Suffix: "°", CurrentValue: 90, Flag: "FOV", Callback: () => touch("slider") });
+    Controls.CreateSegmented({ Name: "Difficulty", Options: ["Easy", "Normal", "Hard"], CurrentValue: "Normal", Flag: "Difficulty", Callback: () => touch("segmented") });
+    Controls.CreateDropdown({ Name: "Graphics quality", Options: ["Low", "Medium", "High", "Ultra"], CurrentValue: "High", Flag: "Quality", Callback: () => touch("dropdown") });
+    Controls.CreateDropdown({
+      Name: "Chat channels", Description: "Pick as many as you like", MultipleOptions: true,
+      Options: ["General", "Team", "Party", "Trade", "System"], CurrentValue: ["General", "Team"], Flag: "Channels",
+      Callback: () => touch("dropdown")
     });
-    Comp.CreateSlider({ Name: "Field of View", Min: 70, Max: 120, Increment: 5, CurrentValue: 90, Flag: "FOV" });
-    Comp.CreateDropdown({
-      Name: "Graphics Quality", Options: ["Low", "Medium", "High", "Ultra"], CurrentValue: "High", Flag: "Quality",
-      Callback: (q) => status.SetText("Last action: quality set to " + q)
+    Controls.CreateDropdown({
+      Name: "Server region", Description: "Long lists get a filter box",
+      Options: ["US East", "US West", "Brazil", "Europe West", "Europe Central", "Middle East", "India", "Singapore", "Japan", "Australia"],
+      CurrentValue: "Europe West", Flag: "Region", Callback: () => touch("dropdown")
     });
-    Comp.CreateTextBox({
-      Name: "Display Name", Placeholder: "Type and press Enter",
-      Callback: (t) => status.SetText("Last action: name set to " + (t || "(empty)"))
+    Controls.CreateSection("Input", "keyboard");
+    Controls.CreateTextBox({ Name: "Display name", Placeholder: "Type and press Enter", Sensitive: true, Flag: "DisplayName", Callback: () => touch("textbox") });
+    Controls.CreateKeybind({
+      Name: "Quick menu", CurrentKeybind: "F", Flag: "QuickMenuKey",
+      Callback: () => touch("keybind"),
+      HoldCallback: () => Window.Notify({ Title: "Quick menu", Content: "You pressed the bound key.", Icon: "keyboard", Duration: 2 })
     });
-    Comp.CreateSection("Bindings & color", "key");
-    Comp.CreateKeybind({
-      Name: "Quick Menu", CurrentKeybind: "F", Flag: "QuickMenuKey",
-      HoldCallback: () => Window.Notify({ Title: "Quick Menu", Content: "You pressed the bound key.", Duration: 2, Icon: "key" })
-    });
-    Comp.CreateColorPicker({
-      Name: "Highlight Color", CurrentColor: "#22c55e", Flag: "Highlight",
-      Callback: (c) => status.SetText("Last action: highlight " + c)
-    });
+    Controls.CreateColorPicker({ Name: "Highlight color", CurrentColor: "#22c55e", Flag: "Highlight", Callback: () => touch("color") });
 
     // ---- Sub-tabs
-    const Sub = Window.CreateTab("Sub-tabs", "folder");
-    const Pages = Sub.CreateSubTab(["Graphics", "Audio", "Interface"]);
-    Pages["Graphics"].CreateSection("Display");
-    Pages["Graphics"].CreateToggle({ Name: "V-Sync", CurrentValue: true, Flag: "VSync" });
-    Pages["Graphics"].CreateDropdown({ Name: "Frame Cap", Options: ["30", "60", "120", "Unlimited"], CurrentValue: "60", Flag: "FrameCap" });
-    Pages["Audio"].CreateSection("Mix");
-    Pages["Audio"].CreateSlider({ Name: "Music", Min: 0, Max: 100, Suffix: "%", CurrentValue: 40, Flag: "Music" });
-    Pages["Audio"].CreateSlider({ Name: "Effects", Min: 0, Max: 100, Suffix: "%", CurrentValue: 80, Flag: "Effects" });
-    Pages["Interface"].CreateSection("Layout");
-    Pages["Interface"].CreateToggle({ Name: "Compact Lists", CurrentValue: false, Flag: "Compact" });
-    Pages["Interface"].CreateLabel("Sub-tabs take every component a tab does.");
+    const Options = Window.CreateTab("Options", "folder", "Sub-tabs group related pages");
+    const Pages = Options.CreateSubTab(["Graphics", "Audio", "Interface"]);
+    Pages.Graphics.CreateSection("Display");
+    Pages.Graphics.CreateToggle({ Name: "V-Sync", CurrentValue: true, Flag: "VSync" });
+    Pages.Graphics.CreateDropdown({ Name: "Frame cap", Options: ["30", "60", "120", "Unlimited"], CurrentValue: "60", Flag: "FrameCap" });
+    Pages.Audio.CreateSection("Mix");
+    Pages.Audio.CreateSlider({ Name: "Music", Min: 0, Max: 100, Suffix: "%", CurrentValue: 40, Flag: "Music" });
+    Pages.Audio.CreateSlider({ Name: "Effects", Min: 0, Max: 100, Suffix: "%", CurrentValue: 80, Flag: "Effects" });
+    Pages.Interface.CreateSection("Layout");
+    Pages.Interface.CreateToggle({ Name: "Compact lists", Flag: "CompactLists" });
+    Pages.Interface.CreateLabel("Sub-tabs take every component a tab does.");
 
-    // ---- Theme
-    const Theme = Window.CreateTab("Theme", "palette");
-    Theme.CreateSection("Presets", "palette");
-    const presets = { "Violet (default)": "#8b5cf6", "Blurple": "#5865f2", "Emerald": "#10b981", "Rose": "#f43f5e", "Amber": "#f59e0b" };
-    Object.keys(presets).forEach((name) => {
-      Theme.CreateButton({ Name: name, Callback: () => Window.SetTheme({ Primary: presets[name] }) });
-    });
-    Theme.CreateParagraph({
-      Title: "More in Settings",
-      Content: "Click the user panel at the bottom of the sidebar for accent color, UI scale, size presets and saved configs."
-    });
-
-    // Floating toggle button (Roblox: CreateInvisibleButton). Hidden while the window is closed.
-    const toggleButton = Window.CreateInvisibleButton({ Size: 44, TapCount: 1, Image: "menu" });
-    if (Window.GetSetting("InvisibleButton_X") == null) toggleButton.SetPosition(0.92, 0.1);
+    // Floating toggle button (Roblox: CreateInvisibleButton). It disappears while the menu is closed.
+    const narrow = window.innerWidth < 700;
+    Window.CreateInvisibleButton({ Size: 46, TapCount: 1, Image: "menu", Position: narrow ? [0.88, 0.955] : [0.05, 0.9] });
 
     document.getElementById("reopen").addEventListener("click", () => Window.Show());
   </script>

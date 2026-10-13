@@ -1,0 +1,13 @@
+{
+  "name": "eliteui-desktop",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Desktop host for the EliteUI HTML template (enables hide-from-screen-capture)",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "^33.2.0"
+  }
+}
