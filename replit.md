@@ -14,6 +14,7 @@ EliteUI is a modern, mobile-optimized UI library for Roblox. This project hosts 
 │   ├── index.html     # HTML mockup/template demo (served at /html/)
 │   ├── eliteui.css    # Look of the window, driven by --eui-* theme tokens
 │   ├── eliteui.js     # Browser port of the Lua API (CreateWindow, CreateTab, ...)
+│   ├── demo/          # Sample capture overlay: stand-in game (world.js) + recorder (capture.js)
 │   └── desktop/       # Electron host: enables hide-from-screen-capture
 ├── public/
 │   ├── index.html     # Documentation website

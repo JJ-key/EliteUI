@@ -1,6 +1,6 @@
 {
   "name": "eliteui-desktop",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Desktop host for the EliteUI HTML template (enables hide-from-screen-capture)",
   "main": "main.js",

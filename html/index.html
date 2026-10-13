@@ -9,8 +9,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
 <link rel="stylesheet" href="eliteui.css">
 <style>
-  /* Demo page: a thin top bar over a full-height stage that stands in for a game viewport.
-     Deliberately single-theme dark: EliteUI is an overlay that sits on top of a game. */
+  /* Demo page: a thin top bar over a stand-in game. EliteUI sits on top of the game the way it
+     would sit on top of a real one. Deliberately single-theme dark. */
   :root {
     color-scheme: dark;
     --page-bg: #07060b;
@@ -40,7 +40,7 @@
   .brand { display: flex; align-items: baseline; gap: 8px; margin-right: auto; }
   .brand strong { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
   .brand span { color: var(--page-muted); font: 500 11.5px "Geist Mono", ui-monospace, monospace; }
-  .hint { display: flex; align-items: center; gap: 6px; color: var(--page-muted); font-size: 12px; }
+  .hint { display: flex; align-items: center; gap: 6px; color: var(--page-muted); font-size: 12px; white-space: nowrap; }
   kbd {
     padding: 2px 6px;
     border: 1px solid var(--page-line);
@@ -61,169 +61,582 @@
   }
   .bar button:hover { border-color: #8b5cf6; }
   .bar button:focus-visible { outline: 2px solid #a855f7; outline-offset: 2px; }
-  .stage {
-    position: relative;
-    flex: 1;
-    min-height: 460px;
-    overflow: hidden;
-    background:
-      radial-gradient(60% 50% at 20% 80%, rgba(56, 189, 248, 0.08), transparent 70%),
-      radial-gradient(50% 60% at 85% 20%, rgba(236, 72, 153, 0.07), transparent 70%),
-      radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px) 0 0 / 24px 24px,
-      var(--page-bg);
+  .stage { position: relative; flex: 1; min-height: 460px; overflow: hidden; background: #0b1020; }
+  .game { position: absolute; inset: 0; display: block; width: 100%; height: 100%; image-rendering: pixelated; cursor: crosshair; outline: none; }
+  .stage-tag {
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.45);
+    color: rgba(255, 255, 255, 0.78);
+    font: 500 11px "Geist Mono", ui-monospace, monospace;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    pointer-events: none;
   }
-  @media (max-width: 640px) { .hint { display: none; } }
+  @media (max-width: 760px) { .hint, .stage-tag { display: none; } }
+
+  /* Widget contents (inside EliteUI's HUD, so the --eui-* theme tokens apply) */
+  .ks { display: grid; gap: 0.3em; }
+  .ks-row { display: flex; justify-content: center; gap: 0.3em; }
+  .ks-row[hidden] { display: none; }
+  .ks-key {
+    width: 2.7em;
+    height: 2.7em;
+    display: grid;
+    place-items: center;
+    border-radius: 0.5em;
+    background: color-mix(in srgb, var(--eui-text) 9%, transparent);
+    box-shadow: inset 0 0 0 1px var(--eui-line);
+    font-weight: 600;
+    transition: background 0.08s, color 0.08s, box-shadow 0.08s, transform 0.08s;
+  }
+  .ks-key.is-down { background: var(--eui-grad); color: var(--eui-on-primary); box-shadow: 0 0 14px -2px var(--eui-glow-strong); transform: scale(0.95); }
+  .ks-wide { width: 4.2em; display: flex; flex-direction: column; justify-content: center; gap: 0.15em; font-size: 0.92em; }
+  .ks-wide small { font: 500 0.82em/1 "Geist Mono", ui-monospace, monospace; opacity: 0.75; }
+  .ks-space { width: 8.7em; height: 1.5em; }
+  .ks-space::after { content: ""; width: 3em; height: 2px; border-radius: 2px; background: currentColor; opacity: 0.7; }
+  .rec { display: flex; align-items: center; gap: 0.55em; font-variant-numeric: tabular-nums; }
+  .rec b { font-weight: 700; letter-spacing: 0.08em; }
+  .rec-dot { width: 0.7em; height: 0.7em; border-radius: 50%; background: #ef4444; box-shadow: 0 0 10px #ef4444; animation: rec-pulse 1.2s ease-in-out infinite; }
+  .rec-dot.is-buffer { background: #22c55e; box-shadow: 0 0 10px #22c55e; animation: none; }
+  .rec-dot.is-idle { background: #8a8698; box-shadow: none; animation: none; }
+  @keyframes rec-pulse { 50% { opacity: 0.35; } }
+  @media (prefers-reduced-motion: reduce) { .rec-dot { animation: none; } }
 </style>
 </head>
 <body>
   <header class="bar">
-    <div class="brand"><strong>EliteUI</strong><span>HTML template 0.2</span></div>
-    <div class="hint"><kbd>Right Shift</kbd> open or close</div>
+    <div class="brand"><strong>EliteUI</strong><span>HTML template 0.3</span></div>
+    <div class="hint"><kbd>Right Shift</kbd> menu</div>
+    <div class="hint"><kbd>F9</kbd> record</div>
+    <div class="hint"><kbd>F2</kbd> screenshot</div>
     <div class="hint"><kbd>Ctrl K</kbd> search</div>
-    <div class="hint">Right-click any setting for more</div>
     <button type="button" id="reopen">Show menu</button>
   </header>
-  <main class="stage" id="stage" aria-label="Preview"></main>
+  <main class="stage" id="stage">
+    <canvas class="game" id="game" tabindex="0" aria-label="Stand-in game view"></canvas>
+    <div class="stage-tag">Stand-in game · A/D walk · Space jump · click for CPS</div>
+  </main>
 
   <script src="eliteui.js"></script>
+  <script src="demo/world.js"></script>
+  <script src="demo/capture.js"></script>
   <script>
-    // Same shape as roblox/Example: CreateWindow -> CreateTab -> components.
+    // EliteUI Capture: a sample overlay for recording a game. The blocky world behind it is a
+    // stand-in for your game; the overlay never draws into it.
+    const world = DemoWorld.create(document.getElementById("game"));
+
     const Window = EliteUI.CreateWindow({
-      Name: "EliteUI Showcase",
-      Subtitle: "v0.2",
-      LoadingTitle: "Loading EliteUI",
+      Name: "EliteUI Capture",
+      Subtitle: "v0.3",
+      LoadingTitle: "Starting capture",
       Parent: document.getElementById("stage"),
       ToggleKey: "RightShift",
       User: { Name: "Guest" },
-      Layout: "Sidebar",          // "Sidebar" | "Tabs" | "Panels"
-      Palette: "Violet",          // any name in EliteUI.Palettes
-      Backdrop: "Aurora",
-      Particles: "Embers",
-      ParticleCount: 36,
-      HUD: { Watermark: true, ActiveList: true }
+      Layout: "Sidebar",
+      Palette: "Violet",
+      Backdrop: "Dim",
+      Particles: "None",
+      HUD: { Watermark: false, ActiveList: false },
+      Sounds: { Enabled: true, Volume: 60, Pack: "Soft" }
     });
+    const setting = (key, fallback) => Window.GetSetting(key, fallback);
+    const flag = (key) => Window.Flags[key].GetValue();
+    const fmtTime = (s) => {
+      s = Math.max(0, Math.floor(s));
+      const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, sec = String(s % 60).padStart(2, "0");
+      return h ? h + ":" + String(m).padStart(2, "0") + ":" + sec : m + ":" + sec;
+    };
+    const fmtSize = (b) => (b >= 1e9 ? (b / 1e9).toFixed(2) + " GB" : b >= 1e6 ? (b / 1e6).toFixed(1) + " MB" : Math.max(0, Math.round(b / 1e3)) + " KB");
+    // Saving files: a plain download link when the page runs on its own. Inside an embedded
+    // preview those are blocked, so it asks the host to save the file instead when the host
+    // offers that (window.claude "downloads"); otherwise the Download action stays hidden.
+    const framed = (() => { try { return window.top !== window.self; } catch (e) { return true; } })();
+    let saver = null;
+    if (window.claude && typeof window.claude.use === "function") {
+      window.claude.use("downloads").then((d) => { saver = d; }).catch(() => {});
+    }
+    const canDownload = () => !framed || !!saver;
+    const make = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
 
-    // Tour progress: fills as the visitor tries each kind of control.
-    const tried = new Set();
-    const KINDS = ["toggle", "module", "slider", "segmented", "dropdown", "color", "keybind", "textbox"];
-    let tour = null;
-    const touch = (kind) => {
-      tried.add(kind);
-      if (tour) tour.SetValue((tried.size / KINDS.length) * 100);
+    // ─── HUD widgets (live on top of the game, even with the menu closed)
+    const hud = {
+      fps: Window.CreateWidget({ Name: "FPS", Icon: "gauge", Position: [0.012, 0.02], Text: "-- FPS", Visible: setting("HudFps", true) }),
+      cps: Window.CreateWidget({ Name: "CPS", Icon: "mouse", Position: [0.012, 0.085], Text: "0 | 0 CPS", Visible: setting("HudCps", true) }),
+      coords: Window.CreateWidget({ Name: "Coordinates", Icon: "compass", Position: [0.012, 0.15], Visible: setting("HudCoords", true) }),
+      clock: Window.CreateWidget({ Name: "Clock", Icon: "clock", Anchor: "TopRight", Position: [0.012, 0.085], Visible: setting("HudClock", false) }),
+      rec: Window.CreateWidget({ Name: "Recording", Anchor: "TopRight", Position: [0.012, 0.02], Visible: false }),
+      keys: Window.CreateWidget({ Name: "Keystrokes", Anchor: "BottomLeft", Position: [0.012, 0.035], Visible: setting("HudKeys", true) })
     };
 
-    // ---- Overview
-    const Home = Window.CreateTab("Overview", "home", "Live stats and quick actions");
-    Home.CreateSection("Performance", "activity");
-    const fpsGraph = Home.CreateGraph({ Name: "Frame rate", Description: "Measured from this page's render loop", Suffix: "fps" });
-    setInterval(() => fpsGraph.Push(Window.GetFPS()), 300);
-    tour = Home.CreateProgress({
-      Name: "Tour", Description: "Try each kind of control to fill this bar",
-      Text: () => tried.size + " of " + KINDS.length
+    // Keystrokes: WASD, mouse buttons with their CPS, space bar
+    const keyEls = {};
+    const ks = make("div", "ks");
+    const row = (...cells) => { const r = make("div", "ks-row"); r.append(...cells); ks.append(r); return r; };
+    const key = (code, label, cls) => { const k = make("span", "ks-key" + (cls ? " " + cls : ""), label); k.dataset.label = label; keyEls[code] = k; return k; };
+    row(key("KeyW", "W"));
+    row(key("KeyA", "A"), key("KeyS", "S"), key("KeyD", "D"));
+    const lmb = key("LMB", "LMB", "ks-wide"), rmb = key("RMB", "RMB", "ks-wide");
+    const lmbCps = make("small", "", "0"), rmbCps = make("small", "", "0");
+    lmb.append(lmbCps);
+    rmb.append(rmbCps);
+    const mouseRow = row(lmb, rmb);
+    const spaceRow = row(key("Space", "", "ks-space"));
+    mouseRow.hidden = !setting("HudKeysMouse", true);
+    spaceRow.hidden = !setting("HudKeysSpace", true);
+    hud.keys.Body.append(ks);
+
+    // Recording status widget
+    const recDot = make("i", "rec-dot");
+    const recText = make("span", "");
+    recText.dataset.text = "";
+    const recLabel = make("b", "", "REC");
+    const recTime = make("span", "", " 0:00");
+    recText.append(recLabel, recTime);
+    const recWrap = make("div", "rec");
+    recWrap.append(recDot, recText);
+    hud.rec.Body.append(recWrap);
+
+    // Real input from the stand-in game for keystrokes and CPS
+    const game = world.canvas;
+    const typing = (t) => !!(t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable));
+    document.addEventListener("keydown", (e) => { if (!typing(e.target) && keyEls[e.code]) keyEls[e.code].classList.add("is-down"); });
+    document.addEventListener("keyup", (e) => { if (keyEls[e.code]) keyEls[e.code].classList.remove("is-down"); });
+    window.addEventListener("blur", () => Object.values(keyEls).forEach((k) => k.classList.remove("is-down")));
+    const clicks = { left: [], right: [] };
+    game.addEventListener("pointerdown", (e) => {
+      if (e.button === 0) { clicks.left.push(performance.now()); lmb.classList.add("is-down"); }
+      if (e.button === 2) { clicks.right.push(performance.now()); rmb.classList.add("is-down"); }
+    });
+    window.addEventListener("pointerup", (e) => {
+      if (e.button === 0) lmb.classList.remove("is-down");
+      if (e.button === 2) rmb.classList.remove("is-down");
+    });
+    game.addEventListener("contextmenu", (e) => e.preventDefault());
+
+    // ─── Recording engine, with the HUD drawn into clips when that setting is on
+    function rrect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, w, h, r);
+      else ctx.rect(x, y, w, h);
+    }
+    function paintHud(ctx, t) {
+      const rootEl = document.querySelector(".eui-root");
+      const cs = getComputedStyle(rootEl);
+      const primary = cs.getPropertyValue("--eui-primary").trim() || "#8b5cf6";
+      const onPrimary = cs.getPropertyValue("--eui-on-primary").trim() || "#ffffff";
+      const style = setting("EliteUI_WidgetStyle", "Glass");
+      const X = (v) => t.dx + (v - t.left) * t.scale;
+      const Y = (v) => t.dy + (v - t.top) * t.scale;
+      ctx.save();
+      ctx.textBaseline = "middle";
+      for (const name of Object.keys(hud)) {
+        const w = hud[name];
+        if (!w.IsVisible()) continue;
+        const r = w.Element.getBoundingClientRect();
+        if (!r.width || !r.height) continue;
+        const fs = parseFloat(getComputedStyle(w.Element).fontSize) * t.scale;
+        ctx.shadowBlur = 0;
+        if (style !== "Minimal") {
+          rrect(ctx, X(r.left), Y(r.top), r.width * t.scale, r.height * t.scale, 9 * t.scale);
+          ctx.fillStyle = style === "Solid" ? "rgba(13, 11, 20, 0.96)" : "rgba(13, 11, 20, 0.62)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(255, 255, 255, 0.14)";
+          ctx.lineWidth = Math.max(1, t.scale);
+          ctx.stroke();
+        } else {
+          ctx.shadowColor = "rgba(0, 0, 0, 0.85)";
+          ctx.shadowBlur = 4 * t.scale;
+        }
+        if (name === "keys") {
+          for (const code of Object.keys(keyEls)) {
+            const k = keyEls[code];
+            if (k.closest("[hidden]")) continue;
+            const kr = k.getBoundingClientRect();
+            const down = k.classList.contains("is-down");
+            rrect(ctx, X(kr.left), Y(kr.top), kr.width * t.scale, kr.height * t.scale, 6 * t.scale);
+            ctx.fillStyle = down ? primary : "rgba(255, 255, 255, 0.1)";
+            ctx.fill();
+            ctx.fillStyle = down ? onPrimary : "#f4f2fa";
+            ctx.textAlign = "center";
+            const cx = X(kr.left + kr.width / 2), cy = Y(kr.top + kr.height / 2);
+            const sub = k.querySelector("small");
+            ctx.font = "600 " + fs + "px Geist, system-ui, sans-serif";
+            if (sub) {
+              ctx.fillText(k.dataset.label, cx, cy - fs * 0.45);
+              ctx.font = "500 " + fs * 0.8 + "px 'Geist Mono', ui-monospace, monospace";
+              ctx.fillText(sub.textContent, cx, cy + fs * 0.55);
+            } else if (k.dataset.label) ctx.fillText(k.dataset.label, cx, cy);
+            else ctx.fillRect(cx - fs * 1.5, cy - t.scale, fs * 3, 2 * t.scale);
+          }
+        } else {
+          const ic = w.Element.querySelector(".eui-widget-icon, .rec-dot");
+          if (ic) {
+            const ir = ic.getBoundingClientRect();
+            ctx.fillStyle = ic.classList.contains("rec-dot") ? getComputedStyle(ic).backgroundColor : primary;
+            ctx.beginPath();
+            ctx.arc(X(ir.left + ir.width / 2), Y(ir.top + ir.height / 2), (ir.width / 2) * 0.75 * t.scale, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          const textEl = w.Element.querySelector("[data-text]") || w.Body;
+          const tr = textEl.getBoundingClientRect();
+          ctx.fillStyle = "#f4f2fa";
+          ctx.textAlign = "left";
+          ctx.font = "500 " + fs + "px Geist, system-ui, sans-serif";
+          const lines = textEl.innerText.split("\n");
+          const lh = tr.height / Math.max(1, lines.length);
+          lines.forEach((line, i) => ctx.fillText(line, X(tr.left), Y(tr.top + lh * (i + 0.5))));
+        }
+      }
+      ctx.restore();
+    }
+    const cap = DemoCapture.create(game, { paintHud });
+    world.onFrame(cap.draw);
+
+    // ─── Record
+    const Record = Window.CreateTab("Record", "video", "Record the game, save replays and take screenshots");
+    if (!cap.supported) {
+      Record.CreateParagraph({ Icon: "alert", Title: "This browser can't record", Content: "Recording needs MediaRecorder. Try a current version of Chrome, Edge, Firefox or Safari." });
+    }
+    const session = Record.CreateStats({ Items: [{ Name: "Duration", Value: "0:00" }, { Name: "Size", Value: "0 KB" }, { Name: "Markers", Value: 0 }, { Name: "Replay", Value: "Off" }] });
+    const recBtn = Record.CreateButton({ Name: "Start recording", Style: "Primary", Icon: "record", Sound: false, Callback: () => toggleRecording() });
+    Record.CreateButton({ Name: "Save replay", Description: "Keeps what the replay buffer is holding", Icon: "history", Sound: false, Callback: () => saveReplay() });
+    Record.CreateButton({ Name: "Take screenshot", Description: "Saves a PNG of the game view", Icon: "camera", Sound: false, Callback: () => screenshot() });
+    Record.CreateButton({ Name: "Add marker", Description: "Marks this moment in the current recording", Icon: "flag", Sound: false, Callback: () => addMarker() });
+
+    Record.CreateSection("Replay buffer", "history");
+    let replayBusy = false;
+    const replay = Record.CreateModule({
+      Name: "Replay buffer", Description: "Keeps the last moments in memory so you can save them after they happen. Uses more CPU while on.",
+      Flag: "ReplayBuffer", CurrentValue: false,
+      Callback: (v) => setReplay(v)
+    });
+    replay.CreateSlider({ Name: "Length", Min: 15, Max: 120, Increment: 15, Suffix: "s", CurrentValue: 30, Flag: "ReplayLength", Callback: () => { if (replay.GetValue()) setReplay(true, true); } });
+
+    Record.CreateSection("Hotkeys", "keyboard");
+    Record.CreateKeybind({ Name: "Start or stop recording", Flag: "KeyRecord", CurrentKeybind: "F9", HoldCallback: () => toggleRecording() });
+    Record.CreateKeybind({ Name: "Save replay", Flag: "KeyReplay", CurrentKeybind: "F8", HoldCallback: () => saveReplay() });
+    Record.CreateKeybind({ Name: "Screenshot", Flag: "KeyShot", CurrentKeybind: "F2", HoldCallback: () => screenshot() });
+    Record.CreateKeybind({ Name: "Add marker", Flag: "KeyMarker", CurrentKeybind: "F4", HoldCallback: () => addMarker() });
+
+    // ─── Clips
+    const Clips = Window.CreateTab("Clips", "film", "Recordings and screenshots from this session");
+    const storage = Clips.CreateStats({ Items: [{ Name: "Clips", Value: 0 }, { Name: "Total size", Value: "0 KB" }] });
+    const library = Clips.CreateList({
+      Name: "Library", Icon: "film",
+      Empty: { Icon: "video", Title: "No clips yet", Content: "Press F9 to record, F8 to save a replay, or F2 for a screenshot. Clips stay here until you reload the page." }
     });
 
-    Home.CreateSection("Quick actions", "zap");
-    Home.CreateButton({ Name: "Search everything", Style: "Primary", Icon: "search", Callback: () => Window.OpenSearch() });
-    Home.CreateButton({
-      Name: "Switch layout", Description: "Sidebar, Tabs, or Panels like a ClickGUI", Icon: "grid",
-      Callback: () => {
-        const order = EliteUI.Layouts;
-        const next = order[(order.indexOf(Window.GetLayout()) + 1) % order.length];
-        Window.SetLayout(next);
-        Window.Notify({ Title: "Layout: " + next, Content: "Change it any time in Settings, Interface.", Icon: "grid" });
-      }
+    // ─── Overlay
+    const Overlay = Window.CreateTab("Overlay", "layers", "Widgets drawn on top of your game");
+    Overlay.CreateButton({ Name: "Edit HUD layout", Style: "Primary", Icon: "move", Sound: false, Callback: () => Window.EditHUD(true) });
+    Overlay.CreateSection("Widgets", "grid");
+    const keysMod = Overlay.CreateModule({ Name: "Keystrokes", Description: "WASD, mouse buttons and the space bar", Flag: "HudKeys", CurrentValue: true, HUD: false, Callback: (v) => hud.keys.SetVisible(v) });
+    keysMod.CreateToggle({ Name: "Mouse buttons", Flag: "HudKeysMouse", CurrentValue: true, HUD: false, Callback: (v) => { mouseRow.hidden = !v; } });
+    keysMod.CreateToggle({ Name: "Space bar", Flag: "HudKeysSpace", CurrentValue: true, HUD: false, Callback: (v) => { spaceRow.hidden = !v; } });
+    const cpsMod = Overlay.CreateModule({ Name: "CPS counter", Description: "Clicks per second", Flag: "HudCps", CurrentValue: true, HUD: false, Callback: (v) => hud.cps.SetVisible(v) });
+    cpsMod.CreateToggle({ Name: "Add left and right together", Flag: "HudCpsTotal", CurrentValue: false, HUD: false });
+    Overlay.CreateToggle({ Name: "FPS counter", Description: "Frames per second", Flag: "HudFps", CurrentValue: true, HUD: false, Callback: (v) => hud.fps.SetVisible(v) });
+    const coordsMod = Overlay.CreateModule({ Name: "Coordinates", Description: "Position in the world", Flag: "HudCoords", CurrentValue: true, HUD: false, Callback: (v) => hud.coords.SetVisible(v) });
+    coordsMod.CreateToggle({ Name: "Show direction", Flag: "HudCoordsDir", CurrentValue: true, HUD: false });
+    const clockMod = Overlay.CreateModule({ Name: "Clock", Description: "Your local time", Flag: "HudClock", CurrentValue: false, HUD: false, Callback: (v) => hud.clock.SetVisible(v) });
+    clockMod.CreateSegmented({ Name: "Format", Options: ["24-hour", "12-hour"], CurrentValue: "24-hour", Flag: "HudClockFormat" });
+    const recMod = Overlay.CreateModule({ Name: "Recording status", Description: "REC timer and replay buffer state", Flag: "HudRec", CurrentValue: true, HUD: false });
+    recMod.CreateToggle({ Name: "Only while capturing", Flag: "HudRecOnly", CurrentValue: true, HUD: false });
+    Overlay.CreateSection("In recordings", "video");
+    Overlay.CreateToggle({
+      Name: "Show HUD in recordings", Description: "Draws your widgets into clips and screenshots. This menu never appears in them.",
+      Flag: "HudInRecordings", CurrentValue: true, HUD: false,
+      Callback: (v) => { if (!cap.configure({ hud: v })) laterNote(); }
     });
-    const types = ["info", "success", "warning", "error"];
-    let typeIndex = 0;
-    Home.CreateButton({
-      Name: "Send a notification", Description: "Cycles through info, success, warning and error", Icon: "bell",
-      Callback: () => {
-        const type = types[typeIndex++ % types.length];
-        Window.Notify({
-          Title: type.charAt(0).toUpperCase() + type.slice(1),
-          Content: "Hover to pause the timer. This one is a " + type + " notification.",
-          Type: type,
-          Actions: type === "info" ? [{ Name: "Open settings", Callback: () => Window.SelectTab("Settings") }] : null
+
+    // ─── Audio
+    const Audio = Window.CreateTab("Audio", "mic", "Sound sources for your recordings");
+    Audio.CreateParagraph({ Icon: "info", Title: "Video only in this preview", Content: "The browser demo records the game view without sound. These are the audio settings the desktop build uses." });
+    Audio.CreateSection("Sources", "volume");
+    const gameAudio = Audio.CreateModule({ Name: "Game audio", Flag: "GameAudio", CurrentValue: true, HUD: false });
+    gameAudio.CreateSlider({ Name: "Volume", Min: 0, Max: 100, Suffix: "%", CurrentValue: 80, Flag: "GameVolume" });
+    const mic = Audio.CreateModule({ Name: "Microphone", Flag: "Mic", CurrentValue: false, HUD: false });
+    mic.CreateDropdown({ Name: "Input device", Options: ["Default microphone", "Headset microphone", "USB microphone"], CurrentValue: "Default microphone", Flag: "MicDevice" });
+    mic.CreateSlider({ Name: "Volume", Min: 0, Max: 100, Suffix: "%", CurrentValue: 100, Flag: "MicVolume" });
+    mic.CreateToggle({ Name: "Noise suppression", Flag: "MicNoise", CurrentValue: true, HUD: false });
+    mic.CreateKeybind({ Name: "Push to talk", Description: "Leave empty to keep the mic open", Flag: "MicPushToTalk" });
+    Audio.CreateSection("Tracks", "sliders");
+    Audio.CreateSegmented({ Name: "Audio tracks", Description: "Separate tracks are easier to edit", Options: ["Mixed", "Separate"], CurrentValue: "Separate", Flag: "AudioTracks" });
+
+    // ─── Output
+    const Output = Window.CreateTab("Output", "hard-drive", "Quality, format and file names");
+    const SIZES = { "720p": [1280, 720], "1080p": [1920, 1080], "1440p": [2560, 1440] };
+    function laterNote() { Window.Notify({ Title: "Saved for next time", Content: "This applies to your next recording.", Icon: "clock" }); }
+    function applyOutput() {
+      const size = SIZES[flag("Resolution")] || SIZES["720p"];
+      const ok = cap.configure({
+        width: size[0], height: size[1],
+        fps: parseInt(flag("FrameRate"), 10) || 60,
+        bitrate: flag("Bitrate"),
+        format: flag("Format")
+      });
+      if (!ok) laterNote();
+    }
+    Output.CreateSection("Video", "video");
+    Output.CreateSegmented({ Name: "Resolution", Options: Object.keys(SIZES), CurrentValue: "720p", Flag: "Resolution", Callback: applyOutput });
+    Output.CreateSegmented({ Name: "Frame rate", Options: ["30 fps", "60 fps"], CurrentValue: "60 fps", Flag: "FrameRate", Callback: applyOutput });
+    Output.CreateSlider({ Name: "Bitrate", Description: "Higher looks better and makes bigger files", Min: 2, Max: 40, CurrentValue: 8, Suffix: "Mbps", Flag: "Bitrate", Callback: applyOutput });
+    const formatNames = cap.formats.length ? cap.formats.map((f) => f.name) : ["WebM"];
+    Output.CreateDropdown({ Name: "Format", Description: "What this browser can record", Options: formatNames, CurrentValue: formatNames[0], Flag: "Format", Callback: applyOutput });
+    Output.CreateSection("Files", "folder");
+    Output.CreateTextBox({ Name: "File name", Description: "{date}, {time} and {n} fill in when you download", Placeholder: "clip-{date}-{time}", CurrentValue: "clip-{date}-{time}", Flag: "FileName", Mono: true });
+    Output.CreateToggle({ Name: "Countdown before recording", Description: "Three seconds to get ready", Flag: "Countdown", CurrentValue: true, HUD: false });
+    if (formatNames.indexOf(flag("Format")) === -1) Window.Flags.Format.SetValue(formatNames[0]);
+    applyOutput();
+    cap.configure({ hud: flag("HudInRecordings") });
+
+    // ─── Actions
+    let starting = false;
+    async function toggleRecording() {
+      if (cap.isRecording()) return stopRecording();
+      if (starting) return;
+      if (!cap.supported) {
+        Window.Notify({ Title: "Recording isn't available", Content: "This browser can't record video. Try a current version of Chrome, Edge or Firefox.", Type: "error" });
+        return;
+      }
+      starting = true;
+      if (flag("Countdown")) await Window.Countdown(3);
+      try {
+        cap.start();
+      } catch (err) {
+        starting = false;
+        Window.Notify({ Title: "Couldn't start recording", Content: String(err && err.message ? err.message : err), Type: "error" });
+        return;
+      }
+      starting = false;
+      Window.PlaySound("record");
+      recBtn.SetText("Stop recording");
+      recBtn.SetIcon("stop");
+      recBtn.SetStyle("Danger");
+      Window.Notify({ Title: "Recording", Content: "Press F9 again to stop.", Icon: "record", Duration: 2.5, Sound: false });
+    }
+    async function stopRecording() {
+      const clip = await cap.stop();
+      Window.PlaySound("stop");
+      recBtn.SetText("Start recording");
+      recBtn.SetIcon("record");
+      recBtn.SetStyle("Primary");
+      if (!clip) return;
+      addClip(clip, "Recording");
+      Window.Notify({
+        Title: "Clip saved", Content: fmtTime(clip.duration) + " · " + fmtSize(clip.size), Type: "success", Sound: false,
+        Actions: [{ Name: "Watch", Callback: () => openClip(clips[clips.length - 1]) }, { Name: "Open clips", Callback: () => Window.SelectTab("Clips") }]
+      });
+    }
+    function setReplay(on, restart) {
+      if (replayBusy) return;
+      if (on && !cap.supported) {
+        replayBusy = true;
+        replay.SetValue(false);
+        replayBusy = false;
+        Window.Notify({ Title: "Replay buffer isn't available", Content: "This browser can't record video.", Type: "error" });
+        return;
+      }
+      cap.setBuffer(on, flag("ReplayLength"));
+      if (!restart) Window.Notify({ Title: on ? "Replay buffer on" : "Replay buffer off", Content: on ? "Press F8 to save the last " + flag("ReplayLength") + " seconds." : "Recent footage is no longer kept.", Icon: "history", Sound: false, Duration: 2.5 });
+    }
+    function saveReplay() {
+      if (!cap.bufferOn()) {
+        Window.Notify({ Title: "Replay buffer is off", Content: "Turn it on to save moments after they happen.", Type: "warning", Actions: [{ Name: "Turn on", Callback: () => replay.SetValue(true) }] });
+        return;
+      }
+      cap.saveBuffer().then((clip) => {
+        if (!clip) return;
+        addClip(clip, "Replay");
+        Window.Notify({ Title: "Replay saved", Content: "The last " + fmtTime(clip.duration) + " is in your clips.", Type: "success", Icon: "history" });
+      });
+    }
+    function screenshot() {
+      Window.PlaySound("shutter");
+      Window.Flash();
+      cap.screenshot().then((clip) => {
+        if (!clip.blob) return;
+        addClip(clip, "Screenshot");
+        Window.Notify({ Title: "Screenshot saved", Content: fmtSize(clip.size) + " PNG", Icon: "camera", Duration: 2, Sound: false });
+      });
+    }
+    function addMarker() {
+      const t = cap.marker();
+      if (t == null) {
+        Window.Notify({ Title: "Nothing to mark", Content: "Markers go into a recording. Press F9 to start one.", Type: "warning" });
+        return;
+      }
+      Window.PlaySound("marker");
+      Window.Notify({ Title: "Marker added", Content: "At " + fmtTime(t) + " in this recording.", Icon: "flag", Duration: 1.8, Sound: false });
+    }
+
+    // ─── Clip library
+    const clips = [];
+    let clipNumber = 0;
+    function fileName(clip) {
+      const d = clip.when;
+      const pad = (n) => String(n).padStart(2, "0");
+      const pattern = (flag("FileName") || "clip-{date}-{time}").trim() || "clip-{date}-{time}";
+      const base = pattern
+        .replace(/\{date\}/g, d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()))
+        .replace(/\{time\}/g, pad(d.getHours()) + "-" + pad(d.getMinutes()) + "-" + pad(d.getSeconds()))
+        .replace(/\{n\}/g, String(clip.number))
+        .replace(/[\\/:*?"<>|]+/g, "-");
+      return base + "." + clip.ext;
+    }
+    function download(clip) {
+      const name = fileName(clip);
+      if (saver) {
+        saver.save({ filename: name, data: clip.blob }).then(
+          () => Window.Notify({ Title: "Saved", Content: name, Type: "success", Icon: "download" }),
+          (err) => {
+            if (err && (err.code === "declined" || err.code === "rate_limited")) return;
+            Window.Notify({ Title: "Couldn't save the clip", Content: (err && err.message) || "Saving isn't available here.", Type: "error" });
+          }
+        );
+        return;
+      }
+      const a = document.createElement("a");
+      a.href = clip.url;
+      a.download = name;
+      document.body.append(a);
+      a.click();
+      a.remove();
+    }
+    function refreshStorage() {
+      storage.Set("Clips", clips.length);
+      storage.Set("Total size", fmtSize(clips.reduce((n, c) => n + c.size, 0)));
+      Clips.SetBadge(clips.length ? String(clips.length) : null);
+    }
+    function metaFor(clip) {
+      if (clip.kind === "image") return "Screenshot · " + fmtSize(clip.size);
+      const m = clip.markers.length;
+      return fmtTime(clip.duration) + " · " + fmtSize(clip.size) + (m ? " · " + m + (m === 1 ? " marker" : " markers") : "");
+    }
+    function addClip(clip, label) {
+      clipNumber += 1;
+      clip.number = clipNumber;
+      clip.when = new Date();
+      clip.url = URL.createObjectURL(clip.blob);
+      clip.title = label + " " + clipNumber;
+      const actions = [{ Name: clip.kind === "image" ? "View" : "Play", Icon: clip.kind === "image" ? "eye" : "play", Callback: () => openClip(clip) }];
+      if (canDownload()) actions.push({ Name: "Download", Icon: "download", Callback: () => download(clip) });
+      actions.push({ Name: "Delete", Icon: "trash", Danger: true, Callback: () => deleteClip(clip) });
+      clip.item = library.Add({
+        Title: clip.title,
+        Meta: metaFor(clip),
+        Image: clip.thumb,
+        Icon: clip.kind === "image" ? "camera" : "video",
+        Badge: clip.kind === "image" ? "PNG" : fmtTime(clip.duration),
+        Actions: actions,
+        Callback: () => openClip(clip)
+      });
+      clips.push(clip);
+      refreshStorage();
+    }
+    function deleteClip(clip) {
+      Window.Dialog({
+        Title: "Delete " + clip.title + "?",
+        Content: "The clip is removed from this session. This can't be undone.",
+        Buttons: [{ Name: "Keep it" }, {
+          Name: "Delete", Style: "Danger", Callback: () => {
+            clip.item.Remove();
+            URL.revokeObjectURL(clip.url);
+            clips.splice(clips.indexOf(clip), 1);
+            refreshStorage();
+          }
+        }]
+      });
+    }
+    function openClip(clip) {
+      if (!clip) return;
+      const wrap = make("div");
+      const media = make("div", "eui-media");
+      let video = null;
+      const fallback = () => {
+        media.textContent = "";
+        const img = new Image();
+        img.alt = "";
+        img.src = clip.thumb;
+        media.append(img, make("div", "eui-media-note", clip.kind === "image" ? "Showing a preview of this screenshot." : "This preview can't play recorded video. The clip is still saved."));
+      };
+      if (clip.kind === "image") {
+        const img = new Image();
+        img.alt = clip.title;
+        img.onerror = fallback;
+        img.src = clip.url;
+        media.append(img);
+      } else {
+        video = document.createElement("video");
+        video.controls = true;
+        video.playsInline = true;
+        video.muted = true;
+        video.addEventListener("error", fallback);
+        video.src = clip.url;
+        media.append(video);
+        video.play().catch(() => {});
+      }
+      wrap.append(media);
+      if (clip.markers.length) {
+        const chips = make("div", "eui-chips");
+        chips.style.marginTop = "10px";
+        clip.markers.forEach((t, i) => {
+          const b = make("button", "eui-chip-btn", "Marker " + (i + 1) + " · " + fmtTime(t));
+          b.type = "button";
+          b.addEventListener("click", () => { if (video) { video.currentTime = t; video.play().catch(() => {}); } });
+          chips.append(b);
         });
+        wrap.append(chips);
       }
-    });
-    Home.CreateButton({
-      Name: "Show a dialog", Icon: "info",
-      Callback: () => Window.Dialog({
-        Title: "Leave this match?",
-        Content: "Dialogs block the menu until you choose. Press Esc or click outside to cancel.",
-        Buttons: [{ Name: "Stay" }, { Name: "Leave", Style: "Danger", Callback: () => Window.Notify({ Title: "You picked Leave", Type: "warning" }) }]
-      })
-    });
-    Home.CreateParagraph({
-      Icon: "sparkles",
-      Title: "Make it yours",
-      Content: "Open Settings from your profile card to pick one of 12 palettes, turn on Chroma, or switch to the Panels layout."
-    });
+      const buttons = [];
+      if (canDownload()) buttons.push({ Name: "Download", Callback: () => download(clip) });
+      buttons.push({ Name: "Close", Style: "Primary" });
+      Window.Dialog({ Title: clip.title, Content: metaFor(clip), Element: wrap, Wide: true, Buttons: buttons, OnClose: () => { if (video) video.pause(); } });
+    }
 
-    // ---- Modules: toggles with their own settings (Meteor-style)
-    const Game = Window.CreateTab("Modules", "gamepad", "Toggles that carry their own settings");
-    Game.CreateSection("Movement", "zap");
-    const sprint = Game.CreateModule({
-      Name: "Auto sprint", Description: "Keeps sprint held while you move", Flag: "AutoSprint", CurrentValue: true,
-      Callback: () => touch("module")
-    });
-    sprint.CreateSlider({ Name: "Speed", Min: 1, Max: 3, Increment: 0.1, Suffix: "×", CurrentValue: 1.4, Flag: "SprintSpeed", Callback: () => touch("slider") });
-    sprint.CreateToggle({ Name: "Only on the ground", CurrentValue: true, Flag: "SprintGround", Callback: () => touch("toggle") });
-    const jump = Game.CreateModule({ Name: "Double jump", Description: "Jump again in mid-air", Flag: "DoubleJump", Callback: () => touch("module") });
-    jump.CreateSlider({ Name: "Extra jumps", Min: 1, Max: 3, CurrentValue: 1, Flag: "ExtraJumps" });
+    // ─── Live updates for the HUD and the Record tab
+    setInterval(() => {
+      const now = performance.now();
+      ["left", "right"].forEach((side) => { while (clicks[side].length && now - clicks[side][0] > 1000) clicks[side].shift(); });
+      const l = clicks.left.length, r = clicks.right.length;
+      lmbCps.textContent = String(l);
+      rmbCps.textContent = String(r);
+      hud.cps.SetText(flag("HudCpsTotal") ? l + r + " CPS" : l + " | " + r + " CPS");
+    }, 100);
+    setInterval(() => {
+      const s = world.state;
+      hud.fps.SetText(Window.GetFPS() + " FPS");
+      hud.coords.SetText("X " + Math.floor(s.x) + "  Y " + s.y + "  Z " + Math.floor(s.z) + (flag("HudCoordsDir") ? "\nFacing " + s.facing : ""));
+      const d = new Date();
+      const h24 = flag("HudClockFormat") === "24-hour";
+      hud.clock.SetText(h24
+        ? String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0")
+        : ((d.getHours() + 11) % 12 + 1) + ":" + String(d.getMinutes()).padStart(2, "0") + (d.getHours() < 12 ? " AM" : " PM"));
 
-    Game.CreateSection("Display", "eye");
-    const dmg = Game.CreateModule({ Name: "Damage numbers", Description: "Floating numbers when you land a hit", Flag: "DamageNumbers", CurrentValue: true, Callback: () => touch("module") });
-    dmg.CreateSegmented({ Name: "Style", Options: ["Classic", "Compact", "Bold"], CurrentValue: "Classic", Flag: "DamageStyle", Callback: () => touch("segmented") });
-    dmg.CreateColorPicker({ Name: "Critical hit color", CurrentColor: "#f59e0b", Flag: "CritColor", Callback: () => touch("color") });
-    Game.CreateToggle({ Name: "Show FPS counter", Flag: "ShowFps", Callback: () => touch("toggle") });
-    Game.CreateToggle({ Name: "Mute when unfocused", Flag: "MuteUnfocused", CurrentValue: true, Callback: () => touch("toggle") });
+      const recording = cap.isRecording(), buffering = cap.bufferOn();
+      recDot.className = "rec-dot" + (recording ? "" : buffering ? " is-buffer" : " is-idle");
+      recLabel.textContent = recording ? "REC" : buffering ? "REPLAY" : "READY";
+      recTime.textContent = recording ? " " + fmtTime(cap.elapsed()) + " · " + fmtSize(cap.size()) : buffering ? " " + fmtTime(cap.bufferAge()) : "";
+      hud.rec.SetVisible(flag("HudRec") && (recording || buffering || !flag("HudRecOnly")));
 
-    // ---- Controls
-    const Controls = Window.CreateTab("Controls", "sliders", "Every input EliteUI ships with");
-    Controls.SetBadge("New");
-    Controls.CreateSection("Values", "sliders");
-    Controls.CreateSlider({ Name: "Master volume", Min: 0, Max: 100, Suffix: "%", CurrentValue: 70, Flag: "Volume", Callback: () => touch("slider") });
-    Controls.CreateSlider({ Name: "Field of view", Description: "Click the number to type an exact value", Min: 70, Max: 120, Increment: 5, Suffix: "°", CurrentValue: 90, Flag: "FOV", Callback: () => touch("slider") });
-    Controls.CreateSegmented({ Name: "Difficulty", Options: ["Easy", "Normal", "Hard"], CurrentValue: "Normal", Flag: "Difficulty", Callback: () => touch("segmented") });
-    Controls.CreateDropdown({ Name: "Graphics quality", Options: ["Low", "Medium", "High", "Ultra"], CurrentValue: "High", Flag: "Quality", Callback: () => touch("dropdown") });
-    Controls.CreateDropdown({
-      Name: "Chat channels", Description: "Pick as many as you like", MultipleOptions: true,
-      Options: ["General", "Team", "Party", "Trade", "System"], CurrentValue: ["General", "Team"], Flag: "Channels",
-      Callback: () => touch("dropdown")
-    });
-    Controls.CreateDropdown({
-      Name: "Server region", Description: "Long lists get a filter box",
-      Options: ["US East", "US West", "Brazil", "Europe West", "Europe Central", "Middle East", "India", "Singapore", "Japan", "Australia"],
-      CurrentValue: "Europe West", Flag: "Region", Callback: () => touch("dropdown")
-    });
-    Controls.CreateSection("Input", "keyboard");
-    Controls.CreateTextBox({ Name: "Display name", Placeholder: "Type and press Enter", Sensitive: true, Flag: "DisplayName", Callback: () => touch("textbox") });
-    Controls.CreateKeybind({
-      Name: "Quick menu", CurrentKeybind: "F", Flag: "QuickMenuKey",
-      Callback: () => touch("keybind"),
-      HoldCallback: () => Window.Notify({ Title: "Quick menu", Content: "You pressed the bound key.", Icon: "keyboard", Duration: 2 })
-    });
-    Controls.CreateColorPicker({ Name: "Highlight color", CurrentColor: "#22c55e", Flag: "Highlight", Callback: () => touch("color") });
+      session.Set("Duration", fmtTime(cap.elapsed()));
+      session.Set("Size", fmtSize(cap.size()));
+      session.Set("Markers", cap.markerCount());
+      session.Set("Replay", buffering ? fmtTime(cap.bufferAge()) + " ready" : "Off");
+      session.SetTone("Duration", recording ? "danger" : null);
+      session.SetTone("Replay", buffering ? "accent" : null);
+    }, 250);
 
-    // ---- Sub-tabs
-    const Options = Window.CreateTab("Options", "folder", "Sub-tabs group related pages");
-    const Pages = Options.CreateSubTab(["Graphics", "Audio", "Interface"]);
-    Pages.Graphics.CreateSection("Display");
-    Pages.Graphics.CreateToggle({ Name: "V-Sync", CurrentValue: true, Flag: "VSync" });
-    Pages.Graphics.CreateDropdown({ Name: "Frame cap", Options: ["30", "60", "120", "Unlimited"], CurrentValue: "60", Flag: "FrameCap" });
-    Pages.Audio.CreateSection("Mix");
-    Pages.Audio.CreateSlider({ Name: "Music", Min: 0, Max: 100, Suffix: "%", CurrentValue: 40, Flag: "Music" });
-    Pages.Audio.CreateSlider({ Name: "Effects", Min: 0, Max: 100, Suffix: "%", CurrentValue: 80, Flag: "Effects" });
-    Pages.Interface.CreateSection("Layout");
-    Pages.Interface.CreateToggle({ Name: "Compact lists", Flag: "CompactLists" });
-    Pages.Interface.CreateLabel("Sub-tabs take every component a tab does.");
+    if (flag("ReplayBuffer")) setReplay(true, true);
 
-    // Floating toggle button (Roblox: CreateInvisibleButton). It disappears while the menu is closed.
-    const narrow = window.innerWidth < 700;
-    Window.CreateInvisibleButton({ Size: 46, TapCount: 1, Image: "menu", Position: narrow ? [0.88, 0.955] : [0.05, 0.9] });
-
+    // Floating toggle button for touch screens (Roblox: CreateInvisibleButton)
+    if (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) {
+      Window.CreateInvisibleButton({ Size: 46, TapCount: 1, Image: "menu", Position: [0.88, 0.955] });
+    }
     document.getElementById("reopen").addEventListener("click", () => Window.Show());
   </script>
 </body>

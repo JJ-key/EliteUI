@@ -5,7 +5,7 @@ A dark, mobile-friendly UI library, moving from Roblox to more platforms.
 | Folder | Platform | Status |
 | --- | --- | --- |
 | [`roblox/`](roblox) | Roblox (Luau) | v3.7, stable |
-| [`html/`](html) | Web (HTML/CSS/JS) | v0.2 template, the reference design for new ports |
+| [`html/`](html) | Web (HTML/CSS/JS) | v0.3 template, the reference design for new ports |
 
 Every port keeps the same API names, so scripts look alike on each platform:
 
@@ -26,7 +26,17 @@ Tab.CreateToggle({ Name: "Enabled", CurrentValue: false, Callback: (v) => consol
 
 The old `.../main/Loader` URL still works. It forwards to `roblox/Loader`.
 
-## HTML template (v0.2)
+## HTML template (v0.3)
+
+EliteUI is an overlay: it sits on top of a game, it isn't the game. The demo in `html/index.html` is **EliteUI Capture**, a sample recording overlay. The blocky world behind it (`html/demo/world.js`) is only a stand-in for your game.
+
+**The demo records for real.** It captures the game view with the browser's MediaRecorder:
+
+- Start and stop recording (F9) with a 3-second countdown and markers (F4)
+- Replay buffer: keeps the last 15 to 120 seconds so you can save a moment after it happens (F8)
+- Screenshots (F2), a clip library with playback, markers you can jump to, and downloads
+- HUD widgets for keystrokes, clicks per second, FPS, coordinates, clock and a REC timer. They can be drawn into clips and screenshots; the menu never is
+- The browser demo records video only. Audio settings are there for the desktop build
 
 **Layouts.** One script, three looks. Pick with `Layout` or let users switch in Settings:
 
@@ -37,7 +47,10 @@ The old `.../main/Loader` URL still works. It forwards to `roblox/Loader`.
 **Components.** Everything from the Roblox build (`CreateButton`, `CreateToggle`, `CreateSlider`, `CreateDropdown`, `CreateTextBox`, `CreateLabel`, `CreateParagraph`, `CreateKeybind`, `CreateColorPicker`, `CreateSubTab`, `CreateSection`), plus:
 
 - `CreateModule`: a toggle that owns nested settings (`mod.CreateSlider(...)` etc.)
-- `CreateSegmented`, `CreateProgress`, `CreateGraph` (live line chart)
+- `CreateSegmented`, `CreateProgress`, `CreateGraph` (live line chart), `CreateStats` (number tiles)
+- `CreateList`: a list with thumbnails, actions and an empty state (`list.Add({ Title, Meta, Image, Actions })`)
+- `Window.CreateWidget`: a HUD widget that stays on screen with the menu closed (`widget.SetText(...)`)
+- `Window.Countdown(3)`, `Window.Flash()`, `Window.PlaySound("record")`, and `Window.Dialog` with media (`Element`, `Wide`)
 - Dropdowns take `MultipleOptions = true`; long lists get a filter box
 - Buttons take `Style = "Primary"` or `"Danger"`; most components take `Description`
 
@@ -47,7 +60,9 @@ The old `.../main/Loader` URL still works. It forwards to `roblox/Loader`.
 - Right-click or long-press any setting: reset it, copy its value, or bind it to a key
 - 12 three-color palettes, a full custom color editor, and Chroma (cycling colors)
 - Glow, roundness, frosted glass, backdrop (Aurora/Dim/None), particles (Snow/Embers), animation level
-- HUD: watermark (name, FPS, clock) and an active-features list
+- Sound effects for every interaction, synthesized in the browser: three packs (Soft, Crisp, Retro), volume, optional hover ticks, and cues like `record`, `stop`, `shutter` and `marker`
+- HUD layout editor: drag any widget, snap to edges and center, and positions are saved. Widget style (Glass, Solid, Minimal) and size are in Settings → HUD
+- Built-in watermark (name, FPS, clock) and an active-features list
 - Streamer mode (blurs your name, avatar and anything marked `Sensitive`) and a panic key
 - Configs: save, load, autoload, and share codes (`EUI1.…`) to import elsewhere
 - Notifications with types, actions and a pause-on-hover timer; `Window.Dialog` for confirmations

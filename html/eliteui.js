@@ -1,14 +1,15 @@
 /*
-  EliteUI — HTML template v0.2 "Glass"
+  EliteUI — HTML template v0.3
   Browser port of roblox/Loader. The API keeps the Lua names so a script reads the same on
   both platforms; only `:` becomes `.`:
 
     Lua:  local Tab = Window:CreateTab("Main", "home")
     JS:   const Tab = Window.CreateTab("Main", "home")
 
-  New in 0.2: three layouts (Sidebar, Tabs, Panels), modules (toggles with nested settings),
-  12 three-color palettes + Chroma, command search, right-click menus with key binds,
-  HUD overlays, streamer mode, capture protection (desktop host), share codes, graphs.
+  Built for overlays that sit on top of a game: three layouts (Sidebar, Tabs, Panels), modules,
+  HUD widgets with a drag-to-place layout editor, synthesized UI sounds, 12 three-color palettes,
+  command search, right-click menus with key binds, streamer mode, capture protection (desktop
+  host), share codes, graphs, stats, lists, countdowns and dialogs with media.
 
   Colors are CSS strings ("#8b5cf6") or EliteUI.Color3.fromRGB(139, 92, 246).
   Keys use KeyboardEvent.code ("ShiftRight"); Roblox names ("RightShift") also work.
@@ -16,7 +17,7 @@
 (function (global) {
   "use strict";
 
-  const VERSION = "0.2.0";
+  const VERSION = "0.3.0";
 
   // ───────────────────────────────────────────────────────────── icons
   // Lucide icons (the Roblox build uses the same set as asset IDs).
@@ -78,15 +79,32 @@
     grid: '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
     flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
     radio: '<path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/>',
-    share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>'
+    share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>',
+    video: '<polygon points="23 7 16 12 23 17 23 7"/><rect width="15" height="14" x="1" y="5" rx="2" ry="2"/>',
+    film: '<rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 3v18"/><path d="M3 7.5h4"/><path d="M3 12h18"/><path d="M3 16.5h4"/><path d="M17 3v18"/><path d="M17 7.5h4"/><path d="M17 16.5h4"/>',
+    camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+    mic: '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
+    record: '<circle cx="12" cy="12" r="7" fill="currentColor" stroke="none"/>',
+    stop: '<rect width="12" height="12" x="6" y="6" rx="2" fill="currentColor" stroke="none"/>',
+    play: '<polygon points="6 3 20 12 6 21 6 3"/>',
+    pause: '<rect width="4" height="16" x="14" y="4" rx="1"/><rect width="4" height="16" x="6" y="4" rx="1"/>',
+    flag: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/>',
+    clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+    mouse: '<rect width="14" height="20" x="5" y="2" rx="7"/><path d="M12 6v4"/>',
+    compass: '<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>',
+    history: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
+    "hard-drive": '<line x1="22" x2="2" y1="12" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" x2="6.01" y1="16" y2="16"/><line x1="10" x2="10.01" y1="16" y2="16"/>',
+    move: '<polyline points="5 9 2 12 5 15"/><polyline points="9 5 12 2 15 5"/><polyline points="15 19 12 22 9 19"/><polyline points="19 9 22 12 19 15"/><line x1="2" x2="22" y1="12" y2="12"/><line x1="12" x2="12" y1="2" y2="22"/>'
   };
   const ICON_ALIASES = {
     world: "globe", bolt: "zap", lightning: "zap", close: "x", delete: "trash", remove: "trash",
     tool: "wrench", avatar: "player", character: "player", user: "player", team: "users",
     combat: "target", crosshair: "target", controller: "gamepad", chart: "activity",
     trending: "activity", vip: "star", notification: "bell", script: "code", terminal: "code",
-    file: "folder", headphones: "music", camera: "image", reset: "rotate", warning: "alert",
-    success: "check-circle", error: "x-circle", panels: "columns", layout: "grid", stream: "radio"
+    file: "folder", headphones: "music", reset: "rotate", warning: "alert",
+    success: "check-circle", error: "x-circle", panels: "columns", layout: "grid", stream: "radio",
+    recording: "record", screenshot: "camera", marker: "flag", replay: "history", storage: "hard-drive",
+    time: "clock", microphone: "mic", clips: "film"
   };
 
   function icon(name) {
@@ -253,6 +271,106 @@
     }
   };
 
+  // ───────────────────────────────────────────────────────────── sound
+  // UI sounds are synthesized with Web Audio: nothing to download, and every sound follows the
+  // Sound pack and Volume settings. The audio context starts on the first click or key press.
+  const SFX = (function () {
+    let ctx = null, out = null, noise = null;
+    const last = {};
+    const PACKS = {
+      Soft: { wave: "sine", pitch: 1, decay: 1, click: 0.6, gain: 1 },
+      Crisp: { wave: "triangle", pitch: 1.25, decay: 0.7, click: 1, gain: 1 },
+      Retro: { wave: "square", pitch: 1, decay: 0.85, click: 0.3, gain: 0.32 }
+    };
+    function ensure() {
+      if (!ctx) {
+        const AC = global.AudioContext || global.webkitAudioContext;
+        if (!AC) return null;
+        try { ctx = new AC(); } catch (e) { return null; }
+        out = ctx.createGain();
+        out.connect(ctx.destination);
+        const len = Math.floor(ctx.sampleRate * 0.6);
+        noise = ctx.createBuffer(1, len, ctx.sampleRate);
+        const d = noise.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      }
+      if (ctx.state === "suspended" && ctx.resume) ctx.resume().catch(() => {});
+      return ctx;
+    }
+    function tone(p, freq, dur, gain, at, glide, wave) {
+      const t = ctx.currentTime + (at || 0);
+      const end = t + dur * p.decay;
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = wave || p.wave;
+      o.frequency.setValueAtTime(freq * p.pitch, t);
+      if (glide) o.frequency.exponentialRampToValueAtTime(glide * p.pitch, end);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain * p.gain), t + 0.005);
+      g.gain.exponentialRampToValueAtTime(0.0001, end + 0.01);
+      o.connect(g);
+      g.connect(out);
+      o.start(t);
+      o.stop(end + 0.03);
+    }
+    function hiss(p, dur, gain, freq, at, sweep, type) {
+      const t = ctx.currentTime + (at || 0);
+      const src = ctx.createBufferSource();
+      src.buffer = noise;
+      const f = ctx.createBiquadFilter();
+      f.type = type || "bandpass";
+      f.frequency.setValueAtTime(freq, t);
+      if (sweep) f.frequency.exponentialRampToValueAtTime(sweep, t + dur);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain * p.click), t + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(f);
+      f.connect(g);
+      g.connect(out);
+      src.start(t, Math.random() * 0.3);
+      src.stop(t + dur + 0.02);
+    }
+    const RECIPES = {
+      hover: (p) => tone(p, 1900, 0.03, 0.03),
+      click: (p) => { hiss(p, 0.03, 0.16, 3200); tone(p, 880, 0.045, 0.09); },
+      tab: (p) => { tone(p, 660, 0.05, 0.08); tone(p, 990, 0.07, 0.06, 0.03); },
+      on: (p) => { tone(p, 620, 0.06, 0.11); tone(p, 930, 0.09, 0.11, 0.055); },
+      off: (p) => { tone(p, 930, 0.06, 0.09); tone(p, 620, 0.09, 0.09, 0.055); },
+      tick: (p, v) => tone(p, 900 + (v == null ? 0.5 : v) * 900, 0.022, 0.045),
+      select: (p) => tone(p, 1175, 0.05, 0.07),
+      pop: (p) => tone(p, 480, 0.08, 0.09, 0, 920),
+      open: (p) => { hiss(p, 0.24, 0.06, 500, 0, 2600, "lowpass"); tone(p, 523, 0.14, 0.06, 0.02); tone(p, 784, 0.2, 0.05, 0.07); },
+      close: (p) => { hiss(p, 0.2, 0.05, 2600, 0, 500, "lowpass"); tone(p, 784, 0.1, 0.05); tone(p, 523, 0.16, 0.05, 0.05); },
+      info: (p) => { tone(p, 880, 0.18, 0.08); tone(p, 1320, 0.24, 0.06, 0.09); },
+      success: (p) => { tone(p, 660, 0.12, 0.08); tone(p, 880, 0.12, 0.08, 0.08); tone(p, 1320, 0.28, 0.07, 0.16); },
+      warning: (p) => { tone(p, 740, 0.12, 0.09); tone(p, 740, 0.18, 0.09, 0.14); },
+      error: (p) => { tone(p, 330, 0.16, 0.1, 0, 0, "triangle"); tone(p, 247, 0.26, 0.1, 0.12, 0, "triangle"); },
+      confirm: (p) => { tone(p, 880, 0.06, 0.08); tone(p, 1175, 0.1, 0.08, 0.05); },
+      record: (p) => { hiss(p, 0.04, 0.12, 2400); tone(p, 440, 0.1, 0.11); tone(p, 880, 0.2, 0.11, 0.09); },
+      stop: (p) => { tone(p, 880, 0.1, 0.1); tone(p, 440, 0.22, 0.1, 0.09); },
+      shutter: (p) => { hiss(p, 0.05, 0.4, 2600, 0, 0, "highpass"); hiss(p, 0.09, 0.3, 1300, 0.06); },
+      marker: (p) => { tone(p, 1568, 0.08, 0.07); tone(p, 2093, 0.14, 0.06, 0.04); },
+      count: (p) => tone(p, 880, 0.1, 0.1)
+    };
+    const GAP = { hover: 45, tick: 28 };
+    return {
+      names: Object.keys(RECIPES),
+      packs: Object.keys(PACKS),
+      unlock: ensure,
+      play(name, volume, pack, value) {
+        const recipe = RECIPES[name];
+        if (!recipe || !(volume > 0)) return;
+        const now = Date.now();
+        if (GAP[name] && now - (last[name] || 0) < GAP[name]) return;
+        last[name] = now;
+        if (!ensure()) return;
+        out.gain.value = Math.min(1, volume) * 0.9;
+        try { recipe(PACKS[pack] || PACKS.Soft, value); } catch (e) { /* a failed sound never breaks the UI */ }
+      }
+    };
+  })();
+
   // ────────────────────────────────────────────────────────── defaults
   const PALETTES = {
     Violet:    { Primary: "#8b5cf6", Accent: "#a855f7", Tertiary: "#c084fc", Background: "#0d0b14", Secondary: "#1b1726" },
@@ -290,7 +408,9 @@
     Roundness: 14,
     HUD: { Watermark: false, ActiveList: false },
     StreamerMode: false,
-    Search: true
+    Search: true,
+    Sounds: { Enabled: true, Volume: 60, Pack: "Soft", Hover: false },
+    WidgetStyle: "Glass"             // "Glass" | "Solid" | "Minimal"
   };
   const THEME_VARS = {
     Primary: "--eui-primary", Accent: "--eui-accent", Tertiary: "--eui-tertiary", Background: "--eui-background",
@@ -326,7 +446,8 @@
     options = options || {};
     const pick = {};
     ["Theme", "Layout", "Palette", "ToggleKey", "PanicKey", "MobileGesture", "Animation", "UIScale", "SnowEffect",
-      "Particles", "ParticleCount", "Backdrop", "Acrylic", "Glow", "Roundness", "HUD", "StreamerMode", "Search"]
+      "Particles", "ParticleCount", "Backdrop", "Acrylic", "Glow", "Roundness", "HUD", "StreamerMode", "Search",
+      "Sounds", "WidgetStyle"]
       .forEach((k) => { pick[k] = options[k]; });
     pick.SaveSettings = {
       FolderName: options.SaveFolder || DEFAULTS.SaveSettings.FolderName,
@@ -383,6 +504,12 @@
       chromaSpeed: pref("EliteUI_ChromaSpeed", 4),
       notifications: pref("EliteUI_ShowNotifications", true),
       palette: pref("EliteUI_Palette", Config.Palette),
+      sound: pref("EliteUI_Sounds", Config.Sounds.Enabled !== false),
+      soundVolume: pref("EliteUI_SoundVolume", Config.Sounds.Volume != null ? Config.Sounds.Volume : 60),
+      soundPack: pref("EliteUI_SoundPack", Config.Sounds.Pack || "Soft"),
+      hoverSound: pref("EliteUI_HoverSounds", !!Config.Sounds.Hover),
+      widgetStyle: pref("EliteUI_WidgetStyle", Config.WidgetStyle || "Glass"),
+      widgetScale: pref("EliteUI_WidgetScale", 100),
       scale: null
     };
     Config.ToggleKey = normalizeKey(pref("EliteUI_ToggleKey", Config.ToggleKey));
@@ -392,6 +519,19 @@
       const v = pref("EliteUI_Color_" + k);
       if (v) Config.Theme[k] = toCss(v);
     });
+
+    // Sounds only play after the user has clicked or pressed a key (browser autoplay rules).
+    let gestured = false;
+    function sfx(name, value) {
+      if (!state.sound || !gestured) return;
+      if (name === "hover" && !state.hoverSound) return;
+      SFX.play(name, state.soundVolume / 100, state.soundPack, value);
+    }
+    const markGesture = () => { gestured = true; if (state.sound) SFX.unlock(); };
+    on(document, "pointerdown", markGesture, true);
+    on(document, "keydown", markGesture, true);
+    W.PlaySound = function (name, value) { sfx(name, value); };
+    W.GetSounds = () => SFX.names.slice();
 
     // ─────────────────────────────────────────────────────────── DOM
     const root = el("div", "eui-root");
@@ -459,7 +599,7 @@
     if (Config.Search) dock.append(searchTrigger());
     dock.append(dockSettings, dockLayout, dockClose);
 
-    const wm = el("div", "eui-hud eui-watermark eui-glass-chip", { "aria-hidden": "true" });
+    const wm = el("div", "eui-hud eui-watermark eui-widget-skin", { "aria-hidden": "true", "data-name": "Watermark" });
     const wmFps = el("span", "eui-wm-stat");
     const wmDot = el("i", "eui-wm-dot");
     const wmFpsText = document.createTextNode("-- fps");
@@ -467,7 +607,7 @@
     const wmTime = el("span", "eui-wm-stat");
     wm.append(makeLogo(), el("span", "eui-wm-name", { text: W.Name }), el("span", "eui-wm-sep"), wmFps, el("span", "eui-wm-sep"), wmTime);
     wm.hidden = true;
-    const activeHud = el("div", "eui-hud eui-active", { "aria-hidden": "true" });
+    const activeHud = el("div", "eui-hud eui-active", { "aria-hidden": "true", "data-name": "Active features" });
     activeHud.hidden = true;
     const layer = el("div", "eui-layer");
     const toasts = el("div", "eui-toasts", { "aria-live": "polite" });
@@ -500,6 +640,9 @@
       root.classList.remove("eui--motion-reduced", "eui--motion-off");
       if (state.motion === "Reduced") root.classList.add("eui--motion-reduced");
       if (state.motion === "Off") root.classList.add("eui--motion-off");
+      root.classList.toggle("eui--widgets-solid", state.widgetStyle === "Solid");
+      root.classList.toggle("eui--widgets-minimal", state.widgetStyle === "Minimal");
+      root.style.setProperty("--eui-widget-scale", String((state.widgetScale || 100) / 100));
     }
     function setLogo(src) {
       logos.forEach((l) => {
@@ -632,12 +775,22 @@
       if (floatButton) floatButton._sync();
       if (!visible) { closePopover(); closeOverlays(); }
     }
-    W.Show = function () { visible = true; applyVisibility(); requestAnimationFrame(relayout); };
-    W.Hide = function () { visible = false; applyVisibility(); };
-    W.Toggle = function () { visible ? W.Hide() : W.Show(); };
+    function setVisible(v, quiet) {
+      if (v && editing) W.EditHUD(false);
+      const changed = v !== visible;
+      visible = v;
+      applyVisibility();
+      if (v) requestAnimationFrame(relayout);
+      if (changed && !quiet) sfx(v ? "open" : "close");
+    }
+    W.Show = function () { setVisible(true); };
+    W.Hide = function () { setVisible(false); };
+    W.Toggle = function () { setVisible(!visible); };
     W.IsVisible = () => visible;
     W.Minimize = function (stateArg) {
-      minimized = stateArg == null ? !minimized : !!stateArg;
+      const next = stateArg == null ? !minimized : !!stateArg;
+      if (next !== minimized) sfx("select");
+      minimized = next;
       win.classList.toggle("is-min", minimized);
       minBtn.setAttribute("aria-label", minimized ? "Restore" : "Minimize");
       minBtn.title = minimized ? "Restore" : "Minimize";
@@ -716,6 +869,7 @@
         if (shown[i]) scrollIntoContainer(list, shown[i]);
       }
       function run(it, b) {
+        sfx("select");
         if (opt.multi) {
           it.selected = !it.selected;
           b.setAttribute("aria-selected", String(!!it.selected));
@@ -785,7 +939,7 @@
       const swBtns = SWATCHES.map((c) => {
         const b = el("button", "eui-cp-sw", { type: "button", "aria-label": c, "aria-pressed": "false" });
         b.style.background = c;
-        b.addEventListener("click", () => { hsv = rgbToHsv(parseColor(c)); update(true); });
+        b.addEventListener("click", () => { sfx("select"); hsv = rgbToHsv(parseColor(c)); update(true); });
         sw.append(b);
         return b;
       });
@@ -865,9 +1019,12 @@
       d.append(el("h3", "", { text: o.Title || "" }));
       if (o.Content) d.append(el("p", "", { text: o.Content }));
       if (o.Code) d.append(el("div", "eui-code", { text: o.Code }));
+      if (o.Element) d.append(o.Element);
+      if (o.Wide) d.classList.add("is-wide");
       const acts = el("div", "eui-dialog-actions");
       const buttons = o.Buttons && o.Buttons.length ? o.Buttons : [{ Name: "OK", Style: "Primary" }];
-      const entry = pushOverlay(ov);
+      const entry = pushOverlay(ov, o.OnClose);
+      sfx("pop");
       let last = null;
       buttons.forEach((b) => {
         const style = b.Style === "Primary" ? "" : b.Style === "Danger" ? " is-danger" : " is-ghost";
@@ -882,6 +1039,33 @@
       root.append(ov);
       if (last) last.focus({ preventScroll: true });
       return { Close: entry.close };
+    };
+    // Big centered countdown (3, 2, 1) for recording and capture tools. Resolves when it ends.
+    W.Countdown = function (seconds) {
+      let n = Math.max(1, Math.round(seconds || 3));
+      return new Promise((resolve) => {
+        const wrap = el("div", "eui-countdown", { role: "status", "aria-live": "assertive" });
+        const num = el("div", "eui-countdown-num");
+        wrap.append(num);
+        root.append(wrap);
+        const step = () => {
+          if (n === 0) { wrap.remove(); resolve(); return; }
+          num.textContent = String(n);
+          num.classList.remove("is-tick");
+          void num.offsetWidth;
+          num.classList.add("is-tick");
+          sfx("count");
+          n -= 1;
+          setTimeout(step, 1000);
+        };
+        step();
+      });
+    };
+    // White flash over the whole screen, like a camera shutter.
+    W.Flash = function () {
+      const f = el("div", "eui-flash", { "aria-hidden": "true" });
+      root.append(f);
+      setTimeout(() => f.remove(), 500);
     };
     function confirmDialog(title, content, action, fn) {
       W.Dialog({ Title: title, Content: content, Buttons: [{ Name: "Cancel" }, { Name: action, Style: "Danger", Callback: fn }] });
@@ -911,6 +1095,7 @@
       root.append(ov);
       const entry = pushOverlay(ov, () => { paletteOpen = null; });
       paletteOpen = input;
+      sfx("pop");
       ov.addEventListener("pointerdown", (e) => { if (e.target === ov) entry.close(); });
 
       let results = [], idx = 0, nodes = [];
@@ -922,7 +1107,8 @@
           const v = c.display ? c.display() : "";
           out.push({ group: "Settings", name: c.name, path: c.path(), icon: c.tab._icon || "sliders", value: v, isOn: v === "On", run: () => jumpTo(c), act: c.activate ? () => c.activate() : null });
         });
-        out.push({ group: "Actions", name: "Open settings", path: "Look, layout, privacy and configs", icon: "settings", run: () => goTab(settingsTab) });
+        out.push({ group: "Actions", name: "Open settings", path: "Theme, layout, sound, HUD and configs", icon: "settings", run: () => goTab(settingsTab) });
+        out.push({ group: "Actions", name: "Edit HUD layout", path: "Move widgets on screen", icon: "move", run: () => W.EditHUD(true) });
         LAYOUTS.forEach((l) => out.push({ group: "Actions", name: "Layout: " + l, path: l === state.layout ? "Current layout" : "Switch layout", icon: "grid", run: () => setLayout(l, true) }));
         out.push({ group: "Actions", name: state.streamer ? "Turn off streamer mode" : "Turn on streamer mode", path: "Privacy", icon: "radio", run: () => flagSet("EliteUI_StreamerMode", !state.streamer) });
         Object.keys(PALETTES).forEach((n) => out.push({ group: "Actions", name: "Palette: " + n, path: "Change colors", icon: "palette", run: () => applyPalette(n) }));
@@ -1035,6 +1221,7 @@
       }
       t.append(ic, bodyEl, x, timer);
       toasts.append(t);
+      if (o.Sound !== false) sfx(typeof o.Sound === "string" ? o.Sound : (["info", "success", "warning", "error"].indexOf(type) !== -1 ? type : "info"));
       while (toasts.children.length > 4) toasts.firstChild.remove();
       timer.addEventListener("animationend", dismiss);
       x.addEventListener("click", dismiss);
@@ -1113,9 +1300,10 @@
       });
     }
     W.SelectTab = function (name) { const t = W.Tabs.find((x) => x.Name === name); if (t) goTab(t); };
-    profile.addEventListener("click", () => goTab(settingsTab));
-    gearBtn.addEventListener("click", () => goTab(settingsTab));
+    profile.addEventListener("click", () => { if (activeTab !== settingsTab) sfx("tab"); goTab(settingsTab); });
+    gearBtn.addEventListener("click", () => { if (activeTab !== settingsTab) sfx("tab"); goTab(settingsTab); });
     dockSettings.addEventListener("click", () => {
+      sfx("tab");
       settingsPanelOpen = !settingsPanelOpen;
       updatePages();
       if (settingsPanelOpen) goTab(settingsTab);
@@ -1136,12 +1324,16 @@
     }
     function placePanels() {
       const rw = root.clientWidth, rh = root.clientHeight;
-      const PW = 244, GAP = 12, TOP = 74;
+      const GAP = 12, TOP = 74;
+      // Narrow the panels (down to 200px) so every tab fits in one row when it can
+      const count = Math.max(1, W.Tabs.filter((t) => t !== settingsTab).length);
+      const PW = Math.max(200, Math.min(244, Math.floor((rw - 32 - (count - 1) * GAP) / count)));
+      panels.style.setProperty("--pw", PW + "px");
       let x = 16, y = TOP;
       W.Tabs.forEach((t) => {
         const s = panelState[t.Name] || {};
         let px, py;
-        if (t === settingsTab && s.x == null) { px = rw - PW - 16; py = TOP; }
+        if (t === settingsTab && s.x == null) { px = Math.round((rw - PW) / 2); py = TOP + 40; }
         else if (s.x != null) { px = s.x; py = s.y; }
         else {
           if (x + PW > rw - 16 && x > 16) { x = 16; y += 46; }
@@ -1201,7 +1393,7 @@
       const Tab = makeContainer(scroll, ctx);
       ctx.tab = Tab;
       Object.assign(Tab, { Name: name, _icon: iconName, _desc: desc, _page: page, _scroll: scroll, _collapseBtn: collapse });
-      collapse.addEventListener("click", () => setCollapsed(Tab, !page.classList.contains("is-collapsed")));
+      collapse.addEventListener("click", () => { sfx("select"); setCollapsed(Tab, !page.classList.contains("is-collapsed")); });
       page.addEventListener("pointerdown", () => { if (state.layout === "Panels") frontPanel(Tab); });
       draggable(head, {
         canStart: () => state.layout === "Panels" && !compact,
@@ -1227,7 +1419,7 @@
         const ic = icon(iconName);
         if (ic) btn.append(ic);
         btn.append(el("span", "eui-nav-label", { text: name }));
-        btn.addEventListener("click", () => selectTab(Tab));
+        btn.addEventListener("click", () => { if (activeTab !== Tab) sfx("tab"); selectTab(Tab); });
         nav.append(btn);
         Tab._button = btn;
       }
@@ -1265,9 +1457,10 @@
     function startBind(c) {
       c.listening = true;
       paintBind(c);
-      W.Notify({ Title: "Press a key", Content: "Binding " + c.name + ". Esc cancels, Backspace clears.", Duration: 3, Icon: "keyboard" });
+      W.Notify({ Title: "Press a key", Content: "Binding " + c.name + ". Esc cancels, Backspace clears.", Duration: 3, Icon: "keyboard", Sound: "pop" });
       capture = (e) => {
         c.listening = false;
+        if (e.code !== "Escape") sfx("confirm");
         if (e.code === "Backspace" || e.code === "Delete") delete binds[c.id];
         else if (e.code !== "Escape") {
           if (e.code === Config.ToggleKey) {
@@ -1280,6 +1473,8 @@
     }
     function openRowMenu(c, point) {
       const items = [];
+      (c.actions || []).forEach((a) => items.push({ label: a.Name, icon: a.Icon, danger: !!a.Danger, action: a.Callback }));
+      if (items.length && (c.reset || c.copyText || c.bindable)) items.push({ separator: true });
       if (c.reset) items.push({ label: "Reset to default", icon: "rotate", action: c.reset });
       if (c.copyText) items.push({ label: "Copy value", icon: "copy", action: () => copyText(c.copyText(), c.name) });
       if (c.bindable) {
@@ -1293,6 +1488,7 @@
         items.push({ label: c.module.isOpen() ? "Hide settings" : "Show settings", icon: "sliders", action: () => c.module.expand(!c.module.isOpen()) });
       }
       if (!items.length) return;
+      sfx("pop");
       openMenu(null, items, { point, label: c.name, title: c.name });
     }
     function attachRowMenu(c) {
@@ -1318,31 +1514,164 @@
     }
 
     // ───────────────────────────────────────────────── active-list HUD
-    const hudItems = new Map();
+    const activeItems = new Map();
     function refreshHud() {
       wm.hidden = !state.watermark;
       activeHud.hidden = !state.activeList;
       const on = controls.filter((c) => (c.type === "toggle" || c.type === "module") && c.hud && c.get());
       const ids = new Set(on.map((c) => c.id));
-      hudItems.forEach((node, id) => {
+      activeItems.forEach((node, id) => {
         if (!ids.has(id)) {
-          hudItems.delete(id);
+          activeItems.delete(id);
           node.classList.add("is-leaving");
           setTimeout(() => node.remove(), 220);
         }
       });
       on.sort((a, b) => b.name.length - a.name.length).forEach((c) => {
-        let node = hudItems.get(c.id);
+        let node = activeItems.get(c.id);
         if (!node) {
-          node = el("div", "eui-active-item eui-glass-chip");
+          node = el("div", "eui-active-item eui-widget-skin");
           node.append(el("i"), el("span", "", { text: c.name }));
-          hudItems.set(c.id, node);
+          activeItems.set(c.id, node);
         }
         activeHud.append(node);
       });
     }
     W.SetWatermark = (v) => flagSet("EliteUI_Watermark", !!v);
     W.SetActiveList = (v) => flagSet("EliteUI_ActiveList", !!v);
+
+    // ───────────────────────────────────────── HUD widgets + layout editor
+    // Widgets sit on top of the game even while the menu is closed. Positions are stored as
+    // fractions from the nearest screen edge, so a widget in the bottom-right stays there when
+    // the window is resized.
+    let hudPos = pref("EliteUI_Widgets", {}) || {};
+    const hudRegistry = new Map();
+    let editing = false, reopenAfterEdit = false;
+    const editor = el("div", "eui-hud-editor", { role: "dialog", "aria-label": "Edit HUD layout" });
+    editor.hidden = true;
+    const guideV = el("i", "eui-guide is-v");
+    const guideH = el("i", "eui-guide is-h");
+    const editBar = el("div", "eui-hud-bar eui-glass-chip");
+    const editReset = el("button", "eui-btn is-ghost", { type: "button", text: "Reset" });
+    const editDone = el("button", "eui-btn", { type: "button", text: "Done" });
+    editBar.append(icon("move"), el("span", "eui-hud-bar-text", { text: "Drag widgets to move them" }), editReset, editDone);
+    editor.append(guideV, guideH, editBar);
+    root.insertBefore(editor, layer);
+
+    function placeHud(item) {
+      const p = hudPos[item.id] || item.def;
+      const st = item.el.style;
+      st.left = st.right = st.top = st.bottom = "";
+      if (p.ax === "r") st.right = p.x * 100 + "%"; else st.left = p.x * 100 + "%";
+      if (p.ay === "b") st.bottom = p.y * 100 + "%"; else st.top = p.y * 100 + "%";
+      item.el.dataset.ax = p.ax;
+      item.el.dataset.ay = p.ay;
+    }
+    function registerHud(id, node, def) {
+      const item = { id, el: node, def };
+      hudRegistry.set(id, item);
+      placeHud(item);
+      draggable(node, {
+        canStart: () => editing,
+        begin(s) {
+          const r = node.getBoundingClientRect(), pr = root.getBoundingClientRect();
+          Object.assign(s, { x0: r.left - pr.left, y0: r.top - pr.top, w: r.width, h: r.height, pw: pr.width, ph: pr.height, nx: r.left - pr.left, ny: r.top - pr.top });
+          node.classList.add("is-dragging");
+        },
+        move(dx, dy, s) {
+          let x = clamp(s.x0 + dx, 0, s.pw - s.w), y = clamp(s.y0 + dy, 0, s.ph - s.h);
+          let gx = null, gy = null;
+          for (const [c, line] of [[12, 12], [(s.pw - s.w) / 2, s.pw / 2], [s.pw - s.w - 12, s.pw - 12]]) {
+            if (Math.abs(x - c) < 8) { x = c; gx = line; break; }
+          }
+          for (const [c, line] of [[12, 12], [(s.ph - s.h) / 2, s.ph / 2], [s.ph - s.h - 12, s.ph - 12]]) {
+            if (Math.abs(y - c) < 8) { y = c; gy = line; break; }
+          }
+          guideV.classList.toggle("is-on", gx != null);
+          guideH.classList.toggle("is-on", gy != null);
+          if (gx != null) guideV.style.left = gx + "px";
+          if (gy != null) guideH.style.top = gy + "px";
+          const st = node.style;
+          st.right = st.bottom = "";
+          st.left = x + "px";
+          st.top = y + "px";
+          s.nx = x;
+          s.ny = y;
+        },
+        end(s) {
+          node.classList.remove("is-dragging");
+          guideV.classList.remove("is-on");
+          guideH.classList.remove("is-on");
+          const right = s.nx + s.w / 2 > s.pw / 2, bottom = s.ny + s.h / 2 > s.ph / 2;
+          hudPos[id] = {
+            ax: right ? "r" : "l", x: (right ? s.pw - s.nx - s.w : s.nx) / s.pw,
+            ay: bottom ? "b" : "t", y: (bottom ? s.ph - s.ny - s.h : s.ny) / s.ph
+          };
+          W.SaveSettings("EliteUI_Widgets", hudPos);
+          placeHud(item);
+          sfx("select");
+        }
+      });
+      return item;
+    }
+    function resetHud() {
+      hudPos = {};
+      W.SaveSettings("EliteUI_Widgets", hudPos);
+      hudRegistry.forEach(placeHud);
+    }
+    registerHud("watermark", wm, { ax: "l", x: 0.012, ay: "t", y: 0.02 });
+    registerHud("active", activeHud, { ax: "r", x: 0.012, ay: "t", y: 0.02 });
+
+    W.EditHUD = function (onArg) {
+      const next = onArg == null ? !editing : !!onArg;
+      if (next === editing) return;
+      editing = next;
+      root.classList.toggle("eui--editing", editing);
+      editor.hidden = !editing;
+      if (editing) {
+        reopenAfterEdit = visible;
+        setVisible(false, true);
+        sfx("open");
+        editDone.focus({ preventScroll: true });
+      } else {
+        sfx("close");
+        if (reopenAfterEdit) setVisible(true, true);
+      }
+    };
+    W.IsEditingHUD = () => editing;
+    W.ResetHUD = resetHud;
+    editDone.addEventListener("click", () => W.EditHUD(false));
+    editReset.addEventListener("click", () => { sfx("select"); resetHud(); });
+
+    W.CreateWidget = function (o) {
+      o = o || {};
+      const name = o.Name || "Widget";
+      const id = "widget:" + (o.Flag || name);
+      const node = el("div", "eui-hud eui-widget eui-widget-skin", { "aria-hidden": "true", "data-name": name });
+      if (o.Icon) {
+        const ic = icon(o.Icon);
+        if (ic) { ic.classList.add("eui-widget-icon"); node.append(ic); }
+      }
+      const bodyEl = el("div", "eui-widget-body", { text: o.Text || "" });
+      node.append(bodyEl);
+      root.insertBefore(node, editor);
+      const position = o.Position || [0.02, 0.02];
+      const anchor = String(o.Anchor || "TopLeft").toLowerCase();
+      registerHud(id, node, {
+        ax: anchor.indexOf("right") !== -1 ? "r" : "l", x: position[0],
+        ay: anchor.indexOf("bottom") !== -1 ? "b" : "t", y: position[1]
+      });
+      let shown = o.Visible !== false;
+      node.hidden = !shown;
+      return {
+        Element: node,
+        Body: bodyEl,
+        SetText: (t) => { const v = t == null ? "" : String(t); if (bodyEl.textContent !== v) bodyEl.textContent = v; },
+        SetVisible: (v) => { shown = !!v; node.hidden = !shown; },
+        IsVisible: () => shown,
+        Destroy: () => { node.remove(); hudRegistry.delete(id); }
+      };
+    };
 
     // ─────────────────────────────────────────────── container + components
     function register(c) {
@@ -1371,7 +1700,11 @@
       let value = current, placed = false;
       const btns = names.map((n) => {
         const b = el("button", "eui-seg-btn", { type: "button", role: opt.tabs ? "tab" : "radio", text: n });
-        b.addEventListener("click", (e) => { e.stopPropagation(); api.select(n, true); });
+        b.addEventListener("click", (e) => {
+          e.stopPropagation();
+          if (n !== value) sfx(opt.tabs ? "tab" : "select");
+          api.select(n, true);
+        });
         seg.append(b);
         return b;
       });
@@ -1380,6 +1713,7 @@
         e.preventDefault();
         const i = names.indexOf(value) + (e.key === "ArrowRight" ? 1 : -1);
         const n = names[(i + names.length) % names.length];
+        sfx(opt.tabs ? "tab" : "select");
         api.select(n, true);
         btns[names.indexOf(n)].focus({ preventScroll: true });
       });
@@ -1453,36 +1787,59 @@
 
       api.CreateButton = function (o) {
         o = o || {};
-        let row, labelSpan;
+        let row, labelSpan, btnEl = null, goEl = null, iconEl = null;
         const fire = () => {
           row.classList.remove("is-pressed");
           void row.offsetWidth;
           row.classList.add("is-pressed");
           setTimeout(() => row.classList.remove("is-pressed"), 220);
+          if (o.Sound !== false) sfx(typeof o.Sound === "string" ? o.Sound : "click");
           safeCall(o.Callback);
         };
         const t = textBlock(o);
-        if (o.Style === "Primary") {
+        const primary = o.Style === "Primary";
+        if (primary) {
           row = el("div", "eui-row is-btn");
-          const btn = el("button", "eui-btn", { type: "button" });
-          if (o.Icon) btn.append(icon(o.Icon));
+          btnEl = el("button", "eui-btn", { type: "button" });
+          iconEl = o.Icon ? icon(o.Icon) : null;
+          if (iconEl) btnEl.append(iconEl);
           labelSpan = el("span", "", { text: o.Name });
-          btn.append(labelSpan);
-          btn.addEventListener("click", fire);
-          row.append(btn);
+          btnEl.append(labelSpan);
+          btnEl.addEventListener("click", fire);
+          row.append(btnEl);
         } else {
           row = el("div", "eui-row is-click is-action" + (o.Style === "Danger" ? " is-danger" : ""), { role: "button", tabindex: "0" });
           labelSpan = t.label.firstChild;
-          const go = el("span", "eui-go", { "aria-hidden": "true" });
-          go.append(icon(o.Icon || "chevron-right"));
-          row.append(t.wrap, go);
+          goEl = el("span", "eui-go", { "aria-hidden": "true" });
+          iconEl = icon(o.Icon || "chevron-right");
+          goEl.append(iconEl);
+          row.append(t.wrap, goEl);
           row.addEventListener("click", fire);
-          row.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fire(); } });
+          row.addEventListener("keydown", (e) => { if (e.target === row && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); fire(); } });
         }
         target().append(row);
-        const ctl = { SetText: (s) => { labelSpan.textContent = s; }, Fire: fire, Instance: row };
-        register(entry({ id: "button:" + ctx.tab.Name + "/" + o.Name, name: o.Name, type: "button", row, bindEl: o.Style === "Primary" ? null : t.bind, bindable: true, activate: fire, display: () => "", api: ctl }));
-        paintBind(byId["button:" + ctx.tab.Name + "/" + o.Name]);
+        const ctl = {
+          Instance: row,
+          Fire: fire,
+          SetText: (str) => { labelSpan.textContent = str; },
+          SetIcon(name) {
+            const next = icon(name);
+            if (!next) return;
+            if (iconEl) iconEl.replaceWith(next);
+            else if (btnEl) btnEl.prepend(next);
+            iconEl = next;
+          },
+          SetStyle(style) {
+            if (btnEl) {
+              btnEl.classList.toggle("is-danger", style === "Danger");
+              btnEl.classList.toggle("is-ghost", style === "Ghost");
+            } else row.classList.toggle("is-danger", style === "Danger");
+          },
+          SetVisible: (v) => { row.hidden = !v; }
+        };
+        const id = "button:" + ctx.tab.Name + "/" + o.Name;
+        register(entry({ id, name: o.Name, type: "button", row, bindEl: primary ? null : t.bind, bindable: true, activate: fire, display: () => "", api: ctl }));
+        paintBind(byId[id]);
         return ctl;
       };
 
@@ -1511,7 +1868,11 @@
           refreshHud();
           if (fire) safeCall(o.Callback, value);
         }
-        row.addEventListener("click", (e) => { if (!e.target.closest(".eui-expand")) set(!value, true); });
+        row.addEventListener("click", (e) => {
+          if (e.target.closest(".eui-expand")) return;
+          set(!value, true);
+          sfx(value ? "on" : "off");
+        });
         const ctl = {
           SetValue: (v) => set(v, true),
           GetValue: () => value,
@@ -1523,7 +1884,8 @@
           display: () => (value ? "On" : "Off"),
           activate: () => {
             set(!value, true);
-            W.Notify({ Title: o.Name, Content: value ? "Turned on" : "Turned off", Duration: 1.6, Icon: "keyboard", Type: value ? "success" : "info" });
+            sfx(value ? "on" : "off");
+            W.Notify({ Title: o.Name, Content: value ? "Turned on" : "Turned off", Duration: 1.6, Icon: "keyboard", Type: value ? "success" : "info", Sound: false });
           },
           reset: () => set(def, true),
           copyText: () => String(value)
@@ -1553,7 +1915,7 @@
           if (open) requestAnimationFrame(relayout);
         };
         expand(!!o.Expanded);
-        r.expandBtn.addEventListener("click", (e) => { e.stopPropagation(); expand(!open); });
+        r.expandBtn.addEventListener("click", (e) => { e.stopPropagation(); sfx("select"); expand(!open); });
         r.c.module = { isOpen: () => open, expand };
         register(r.c);
         paintBind(r.c);
@@ -1597,9 +1959,14 @@
           if (fire && changed) safeCall(o.Callback, v);
         }
         set(pref(key, def), false, false);
+        const userSet = (v) => {
+          const before = value;
+          set(v, true);
+          if (value !== before) sfx("tick", (value - min) / (max - min || 1));
+        };
         const fromPointer = (e) => {
           const r = track.getBoundingClientRect();
-          set(min + clamp((e.clientX - r.left) / r.width, 0, 1) * (max - min), true);
+          userSet(min + clamp((e.clientX - r.left) / r.width, 0, 1) * (max - min));
         };
         track.addEventListener("pointerdown", (e) => { track.setPointerCapture(e.pointerId); track.classList.add("is-drag"); fromPointer(e); });
         track.addEventListener("pointermove", (e) => { if (track.hasPointerCapture(e.pointerId)) fromPointer(e); });
@@ -1609,9 +1976,9 @@
         track.addEventListener("keydown", (e) => {
           const big = Math.max(step, (max - min) / 10);
           const d = { ArrowRight: step, ArrowUp: step, ArrowLeft: -step, ArrowDown: -step, PageUp: big, PageDown: -big }[e.key];
-          if (d) { e.preventDefault(); set(value + d, true); }
-          else if (e.key === "Home") { e.preventDefault(); set(min, true); }
-          else if (e.key === "End") { e.preventDefault(); set(max, true); }
+          if (d) { e.preventDefault(); userSet(value + d); }
+          else if (e.key === "Home") { e.preventDefault(); userSet(min); }
+          else if (e.key === "End") { e.preventDefault(); userSet(max); }
         });
         val.addEventListener("click", () => {
           const input = el("input", "eui-value", { type: "text", inputmode: "decimal", "aria-label": o.Name + " value" });
@@ -1623,7 +1990,7 @@
           const finish = (commit) => {
             if (done) return;
             done = true;
-            if (commit) set(parseFloat(input.value), true);
+            if (commit) userSet(parseFloat(input.value));
             input.replaceWith(val);
           };
           input.addEventListener("keydown", (e) => {
@@ -1682,6 +2049,7 @@
               } else set(opt, true);
             }
           }));
+          sfx("pop");
           openMenu(trig, items, { select: true, multi, search: o.Search != null ? o.Search : opts.length > 7, matchWidth: true, label: o.Name });
         });
         paint();
@@ -1751,7 +2119,7 @@
         const n = el("div", "eui-note", { text: text });
         row.append(n);
         target().append(row);
-        return { SetText: (s) => { n.textContent = s; } };
+        return { Instance: row, SetText: (str) => { n.textContent = str; }, SetVisible: (v) => { row.hidden = !v; } };
       };
 
       api.CreateParagraph = function (o) {
@@ -1765,7 +2133,12 @@
         wrap.append(tt, p);
         row.append(wrap);
         target().append(row);
-        return { SetTitle: (s) => { tt.textContent = s; tt.hidden = !s; }, SetContent: (s) => { p.textContent = s; } };
+        return {
+          Instance: row,
+          SetTitle: (str) => { tt.textContent = str; tt.hidden = !str; },
+          SetContent: (str) => { p.textContent = str; },
+          SetVisible: (v) => { row.hidden = !v; }
+        };
       };
 
       api.CreateKeybind = function (o) {
@@ -1787,11 +2160,13 @@
           if (fire) safeCall(o.Callback, code);
         };
         row.addEventListener("click", () => {
+          sfx("pop");
           paint(true);
           cap.focus({ preventScroll: true });
           capture = (e) => {
-            if (e.code === "Escape") paint(false);
-            else if (e.code === "Backspace" || e.code === "Delete") set(null, true);
+            if (e.code === "Escape") { paint(false); return; }
+            sfx("confirm");
+            if (e.code === "Backspace" || e.code === "Delete") set(null, true);
             else set(e.code, true);
           };
         });
@@ -1828,6 +2203,7 @@
         set(color, false, false);
         row.addEventListener("click", () => {
           if (pop && pop.anchor === chip) { closePopover(); return; }
+          sfx("pop");
           openColorPicker(chip, color, (c) => set(c, true));
         });
         const ctl = { SetColor: (c) => set(c, true), GetColor: () => color, _sync: (c) => set(c, false) };
@@ -1976,6 +2352,119 @@
         return result;
       };
 
+      api.CreateStats = function (o) {
+        o = o || {};
+        const row = el("div", "eui-row eui-stats-row");
+        const grid = el("div", "eui-stats");
+        const cells = {};
+        (o.Items || []).forEach((it) => {
+          const name = typeof it === "string" ? it : it.Name;
+          const cell = el("div", "eui-stat-cell");
+          const v = el("div", "eui-stat-value", { text: it.Value != null ? String(it.Value) : "--" });
+          cell.append(v, el("div", "eui-stat-label", { text: name }));
+          grid.append(cell);
+          cells[name] = { cell, v };
+        });
+        row.append(grid);
+        target().append(row);
+        return {
+          Instance: row,
+          Set(name, value) { const c = cells[name]; if (c && c.v.textContent !== String(value)) c.v.textContent = String(value); },
+          SetTone(name, tone) { const c = cells[name]; if (!c) return; if (tone) c.cell.dataset.tone = tone; else delete c.cell.dataset.tone; },
+          SetVisible: (v) => { row.hidden = !v; }
+        };
+      };
+
+      // A list with its own empty state: clips, files, recent items.
+      api.CreateList = function (o) {
+        o = o || {};
+        const block = el("div", "eui-block");
+        if (o.Name) {
+          const label = el("div", "eui-section");
+          const ic = icon(o.Icon);
+          if (ic) label.append(ic);
+          label.append(el("span", "", { text: o.Name }));
+          block.append(label);
+          sectionName = o.Name;
+        }
+        const listGroup = el("div", "eui-group");
+        block.append(listGroup);
+        host.append(block);
+        group = null;
+        const listPath = path();
+        const empty = o.Empty || {};
+        const emptyRow = el("div", "eui-row eui-empty");
+        const emptyIcon = el("div", "eui-empty-icon");
+        emptyIcon.append(icon(empty.Icon || "folder"));
+        emptyRow.append(emptyIcon, el("div", "eui-para-title", { text: empty.Title || "Nothing here yet" }));
+        if (empty.Content) emptyRow.append(el("p", "eui-para-body", { text: empty.Content }));
+        listGroup.append(emptyRow);
+        const handles = [];
+        const paintEmpty = () => { emptyRow.hidden = handles.length > 0; };
+        const list = {
+          Add(item) {
+            item = item || {};
+            const row = el("div", "eui-row eui-item" + (item.Callback ? " is-click" : ""));
+            const thumb = el("div", "eui-thumb");
+            thumb.append(icon(item.Icon || "image"));
+            const badge = el("span", "eui-thumb-badge");
+            thumb.append(badge);
+            const setImage = (src) => {
+              thumb.style.backgroundImage = src ? 'url("' + String(src).replace(/"/g, "%22") + '")' : "";
+              thumb.classList.toggle("has-image", !!src);
+            };
+            const setBadge = (txt) => { badge.textContent = txt || ""; badge.hidden = !txt; };
+            setImage(item.Image);
+            setBadge(item.Badge);
+            const txt = el("div", "eui-text");
+            const titleLine = el("div", "eui-label");
+            const titleSpan = el("span", "", { text: item.Title || "" });
+            titleLine.append(titleSpan);
+            const meta = el("div", "eui-desc", { text: item.Meta || "" });
+            txt.append(titleLine, meta);
+            const acts = el("div", "eui-item-actions");
+            (item.Actions || []).forEach((a) => {
+              const b = el("button", "eui-icon-btn" + (a.Danger ? " is-danger" : ""), { type: "button", "aria-label": a.Name + (item.Title ? ": " + item.Title : ""), title: a.Name });
+              b.append(icon(a.Icon || "chevron-right"));
+              b.addEventListener("click", (e) => { e.stopPropagation(); sfx("click"); safeCall(a.Callback); });
+              acts.append(b);
+            });
+            row.append(thumb, txt, acts);
+            if (item.Callback) {
+              row.tabIndex = 0;
+              row.setAttribute("role", "button");
+              row.addEventListener("click", () => { sfx("click"); safeCall(item.Callback); });
+              row.addEventListener("keydown", (e) => { if (e.target === row && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); row.click(); } });
+            }
+            if (o.Order === "Oldest") listGroup.insertBefore(row, emptyRow);
+            else listGroup.insertBefore(row, listGroup.firstChild);
+            const c = { tab: ctx.tab, reveal: ctx.reveal.slice(), path: () => listPath, hud: false, id: null, name: item.Title || "Item", type: "item", row, display: () => "", actions: item.Actions || [] };
+            register(c);
+            const handle = {
+              Instance: row,
+              SetTitle(str) { titleSpan.textContent = str; c.name = str; },
+              SetMeta(str) { meta.textContent = str; },
+              SetImage: setImage,
+              SetBadge: setBadge,
+              Remove() {
+                if (!row.parentNode) return;
+                row.remove();
+                handles.splice(handles.indexOf(handle), 1);
+                const i = controls.indexOf(c);
+                if (i !== -1) controls.splice(i, 1);
+                paintEmpty();
+              }
+            };
+            handles.push(handle);
+            paintEmpty();
+            return handle;
+          },
+          Count: () => handles.length,
+          Clear() { handles.slice().forEach((h) => h.Remove()); }
+        };
+        return list;
+      };
+
       api._row = function (node) { target().append(node); return node; };
       return api;
     }
@@ -2039,6 +2528,7 @@
         if (pk && e.code === pk && !isTyping(e.target)) { e.preventDefault(); W.Panic(false); }
         return;
       }
+      if (editing && (e.key === "Escape" || e.code === Config.ToggleKey)) { e.preventDefault(); W.EditHUD(false); return; }
       if (e.key === "Escape") {
         if (pop) { e.preventDefault(); const a = pop.anchor; closePopover(); if (a) a.focus({ preventScroll: true }); return; }
         if (overlays.length) { e.preventDefault(); overlays[overlays.length - 1].close(); return; }
@@ -2047,9 +2537,9 @@
       if (isTyping(e.target)) return;
       if (e.code === Config.ToggleKey) { e.preventDefault(); W.Toggle(); return; }
       if (e.repeat || overlays.length || e.ctrlKey || e.metaKey || e.altKey) return;
-      keybindHolds.forEach((k) => { if (k.get() && k.get() === e.code) k.fn(); });
+      keybindHolds.forEach((k) => { if (k.get() && k.get() === e.code) { e.preventDefault(); k.fn(); } });
       for (const id in binds) {
-        if (binds[id] === e.code && byId[id] && byId[id].activate) byId[id].activate();
+        if (binds[id] === e.code && byId[id] && byId[id].activate) { e.preventDefault(); byId[id].activate(); }
       }
     }, true);
 
@@ -2085,6 +2575,15 @@
           g.style.setProperty("--gy", ev.clientY - gr.top + "px");
         }
       });
+    });
+
+    // Hover ticks (Settings → Interface → Sound → Hover sounds)
+    let lastHover = null;
+    on(root, "pointerover", (e) => {
+      if (e.pointerType !== "mouse" || !state.hoverSound) return;
+      const t = e.target.closest && e.target.closest(".eui-nav-item, .eui-row.is-click, .eui-tile, .eui-menu-item, .eui-seg-btn, .eui-btn, .eui-palette-item, .eui-icon-btn");
+      if (t && t !== lastHover) sfx("hover");
+      lastHover = t;
     });
 
     // ───────────────────────────────────────── configs + share codes
@@ -2189,8 +2688,8 @@
     // ───────────────────────────────────────────── built-in settings
     let layoutCtl = null;
     function buildSettings(S) {
-      const P = S.CreateSubTab(["Appearance", "Interface", "Privacy", "Configs"]);
-      const A = P.Appearance, I = P.Interface, V = P.Privacy, C = P.Configs;
+      const P = S.CreateSubTab(["Theme", "Interface", "HUD", "Privacy", "Configs"]);
+      const A = P.Theme, I = P.Interface, H = P.HUD, V = P.Privacy, C = P.Configs;
 
       A.CreateSection("Color palette", "palette");
       const tiles = el("div", "eui-tiles", { role: "group", "aria-label": "Palettes" });
@@ -2201,7 +2700,7 @@
         b.style.setProperty("--b", p.Accent);
         b.style.setProperty("--c", p.Tertiary);
         b.append(el("i"), el("span", "", { text: n }));
-        b.addEventListener("click", () => applyPalette(n));
+        b.addEventListener("click", () => { sfx("select"); applyPalette(n); });
         tiles.append(b);
       });
       paletteTiles = Array.from(tiles.children);
@@ -2234,15 +2733,34 @@
       I.CreateSlider({ Name: "UI scale", Min: 70, Max: 130, Increment: 5, Suffix: "%", Flag: "EliteUI_UIScale", CurrentValue: Math.round((state.scale || 1) * 100), Callback: (v) => W.SetScale(v / 100) });
       I.CreateSegmented({ Name: "Animations", Options: ["Full", "Reduced", "Off"], Flag: "EliteUI_Animations", CurrentValue: state.motion, Callback: (v) => { state.motion = v; applyMaterial(); seedParticles(); } });
 
+      I.CreateSection("Sound", "volume");
+      const snd = I.CreateModule({
+        Name: "UI sounds", Description: "Clicks, toggles, alerts and capture cues", Flag: "EliteUI_Sounds", CurrentValue: state.sound, HUD: false,
+        Callback: (v) => { state.sound = v; if (v) SFX.unlock(); }
+      });
+      snd.CreateSlider({ Name: "Volume", Min: 0, Max: 100, Increment: 5, Suffix: "%", Flag: "EliteUI_SoundVolume", CurrentValue: state.soundVolume, Callback: (v) => { state.soundVolume = v; } });
+      snd.CreateSegmented({ Name: "Sound pack", Options: SFX.packs, Flag: "EliteUI_SoundPack", CurrentValue: state.soundPack, Callback: (v) => { state.soundPack = v; setTimeout(() => sfx("confirm"), 90); } });
+      snd.CreateToggle({ Name: "Hover sounds", Description: "A soft tick when the pointer moves over controls", Flag: "EliteUI_HoverSounds", CurrentValue: state.hoverSound, HUD: false, Callback: (v) => { state.hoverSound = v; } });
+      snd.CreateButton({ Name: "Preview every sound", Icon: "play", Sound: false, Callback: () => {
+        SFX.names.filter((n) => n !== "hover").forEach((n, i) => setTimeout(() => sfx(n, 0.6), i * 320));
+      } });
+
       I.CreateSection("Controls", "keyboard");
       I.CreateKeybind({ Name: "Open and close", Description: "Mobile: hold " + Config.MobileGesture.Fingers + " fingers for " + Config.MobileGesture.HoldDuration + "s", Flag: "EliteUI_ToggleKey", CurrentKeybind: Config.ToggleKey, Callback: (k) => { if (k) Config.ToggleKey = k; } });
       I.CreateParagraph({ Icon: "sparkles", Title: "Shortcuts", Content: MOD + " K searches everything. Right-click (or long-press) any setting to reset it, copy its value or bind it to a key." });
 
-      I.CreateSection("Overlays", "monitor");
-      I.CreateToggle({ Name: "Watermark", Description: "Name, frame rate and clock in the corner", Flag: "EliteUI_Watermark", CurrentValue: state.watermark, Callback: (v) => { state.watermark = v; refreshHud(); } });
-      I.CreateToggle({ Name: "Active features", Description: "Lists every toggle that is on", Flag: "EliteUI_ActiveList", CurrentValue: state.activeList, Callback: (v) => { state.activeList = v; refreshHud(); } });
-      I.CreateToggle({ Name: "Notifications", Flag: "EliteUI_ShowNotifications", CurrentValue: state.notifications, Callback: (v) => { state.notifications = v; W.NotificationsEnabled = v; } });
-      I.CreateButton({ Name: "Send a test notification", Icon: "bell", Callback: () => W.Notify({ Title: "Notifications work", Content: "This is how alerts from your script will look.", Type: "success" }) });
+      I.CreateSection("Notifications", "bell");
+      I.CreateToggle({ Name: "Notifications", Flag: "EliteUI_ShowNotifications", CurrentValue: state.notifications, HUD: false, Callback: (v) => { state.notifications = v; W.NotificationsEnabled = v; } });
+      I.CreateButton({ Name: "Send a test notification", Icon: "bell", Sound: false, Callback: () => W.Notify({ Title: "Notifications work", Content: "This is how alerts from your script will look.", Type: "success" }) });
+
+      H.CreateSection("Widgets", "move");
+      H.CreateButton({ Name: "Edit HUD layout", Style: "Primary", Icon: "move", Sound: false, Callback: () => W.EditHUD(true) });
+      H.CreateSegmented({ Name: "Style", Options: ["Glass", "Solid", "Minimal"], Flag: "EliteUI_WidgetStyle", CurrentValue: state.widgetStyle, Callback: (v) => { state.widgetStyle = v; applyMaterial(); } });
+      H.CreateSlider({ Name: "Size", Min: 70, Max: 150, Increment: 5, Suffix: "%", Flag: "EliteUI_WidgetScale", CurrentValue: state.widgetScale, Callback: (v) => { state.widgetScale = v; applyMaterial(); } });
+      H.CreateButton({ Name: "Reset widget positions", Icon: "rotate", Callback: () => resetHud() });
+      H.CreateSection("Built in", "monitor");
+      H.CreateToggle({ Name: "Watermark", Description: "Name, frame rate and clock", Flag: "EliteUI_Watermark", CurrentValue: state.watermark, HUD: false, Callback: (v) => { state.watermark = v; refreshHud(); } });
+      H.CreateToggle({ Name: "Active features", Description: "Lists every toggle that is on", Flag: "EliteUI_ActiveList", CurrentValue: state.activeList, HUD: false, Callback: (v) => { state.activeList = v; refreshHud(); } });
 
       V.CreateSection("Streaming", "radio");
       V.CreateToggle({ Name: "Streamer mode", Description: "Blurs your name, avatar and anything a script marks as private", Flag: "EliteUI_StreamerMode", CurrentValue: state.streamer, Callback: (v) => { state.streamer = v; applyMaterial(); } });
@@ -2258,7 +2776,7 @@
 
       C.CreateSection("Save", "save");
       let cfgName = "";
-      C.CreateTextBox({ Name: "Config name", Placeholder: "e.g. ranked", Callback: (v) => { cfgName = v.trim(); } });
+      C.CreateTextBox({ Name: "Config name", Placeholder: "e.g. Streaming setup", Callback: (v) => { cfgName = v.trim(); } });
       const picker = { ctl: null };
       C.CreateButton({
         Name: "Save config", Style: "Primary", Icon: "save",
@@ -2390,7 +2908,7 @@
     applyTheme();
     applyMaterial();
     detect();
-    settingsTab = createTab("Settings", "settings", "Look, layout, privacy and saved configs", true);
+    settingsTab = createTab("Settings", "settings", "Theme, layout, sound, HUD and saved configs", true);
     buildSettings(settingsTab);
     setLayout(state.layout, false);
     seedParticles();

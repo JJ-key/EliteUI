@@ -1,5 +1,5 @@
 /*
-  EliteUI — HTML template v0.2 "Glass"
+  EliteUI — HTML template v0.3
   Layout: frosted window → header (brand, search, window controls) over a two-column body:
   sidebar rail with a sliding active pill + profile card, and a page with a title block and
   scrolling grouped sections (rows divided by hairlines, not boxed one by one).
@@ -670,6 +670,44 @@ input.eui-value { width: 72px; border: 0; outline: none; box-shadow: inset 0 0 0
 .eui-stat small { margin-left: 4px; font-size: 11px; letter-spacing: 0; color: var(--eui-text-tertiary); }
 .eui-graph { display: block; width: 100%; height: 64px; }
 
+/* Stats tiles */
+.eui-stats-row { padding: 10px; }
+.eui-stats { width: 100%; display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
+.eui-stat-cell { display: grid; gap: 4px; padding: 10px 12px; border-radius: var(--eui-r-md); background: var(--eui-fill); box-shadow: inset 0 0 0 1px var(--eui-line); min-width: 0; }
+.eui-stat-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 17px/1.1 var(--eui-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.eui-stat-label { font-size: 11.5px; color: var(--eui-text-secondary); }
+.eui-stat-cell[data-tone="danger"] { background: color-mix(in srgb, var(--eui-danger) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--eui-danger) 40%, transparent); }
+.eui-stat-cell[data-tone="danger"] .eui-stat-value { color: #fca5a5; }
+.eui-stat-cell[data-tone="accent"] { background: var(--eui-tint); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--eui-primary) 35%, transparent); }
+.eui-stat-cell[data-tone="accent"] .eui-stat-value { color: var(--eui-primary-text); }
+
+/* List items (clips, files) */
+.eui-item { gap: 12px; padding-top: 9px; padding-bottom: 9px; }
+.eui-thumb {
+  position: relative;
+  flex: none;
+  width: 80px;
+  aspect-ratio: 16 / 9;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--eui-fill) center / cover no-repeat;
+  box-shadow: inset 0 0 0 1px var(--eui-line);
+  color: var(--eui-text-tertiary);
+}
+.eui-thumb .eui-ic { width: 18px; height: 18px; }
+.eui-thumb.has-image .eui-ic { display: none; }
+.eui-thumb-badge { position: absolute; right: 4px; bottom: 4px; padding: 1px 4px; border-radius: 4px; background: rgba(0, 0, 0, 0.7); color: #fff; font: 500 9.5px/1.4 var(--eui-mono); }
+.eui-item-actions { flex: none; display: flex; gap: 2px; }
+.eui-item-actions .eui-icon-btn { width: 30px; height: 30px; }
+.eui-item-actions .eui-icon-btn .eui-ic { width: 15px; height: 15px; }
+.eui-item-actions .eui-icon-btn.is-danger:hover { background: color-mix(in srgb, var(--eui-danger) 18%, transparent); color: #fca5a5; }
+.eui-empty { flex-direction: column; justify-content: center; gap: 6px; padding: 22px 18px; text-align: center; }
+.eui-empty-icon { width: 40px; height: 40px; display: grid; place-items: center; margin-bottom: 4px; border-radius: 12px; background: var(--eui-tint); color: var(--eui-primary-text); }
+.eui-empty-icon .eui-ic { width: 19px; height: 19px; }
+.eui-empty .eui-para-body { max-width: 42ch; }
+
 /* Theme preset tiles (Settings) */
 .eui-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; width: 100%; }
 .eui-tile {
@@ -790,6 +828,14 @@ input.eui-value { width: 72px; border: 0; outline: none; box-shadow: inset 0 0 0
   user-select: all;
 }
 .eui-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+.eui-dialog { max-height: 100%; overflow-y: auto; }
+.eui-dialog.is-wide { width: min(640px, 100%); }
+.eui-media { position: relative; overflow: hidden; aspect-ratio: 16 / 9; margin-top: 4px; border-radius: 10px; background: #000; box-shadow: inset 0 0 0 1px var(--eui-line); }
+.eui-media video, .eui-media img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.eui-media-note { position: absolute; left: 10px; right: 10px; bottom: 10px; padding: 8px 10px; border-radius: 8px; background: rgba(0, 0, 0, 0.72); color: #fff; font-size: 12px; }
+.eui-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.eui-chip-btn { height: 26px; padding: 0 10px; border-radius: 999px; background: var(--eui-fill-hover); box-shadow: inset 0 0 0 1px var(--eui-line); color: var(--eui-text-secondary); font: 500 11.5px/26px var(--eui-mono); }
+.eui-chip-btn:hover { background: var(--eui-tint); color: var(--eui-text); }
 .eui-dialog-actions .eui-btn { width: auto; height: 34px; padding: 0 16px; font-size: 12.5px; }
 
 .eui-palette { align-self: flex-start; width: min(540px, 100%); max-height: 100%; margin-top: min(9%, 48px); display: flex; flex-direction: column; overflow: hidden; }
@@ -851,26 +897,123 @@ input.eui-value { width: 72px; border: 0; outline: none; box-shadow: inset 0 0 0
 .eui-toast:hover .eui-toast-timer { animation-play-state: paused; }
 @keyframes eui-timer { to { transform: scaleX(0); } }
 
-/* ───────────── HUD ───────────── */
-.eui-hud { position: absolute; z-index: 15; display: flex; pointer-events: none; }
-.eui-glass-chip {
+/* ───────────── HUD: widgets that sit on top of the game ───────────── */
+/* Sizes are in em so the "Widget size" setting scales every widget at once. */
+.eui-hud {
+  position: absolute;
+  z-index: 15;
+  display: flex;
+  pointer-events: none;
+  font-size: calc(12px * var(--eui-widget-scale, 1));
+  line-height: 1.2;
+  transition: opacity 0.25s ease;
+}
+.eui-glass-chip,
+.eui-widget-skin {
   background: color-mix(in srgb, var(--eui-background) 70%, transparent);
   -webkit-backdrop-filter: blur(16px) saturate(160%);
   backdrop-filter: blur(16px) saturate(160%);
   box-shadow: inset 0 0 0 1px var(--eui-line-strong), 0 10px 30px -12px rgba(0, 0, 0, 0.7);
 }
-.eui-watermark { top: 12px; left: 12px; height: 34px; align-items: center; gap: 10px; padding: 0 12px 0 5px; border-radius: 11px; font-size: 12px; animation: eui-fade 0.3s ease; }
-.eui-watermark .eui-logo { width: 24px; height: 24px; border-radius: 7px; font-size: 11px; }
+.eui--widgets-solid .eui-widget-skin { background: var(--eui-background); -webkit-backdrop-filter: none; backdrop-filter: none; }
+.eui--widgets-minimal .eui-widget-skin { background: none; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.55); }
+.eui-widget { align-items: center; gap: 0.5em; padding: 0.5em 0.8em; border-radius: 0.75em; font-weight: 500; white-space: nowrap; }
+.eui-widget-icon { width: 1.15em; height: 1.15em; color: var(--eui-primary-text); }
+.eui-widget-body { font-variant-numeric: tabular-nums; white-space: pre; }
+
+.eui-watermark { align-items: center; gap: 0.85em; height: 2.85em; padding: 0 1em 0 0.42em; border-radius: 0.92em; animation: eui-fade 0.3s ease; }
+.eui-watermark .eui-logo { width: 2em; height: 2em; border-radius: 0.6em; font-size: 1em; }
 .eui-wm-name { font-weight: 600; white-space: nowrap; }
-.eui-wm-sep { width: 1px; height: 14px; background: var(--eui-line-strong); }
-.eui-wm-stat { display: flex; align-items: center; gap: 6px; font: 500 11.5px/1 var(--eui-mono); font-variant-numeric: tabular-nums; color: var(--eui-text-secondary); white-space: nowrap; }
-.eui-wm-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
-.eui-active { top: 12px; right: 12px; flex-direction: column; align-items: flex-end; gap: 4px; }
-.eui-active-item { height: 26px; display: flex; align-items: center; gap: 8px; padding: 0 10px 0 9px; border-radius: 8px; font-size: 12px; font-weight: 500; white-space: nowrap; animation: eui-slide-in 0.4s var(--eui-spring); }
-.eui-active-item > i { width: 6px; height: 6px; border-radius: 50%; background: var(--eui-grad); box-shadow: 0 0 8px var(--eui-glow-strong); }
+.eui-wm-sep { width: 1px; height: 1.15em; background: var(--eui-line-strong); }
+.eui-wm-stat { display: flex; align-items: center; gap: 0.5em; font-family: var(--eui-mono); font-size: 0.96em; font-weight: 500; font-variant-numeric: tabular-nums; color: var(--eui-text-secondary); white-space: nowrap; }
+.eui-wm-dot { width: 0.5em; height: 0.5em; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
+.eui-active { flex-direction: column; align-items: flex-end; gap: 0.33em; }
+.eui-active[data-ax="l"] { align-items: flex-start; }
+.eui-active-item { height: 2.2em; display: flex; align-items: center; gap: 0.67em; padding: 0 0.85em 0 0.75em; border-radius: 0.67em; font-weight: 500; white-space: nowrap; animation: eui-slide-in 0.4s var(--eui-spring); }
+.eui-active-item > i { width: 0.5em; height: 0.5em; border-radius: 50%; background: var(--eui-grad); box-shadow: 0 0 8px var(--eui-glow-strong); }
 .eui-active-item.is-leaving { animation: eui-slide-out 0.22s ease forwards; }
 @keyframes eui-slide-in { from { opacity: 0; transform: translateX(16px); } }
 @keyframes eui-slide-out { to { opacity: 0; transform: translateX(16px); } }
+
+/* Layout editor: dim grid, snap guides, and widgets you can drag */
+.eui-hud-editor {
+  position: absolute;
+  inset: 0;
+  z-index: 14;
+  pointer-events: auto;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px) 0 0 / 40px 40px,
+    rgba(4, 3, 8, 0.4);
+  animation: eui-fade 0.25s ease;
+}
+.eui-guide { position: absolute; opacity: 0; background: var(--eui-primary); box-shadow: 0 0 8px var(--eui-glow-strong); pointer-events: none; transition: opacity 0.12s; }
+.eui-guide.is-v { top: 0; bottom: 0; width: 1px; }
+.eui-guide.is-h { left: 0; right: 0; height: 1px; }
+.eui-guide.is-on { opacity: 0.9; }
+.eui-hud-bar {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100% - 24px);
+  padding: 7px 7px 7px 14px;
+  border-radius: 14px;
+  transform: translateX(-50%);
+  color: var(--eui-primary-text);
+}
+.eui-hud-bar-text { color: var(--eui-text); font-size: 12.5px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.eui-hud-bar .eui-btn { width: auto; height: 32px; padding: 0 14px; font-size: 12.5px; flex: none; }
+.eui--editing .eui-hud { z-index: 16; pointer-events: auto; cursor: grab; touch-action: none; outline: 1px dashed color-mix(in srgb, var(--eui-primary) 75%, transparent); outline-offset: 4px; }
+.eui--editing .eui-hud:hover, .eui--editing .eui-hud.is-dragging { outline-style: solid; }
+.eui--editing .eui-hud.is-dragging { cursor: grabbing; }
+.eui--editing .eui-hud::after {
+  content: attr(data-name);
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px);
+  color: var(--eui-primary-text);
+  font: 500 10px/1 var(--eui-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+/* Name tags point toward the middle of the screen so they never leave it */
+.eui--editing .eui-hud[data-ay="t"]::after { bottom: auto; top: calc(100% + 8px); }
+.eui--editing .eui-hud[data-ax="r"]::after { left: auto; right: 0; }
+.eui--editing .eui-active:empty::before {
+  content: "Active features";
+  display: flex;
+  align-items: center;
+  height: 2.2em;
+  padding: 0 0.85em;
+  border-radius: 0.67em;
+  background: color-mix(in srgb, var(--eui-background) 70%, transparent);
+  box-shadow: inset 0 0 0 1px var(--eui-line-strong);
+  color: var(--eui-text-secondary);
+}
+
+/* Countdown and capture flash */
+.eui-countdown { position: absolute; inset: 0; z-index: 45; display: grid; place-items: center; pointer-events: none; }
+.eui-countdown-num {
+  width: 128px;
+  height: 128px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--eui-background) 72%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--eui-primary) 70%, transparent), 0 0 60px -10px var(--eui-glow-strong), 0 30px 60px -20px rgba(0, 0, 0, 0.8);
+  font: 600 58px/1 var(--eui-mono);
+}
+.eui-countdown-num.is-tick { animation: eui-count 1s var(--eui-ease); }
+@keyframes eui-count { 0% { opacity: 0; transform: scale(1.3); } 18% { opacity: 1; transform: scale(1); } 80% { opacity: 1; transform: scale(1); } 100% { opacity: 0.2; transform: scale(0.9); } }
+.eui-flash { position: absolute; inset: 0; z-index: 44; background: #fff; opacity: 0; pointer-events: none; animation: eui-flash-out 0.45s ease-out; }
+@keyframes eui-flash-out { from { opacity: 0.6; } to { opacity: 0; } }
 
 /* ───────────── Loader, key system, float button, grip ───────────── */
 .eui-card {
@@ -976,7 +1119,7 @@ input.eui-value { width: 72px; border: 0; outline: none; box-shadow: inset 0 0 0
   inset: auto;
   left: var(--px, 16px);
   top: var(--py, 74px);
-  width: 244px;
+  width: var(--pw, 244px);
   max-height: calc(100% - var(--py, 74px) - 16px);
   overflow: hidden;
   border-radius: var(--eui-r-lg);
@@ -1046,6 +1189,11 @@ input.eui-value { width: 72px; border: 0; outline: none; box-shadow: inset 0 0 0
 .eui--layout-panels .eui-stat { font-size: 16px; }
 .eui--layout-panels .eui-graph { height: 48px; }
 .eui--layout-panels .eui-para-icon { display: none; }
+.eui--layout-panels .eui-thumb { width: 56px; }
+.eui--layout-panels .eui-stats { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.eui--layout-panels .eui-stat-cell { padding: 8px 9px; }
+.eui--layout-panels .eui-stat-value { font-size: 14px; }
+.eui--layout-panels .eui-empty { padding: 14px 8px; }
 
 /* ───────────── Streamer mode ───────────── */
 .eui--streamer [data-sensitive] { filter: blur(6px); transition: filter 0.2s; }
@@ -1083,6 +1231,9 @@ input.eui-value { width: 72px; border: 0; outline: none; box-shadow: inset 0 0 0
 /* The HUD is for in-game use: step aside while the menu covers the screen */
 .eui-hud { transition: opacity 0.25s ease; }
 .eui--compact.is-open .eui-hud, .eui--layout-panels.is-open .eui-active { opacity: 0; }
+/* While the menu is open it stays above the HUD; widgets come back on top when it closes */
+.eui-window { z-index: 13; }
+.eui-root.is-open .eui-hud { z-index: 11; }
 .eui--compact .eui-seg.is-tabs .eui-seg-btn { padding: 0 7px; font-size: 12px; }
 
 /* ───────────── Motion preferences (Settings → Animations) ───────────── */
