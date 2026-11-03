@@ -297,7 +297,8 @@
     world.onFrame(cap.draw);
 
     // ─── Record
-    const Record = Window.CreateTab("Record", "video", "Record the game, save replays and take screenshots");
+    Window.CreateTabGroup("Capture");
+    const Record = Window.CreateTab({ Name: "Record", Icon: "video", Description: "Record the game, save replays and take screenshots", Color: "#ef4444" });
     if (!cap.supported) {
       Record.CreateParagraph({ Icon: "alert", Title: "This browser can't record", Content: "Recording needs MediaRecorder. Try a current version of Chrome, Edge, Firefox or Safari." });
     }
@@ -323,7 +324,7 @@
     Record.CreateKeybind({ Name: "Add marker", Flag: "KeyMarker", CurrentKeybind: "F4", HoldCallback: () => addMarker() });
 
     // ─── Clips
-    const Clips = Window.CreateTab("Clips", "film", "Recordings and screenshots from this session");
+    const Clips = Window.CreateTab({ Name: "Clips", Icon: "film", Description: "Recordings and screenshots from this session", Color: "#f59e0b" });
     const storage = Clips.CreateStats({ Items: [{ Name: "Clips", Value: 0 }, { Name: "Total size", Value: "0 KB" }] });
     const library = Clips.CreateList({
       Name: "Library", Icon: "film",
@@ -331,7 +332,8 @@
     });
 
     // ─── Overlay
-    const Overlay = Window.CreateTab("Overlay", "layers", "Widgets drawn on top of your game");
+    Window.CreateTabGroup("Customize");
+    const Overlay = Window.CreateTab({ Name: "Overlay", Icon: "layers", Description: "Widgets drawn on top of your game", Color: "#8b5cf6" });
     Overlay.CreateButton({ Name: "Edit HUD layout", Style: "Primary", Icon: "move", Sound: false, Callback: () => Window.EditHUD(true) });
     Overlay.CreateSection("Widgets", "grid");
     const keysMod = Overlay.CreateModule({ Name: "Keystrokes", Description: "WASD, mouse buttons and the space bar", Flag: "HudKeys", CurrentValue: true, HUD: false, Callback: (v) => hud.keys.SetVisible(v) });
@@ -354,7 +356,7 @@
     });
 
     // ─── Audio
-    const Audio = Window.CreateTab("Audio", "mic", "Sound sources for your recordings");
+    const Audio = Window.CreateTab({ Name: "Audio", Icon: "mic", Description: "Sound sources for your recordings", Color: "#22c55e" });
     Audio.CreateParagraph({ Icon: "info", Title: "Video only in this preview", Content: "The browser demo records the game view without sound. These are the audio settings the desktop build uses." });
     Audio.CreateSection("Sources", "volume");
     const gameAudio = Audio.CreateModule({ Name: "Game audio", Flag: "GameAudio", CurrentValue: true, HUD: false });
@@ -368,7 +370,7 @@
     Audio.CreateSegmented({ Name: "Audio tracks", Description: "Separate tracks are easier to edit", Options: ["Mixed", "Separate"], CurrentValue: "Separate", Flag: "AudioTracks" });
 
     // ─── Output
-    const Output = Window.CreateTab("Output", "hard-drive", "Quality, format and file names");
+    const Output = Window.CreateTab({ Name: "Output", Icon: "hard-drive", Description: "Quality, format and file names", Color: "#3b82f6" });
     const SIZES = { "720p": [1280, 720], "1080p": [1920, 1080], "1440p": [2560, 1440] };
     function laterNote() { Window.Notify({ Title: "Saved for next time", Content: "This applies to your next recording.", Icon: "clock" }); }
     function applyOutput() {
@@ -629,6 +631,12 @@
       session.Set("Replay", buffering ? fmtTime(cap.bufferAge()) + " ready" : "Off");
       session.SetTone("Duration", recording ? "danger" : null);
       session.SetTone("Replay", buffering ? "accent" : null);
+
+      // Sidebar: live badge on Record and a status line above the profile
+      Record.SetBadge(recording ? "REC" : buffering ? "REPLAY" : null, recording ? "Live" : "Success");
+      if (recording) Window.SetStatus("Recording · " + fmtTime(cap.elapsed()), "Live");
+      else if (buffering) Window.SetStatus("Replay buffer · " + fmtTime(cap.bufferAge()), "Success");
+      else Window.SetStatus(cap.supported ? "Ready · F9 to record" : "Recording unavailable", cap.supported ? "Idle" : "Warning");
     }, 250);
 
     if (flag("ReplayBuffer")) setReplay(true, true);

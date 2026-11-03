@@ -581,7 +581,10 @@
     const profileName = el("span", "eui-profile-name", { text: user.Name || "Player", "data-sensitive": "" });
     profileText.append(profileName, el("span", "eui-profile-sub", { text: "Settings" }));
     profile.append(avatar, profileText, icon("settings"));
-    side.append(nav, profile);
+    const statusEl = el("div", "eui-status", { role: "status" });
+    statusEl.append(el("i", "", { "aria-hidden": "true" }), el("span"));
+    statusEl.hidden = true;
+    side.append(nav, statusEl, profile);
     const main = el("div", "eui-main");
     body.append(side, main);
     const grip = el("div", "eui-grip", { "aria-hidden": "true" });
@@ -595,7 +598,10 @@
     const dockSettings = iconBtn("settings", "Settings");
     const dockLayout = iconBtn("grid", "Switch layout");
     const dockClose = iconBtn("x", "Close", "is-close");
-    dock.append(makeLogo(), el("span", "eui-dock-name", { text: W.Name }));
+    const dockStatus = el("div", "eui-status eui-dock-status", { "aria-hidden": "true" });
+    dockStatus.append(el("i"), el("span"));
+    dockStatus.hidden = true;
+    dock.append(makeLogo(), el("span", "eui-dock-name", { text: W.Name }), dockStatus);
     if (Config.Search) dock.append(searchTrigger());
     dock.append(dockSettings, dockLayout, dockClose);
 
@@ -1244,6 +1250,7 @@
         pill.style.height = btn.offsetHeight + "px";
         pill.style.transform = "translateY(" + btn.offsetTop + "px)";
       }
+      pill.style.setProperty("--eui-pill", activeTab._color || TILE_COLORS[0]);
       if (!pillPlaced) { void pill.offsetWidth; pill.style.transition = ""; pillPlaced = true; }
       pill.classList.add("is-on");
     }
@@ -1372,8 +1379,12 @@
     W.SetLayout = (name) => setLayout(name, true);
     W.GetLayout = () => state.layout;
 
-    function createTab(name, iconName, desc, hidden) {
+    // Tabs without a Color take the palette's three colors in turn
+    const TILE_COLORS = ["var(--eui-primary)", "var(--eui-accent)", "var(--eui-tertiary)"];
+    function createTab(name, iconName, desc, hidden, color) {
+      const tabColor = color ? toCss(color) : hidden ? TILE_COLORS[0] : TILE_COLORS[W.Tabs.filter((t) => t._button).length % TILE_COLORS.length];
       const page = el("div", "eui-page", { role: "region", "aria-label": name });
+      page.style.setProperty("--tile", tabColor);
       page.hidden = true;
       const head = el("header", "eui-page-head");
       const pi = el("div", "eui-page-icon");
@@ -1414,22 +1425,34 @@
           savePanels();
         }
       });
+      Tab._color = tabColor;
       if (!hidden) {
         const btn = el("button", "eui-nav-item", { type: "button", title: name });
-        const ic = icon(iconName);
-        if (ic) btn.append(ic);
-        btn.append(el("span", "eui-nav-label", { text: name }));
+        btn.style.setProperty("--tile", tabColor);
+        const tile = el("span", "eui-nav-tile", { "aria-hidden": "true" });
+        tile.append(icon(iconName) || icon("folder"));
+        btn.append(tile, el("span", "eui-nav-label", { text: name }));
         btn.addEventListener("click", () => { if (activeTab !== Tab) sfx("tab"); selectTab(Tab); });
         nav.append(btn);
         Tab._button = btn;
       }
       Tab.Select = () => goTab(Tab);
-      Tab.SetBadge = function (text) {
+      // tone: "Accent" (default), "Success", "Warning", "Danger" or "Live" (red, pulsing)
+      Tab.SetBadge = function (text, tone) {
         if (!Tab._button) return;
         let b = Tab._button.querySelector(".eui-badge");
         if (text == null || text === "") { if (b) b.remove(); return; }
         if (!b) { b = el("span", "eui-badge"); Tab._button.append(b); }
-        b.textContent = String(text);
+        const str = String(text);
+        if (b.textContent !== str) b.textContent = str;
+        const t = tone ? String(tone).toLowerCase() : "";
+        if ((b.dataset.tone || "") !== t) { if (t) b.dataset.tone = t; else delete b.dataset.tone; }
+      };
+      Tab.SetColor = function (c) {
+        Tab._color = c ? toCss(c) : TILE_COLORS[0];
+        page.style.setProperty("--tile", Tab._color);
+        if (Tab._button) Tab._button.style.setProperty("--tile", Tab._color);
+        if (activeTab === Tab) movePill();
       };
       Tab.SetDescription = function (t) { Tab._desc = t; descEl.textContent = t || ""; descEl.hidden = !t; };
       W.Tabs.push(Tab);
@@ -1438,9 +1461,28 @@
       else updatePages();
       return Tab;
     }
-    W.CreateTab = function (name, iconName, desc) {
-      if (name && typeof name === "object") return createTab(name.Name, name.Icon, name.Description, false);
-      return createTab(name, iconName, desc, false);
+    W.CreateTab = function (name, iconName, desc, color) {
+      if (name && typeof name === "object") return createTab(name.Name, name.Icon, name.Description, false, name.Color);
+      return createTab(name, iconName, desc, false, color);
+    };
+    // A heading that groups the tabs created after it
+    W.CreateTabGroup = function (name) {
+      const g = el("div", "eui-nav-group", { text: name || "" });
+      nav.append(g);
+      return { SetText: (t) => { g.textContent = t || ""; }, Destroy: () => g.remove() };
+    };
+    // A short live status above the profile card (and in the Panels dock).
+    // tone: "Success" (default), "Accent", "Warning", "Danger", "Live" or "Idle"; pass null to hide.
+    W.SetStatus = function (text, tone) {
+      const show = text != null && text !== "";
+      const t = tone ? String(tone).toLowerCase() : "";
+      [statusEl, dockStatus].forEach((n) => {
+        n.hidden = !show;
+        if (!show) return;
+        const span = n.lastChild;
+        if (span.textContent !== String(text)) span.textContent = String(text);
+        if ((n.dataset.tone || "") !== t) { if (t) n.dataset.tone = t; else delete n.dataset.tone; }
+      });
     };
 
     // ─────────────────────────────────────────── binds + context menu

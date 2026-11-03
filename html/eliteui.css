@@ -255,52 +255,134 @@ img.eui-ic { object-fit: contain; }
   gap: 10px;
   padding: 10px;
   border-right: 1px solid var(--eui-line);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--eui-text) 2.5%, transparent), transparent 70%);
+  background:
+    radial-gradient(140% 46% at 0% 0%, color-mix(in srgb, var(--eui-primary) 10%, transparent), transparent 72%),
+    linear-gradient(180deg, color-mix(in srgb, var(--eui-text) 2.5%, transparent), transparent 70%);
 }
 .eui-nav { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; }
 .eui-nav::-webkit-scrollbar { display: none; }
+
+/* The active pill takes the color of the tab it sits on and blends between tabs */
+@property --eui-pill { syntax: "<color>"; inherits: false; initial-value: #8b5cf6; }
 .eui-nav-pill {
   position: absolute;
   left: 0;
   right: 0;
   top: 0;
-  height: 38px;
+  height: 40px;
   border-radius: var(--eui-r-md);
-  background: linear-gradient(90deg, color-mix(in srgb, var(--eui-primary) 24%, transparent), color-mix(in srgb, var(--eui-primary) 7%, transparent));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--eui-primary) 32%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 22px -10px var(--eui-glow-strong);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--eui-pill, var(--eui-primary)) 26%, transparent), color-mix(in srgb, var(--eui-pill, var(--eui-primary)) 5%, transparent) 80%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--eui-pill, var(--eui-primary)) 34%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 8px 22px -14px color-mix(in srgb, var(--eui-pill, var(--eui-primary)) 80%, transparent);
   opacity: 0;
   pointer-events: none;
-  transition: transform 0.5s var(--eui-spring), height 0.3s var(--eui-ease), opacity 0.2s ease;
+  transition: transform 0.5s var(--eui-spring), height 0.3s var(--eui-ease), opacity 0.2s ease, --eui-pill 0.45s ease;
 }
 .eui-nav-pill.is-on { opacity: 1; }
+
+/* Group headings (Window.CreateTabGroup) */
+.eui-nav-group {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 8px 6px;
+  color: var(--eui-text-tertiary);
+  font: 500 10px/1.2 var(--eui-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.eui-nav-group::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--eui-line-strong), transparent); }
+.eui-nav-pill + .eui-nav-group { padding-top: 4px; }
+
 .eui-nav-item {
   position: relative;
   z-index: 1;
   flex: none;
-  height: 38px;
+  height: 40px;
   display: flex;
   align-items: center;
-  gap: 11px;
-  padding: 0 11px;
+  gap: 10px;
+  padding: 0 8px 0 6px;
   border-radius: var(--eui-r-md);
   color: var(--eui-text-secondary);
   font-weight: 500;
   white-space: nowrap;
   transition: color 0.15s, background 0.15s;
 }
-.eui-nav-item .eui-ic { width: 17px; height: 17px; transition: color 0.2s, transform 0.35s var(--eui-spring); }
 .eui-nav-item:hover { color: var(--eui-text); background: var(--eui-fill); }
-.eui-nav-item.is-active { color: var(--eui-text); background: transparent; }
-.eui-nav-item.is-active .eui-ic { color: var(--eui-primary-text); transform: scale(1.06); }
+.eui-nav-item.is-active { color: var(--eui-text); background: transparent; font-weight: 600; }
+/* The nav scrolls, which would clip an outer focus ring, so draw it inside */
+.eui-root .eui-nav-item:focus-visible { outline-offset: -2px; }
 .eui-nav-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* Icon tiles: each tab has its own color (Color option, or the palette in turn) */
+.eui-nav-tile {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--tile, var(--eui-primary)) 16%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tile, var(--eui-primary)) 28%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  color: color-mix(in srgb, var(--tile, var(--eui-primary)) 60%, white);
+  transition: background 0.25s ease, box-shadow 0.25s ease, color 0.2s ease, transform 0.35s var(--eui-spring);
+}
+.eui-nav-tile .eui-ic { width: 16px; height: 16px; }
+.eui-nav-item:hover .eui-nav-tile { transform: translateY(-1px) scale(1.05); }
+.eui-nav-item.is-active .eui-nav-tile {
+  background: linear-gradient(140deg, color-mix(in srgb, var(--tile, var(--eui-primary)) 82%, white), var(--tile, var(--eui-primary)) 55%, color-mix(in srgb, var(--tile, var(--eui-primary)) 72%, black));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), inset 0 -1px 0 rgba(0, 0, 0, 0.2), 0 6px 16px -5px color-mix(in srgb, var(--tile, var(--eui-primary)) 75%, transparent);
+  color: #fff;
+}
+.eui-nav-item.is-active .eui-nav-tile .eui-ic { filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35)); }
+
+/* Badges (Tab.SetBadge(text, tone)): counts, states, and a pulsing "Live" */
 .eui-badge {
   flex: none;
-  padding: 1px 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
   border-radius: 999px;
-  background: var(--eui-tint);
-  color: var(--eui-primary-text);
-  font: 500 10px/1.5 var(--eui-mono);
+  background: color-mix(in srgb, var(--tile, var(--eui-primary)) 18%, transparent);
+  color: color-mix(in srgb, var(--tile, var(--eui-primary)) 60%, white);
+  font: 600 10px/1.4 var(--eui-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
 }
+.eui-badge[data-tone="success"] { background: color-mix(in srgb, var(--eui-success) 18%, transparent); color: #86efac; }
+.eui-badge[data-tone="warning"] { background: color-mix(in srgb, var(--eui-warning) 20%, transparent); color: #fcd34d; }
+.eui-badge[data-tone="danger"], .eui-badge[data-tone="live"] { background: color-mix(in srgb, var(--eui-danger) 20%, transparent); color: #fca5a5; }
+.eui-badge[data-tone="live"]::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 6px currentColor; animation: eui-live 1.2s ease-in-out infinite; }
+@keyframes eui-live { 50% { opacity: 0.3; } }
+
+/* Status line above the profile card (Window.SetStatus) */
+.eui-status {
+  flex: none;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--eui-r-md);
+  background: var(--eui-fill);
+  box-shadow: inset 0 0 0 1px var(--eui-line);
+  color: var(--eui-text-secondary);
+  font-size: 12px;
+}
+.eui-status > i { --dot: var(--eui-success); flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--dot); box-shadow: 0 0 0 3px color-mix(in srgb, var(--dot) 18%, transparent), 0 0 8px var(--dot); }
+.eui-status > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.eui-status[data-tone="danger"] > i, .eui-status[data-tone="live"] > i { --dot: var(--eui-danger); }
+.eui-status[data-tone="live"] > i { animation: eui-live 1.2s ease-in-out infinite; }
+.eui-status[data-tone="warning"] > i { --dot: var(--eui-warning); }
+.eui-status[data-tone="accent"] > i { --dot: var(--eui-primary); }
+.eui-status[data-tone="idle"] > i { --dot: #8a8698; box-shadow: none; }
+.eui-dock-status { height: 30px; padding: 0 10px; white-space: nowrap; }
 .eui-profile {
   flex: none;
   min-width: 0;
@@ -346,9 +428,9 @@ img.eui-ic { object-fit: contain; }
   display: grid;
   place-items: center;
   border-radius: 11px;
-  background: linear-gradient(145deg, color-mix(in srgb, var(--eui-primary) 28%, transparent), color-mix(in srgb, var(--eui-accent) 8%, transparent));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--eui-primary) 32%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  color: var(--eui-primary-text);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--tile, var(--eui-primary)) 30%, transparent), color-mix(in srgb, var(--tile, var(--eui-accent)) 8%, transparent));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tile, var(--eui-primary)) 34%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: color-mix(in srgb, var(--tile, var(--eui-primary)) 60%, white);
 }
 .eui-page-icon .eui-ic { width: 18px; height: 18px; }
 .eui-page-titles { min-width: 0; }
@@ -388,7 +470,7 @@ img.eui-ic { object-fit: contain; }
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-.eui-section .eui-ic { width: 13px; height: 13px; color: var(--eui-primary-text); }
+.eui-section .eui-ic { width: 13px; height: 13px; color: color-mix(in srgb, var(--tile, var(--eui-primary)) 62%, white); }
 .eui-group {
   position: relative;
   isolation: isolate;
@@ -704,7 +786,7 @@ input.eui-value { width: 72px; border: 0; outline: none; box-shadow: inset 0 0 0
 .eui-item-actions .eui-icon-btn .eui-ic { width: 15px; height: 15px; }
 .eui-item-actions .eui-icon-btn.is-danger:hover { background: color-mix(in srgb, var(--eui-danger) 18%, transparent); color: #fca5a5; }
 .eui-empty { flex-direction: column; justify-content: center; gap: 6px; padding: 22px 18px; text-align: center; }
-.eui-empty-icon { width: 40px; height: 40px; display: grid; place-items: center; margin-bottom: 4px; border-radius: 12px; background: var(--eui-tint); color: var(--eui-primary-text); }
+.eui-empty-icon { width: 40px; height: 40px; display: grid; place-items: center; margin-bottom: 4px; border-radius: 12px; background: color-mix(in srgb, var(--tile, var(--eui-primary)) 16%, transparent); color: color-mix(in srgb, var(--tile, var(--eui-primary)) 62%, white); }
 .eui-empty-icon .eui-ic { width: 19px; height: 19px; }
 .eui-empty .eui-para-body { max-width: 42ch; }
 
@@ -1098,11 +1180,18 @@ input.eui-value { width: 72px; border: 0; outline: none; box-shadow: inset 0 0 0
 .eui--layout-tabs .eui-body { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
 .eui--layout-tabs .eui-side { flex-direction: row; padding: 8px 12px; border-right: 0; border-bottom: 1px solid var(--eui-line); background: none; }
 .eui--layout-tabs .eui-nav { flex-direction: row; overflow-x: auto; overflow-y: hidden; }
-.eui--layout-tabs .eui-nav-item { height: 34px; padding: 0 12px; gap: 8px; }
+.eui--layout-tabs .eui-nav-item { height: 34px; padding: 0 10px 0 5px; gap: 8px; }
+.eui--layout-tabs .eui-nav-tile { width: 24px; height: 24px; border-radius: 7px; }
+.eui--layout-tabs .eui-nav-tile .eui-ic { width: 14px; height: 14px; }
 .eui--layout-tabs .eui-nav-pill { right: auto; height: 34px; }
+.eui--layout-tabs .eui-nav-group { align-self: center; width: 1px; height: 18px; margin: 0 6px; padding: 0; font-size: 0; background: var(--eui-line-strong); }
+.eui--layout-tabs .eui-nav-group::after, .eui--layout-tabs .eui-nav-pill + .eui-nav-group { display: none; }
+.eui--layout-tabs .eui-status { padding: 6px 10px; }
 .eui--layout-tabs .eui-profile { display: none; }
-.eui--compact.eui--layout-tabs .eui-nav-item { height: 34px; padding: 0 12px; justify-content: flex-start; }
+.eui--compact.eui--layout-tabs .eui-nav-item { height: 34px; padding: 0 10px 0 5px; justify-content: flex-start; }
 .eui--compact.eui--layout-tabs .eui-nav-label { display: block; }
+.eui--compact.eui--layout-tabs .eui-nav-tile { width: 24px; height: 24px; border-radius: 7px; }
+.eui--compact.eui--layout-tabs .eui-nav-group { width: 1px; height: 18px; margin: 0 6px; }
 
 /* ───────────── Layout: Panels (ClickGUI: one floating panel per tab) ───────────── */
 .eui-panels { position: absolute; inset: 0; z-index: 12; pointer-events: none; }
@@ -1137,7 +1226,7 @@ input.eui-value { width: 72px; border: 0; outline: none; box-shadow: inset 0 0 0
   gap: 9px;
   padding: 0 6px 0 8px;
   border-bottom: 1px solid var(--eui-line);
-  background: linear-gradient(90deg, color-mix(in srgb, var(--eui-primary) 22%, transparent), transparent 85%);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--tile, var(--eui-primary)) 24%, transparent), transparent 85%);
   cursor: grab;
   user-select: none;
   touch-action: none;
@@ -1202,7 +1291,6 @@ input.eui-value { width: 72px; border: 0; outline: none; box-shadow: inset 0 0 0
 /* ───────────── Compact (phones, narrow hosts) ───────────── */
 .eui--compact { --eui-header: 52px; --eui-side: 62px; --eui-row: 50px; }
 .eui--compact .eui-nav-label,
-.eui--compact .eui-badge,
 .eui--compact .eui-profile-text,
 .eui--compact .eui-profile > .eui-ic,
 .eui--compact .eui-chip,
@@ -1211,7 +1299,20 @@ input.eui-value { width: 72px; border: 0; outline: none; box-shadow: inset 0 0 0
 .eui--compact .eui-grip { display: none; }
 .eui--compact .eui-side { padding: 8px; }
 .eui--compact .eui-nav-item { justify-content: center; height: 44px; padding: 0; }
-.eui--compact .eui-nav-item .eui-ic { width: 19px; height: 19px; }
+.eui--compact .eui-nav-tile { width: 34px; height: 34px; border-radius: 10px; }
+.eui--compact .eui-nav-tile .eui-ic { width: 18px; height: 18px; }
+.eui--compact .eui-nav-group { height: 1px; margin: 8px 10px; padding: 0; font-size: 0; background: var(--eui-line-strong); }
+.eui--compact .eui-nav-group::after, .eui--compact .eui-nav-pill + .eui-nav-group { display: none; }
+/* On the narrow rail a badge shrinks to a dot on the tile's corner */
+.eui--compact:not(.eui--layout-tabs) .eui-nav-item .eui-badge { position: absolute; top: 3px; right: 5px; width: 9px; height: 9px; padding: 0; gap: 0; font-size: 0; border-radius: 50%; background: var(--tile, var(--eui-primary)); box-shadow: 0 0 0 2px var(--eui-background); }
+.eui--compact:not(.eui--layout-tabs) .eui-nav-item .eui-badge[data-tone="success"] { background: var(--eui-success); }
+.eui--compact:not(.eui--layout-tabs) .eui-nav-item .eui-badge[data-tone="warning"] { background: var(--eui-warning); }
+.eui--compact:not(.eui--layout-tabs) .eui-nav-item .eui-badge[data-tone="danger"],
+.eui--compact:not(.eui--layout-tabs) .eui-nav-item .eui-badge[data-tone="live"] { background: var(--eui-danger); }
+.eui--compact:not(.eui--layout-tabs) .eui-nav-item .eui-badge[data-tone="live"] { animation: eui-live 1.2s ease-in-out infinite; }
+.eui--compact:not(.eui--layout-tabs) .eui-nav-item .eui-badge::before { display: none; }
+.eui--compact:not(.eui--layout-tabs) .eui-status { justify-content: center; padding: 6px 0; background: none; box-shadow: none; }
+.eui--compact:not(.eui--layout-tabs) .eui-status > span { display: none; }
 .eui--compact .eui-profile { justify-content: center; padding: 4px 0; background: none; box-shadow: none; }
 .eui--compact .eui-search-trigger { width: 34px; height: 34px; padding: 0; justify-content: center; }
 .eui--compact .eui-icon-btn { width: 34px; height: 34px; }

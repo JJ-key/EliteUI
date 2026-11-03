@@ -51,6 +51,7 @@ EliteUI is an overlay: it sits on top of a game, it isn't the game. The demo in 
 - `CreateList`: a list with thumbnails, actions and an empty state (`list.Add({ Title, Meta, Image, Actions })`)
 - `Window.CreateWidget`: a HUD widget that stays on screen with the menu closed (`widget.SetText(...)`)
 - `Window.Countdown(3)`, `Window.Flash()`, `Window.PlaySound("record")`, and `Window.Dialog` with media (`Element`, `Wide`)
+- Sidebar: `Window.CreateTabGroup("Capture")` adds a heading, `CreateTab({ Name, Icon, Color })` gives a tab its own icon color (otherwise the palette's three colors take turns), `Tab.SetBadge("REC", "Live")` shows a count or a pulsing state, and `Window.SetStatus("Recording · 0:12", "Live")` shows a status line above the profile
 - Dropdowns take `MultipleOptions = true`; long lists get a filter box
 - Buttons take `Style = "Primary"` or `"Danger"`; most components take `Description`
 
